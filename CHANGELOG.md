@@ -4,6 +4,12 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.8.5] - 2026-03-02
+
+### Fixed
+- Logo in-use check now considers all saved datasets, not just current experiences. A logo referenced by any CV variant is protected from deletion.
+- Delete endpoint also validates against saved datasets before allowing removal.
+
 ## [1.8.4] - 2026-03-02
 
 ### Fixed
