@@ -4,6 +4,15 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.8.3] - 2026-03-02
+
+### Changed
+- Logo files are no longer deleted when removing or replacing a logo on an experience — files persist on disk for reuse via the logo picker. Only the explicit delete button in the picker removes files.
+- Logo picker delete button now only considers current experiences as "in use" (not saved dataset snapshots), so orphaned logos can actually be cleaned up.
+
+### Fixed
+- Timeline section header and separator too close to cards in print view — added extra margin below the header.
+
 ## [1.8.2] - 2026-03-02
 
 ### Fixed

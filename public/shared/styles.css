@@ -1052,6 +1052,7 @@ body.has-preview-banner .container {
     .section-title { font-size: 15px; }
     
     /* Timeline - SHOW it in print (only if not hidden by user choice) */
+    #section-timeline:not(.hidden-print) .section-header { margin-bottom: 16px; }
     #section-timeline:not(.hidden-print) .timeline-container {
         display: block !important;
         min-height: 180px;

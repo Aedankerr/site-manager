@@ -899,22 +899,14 @@ if (PUBLIC_ONLY) {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
         const exp = db.prepare('SELECT logo_filename FROM experiences WHERE id = ?').get(req.params.id);
         if (!exp) return res.status(404).json({ error: 'Experience not found' });
-        // Only delete old file if no other experience references it
-        if (exp.logo_filename) {
-            const refCount = db.prepare('SELECT COUNT(*) as cnt FROM experiences WHERE logo_filename = ?').get(exp.logo_filename).cnt;
-            if (refCount <= 1) { const oldPath = path.join(uploadsPath, exp.logo_filename); try { if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath); } catch (e) {} }
-        }
+        // Keep old file on disk for reuse via the logo picker
         db.prepare('UPDATE experiences SET logo_filename = ? WHERE id = ?').run(req.file.filename, req.params.id);
         res.json({ success: true, filename: req.file.filename });
     });
     app.delete('/api/experiences/:id/logo', (req, res) => {
         const exp = db.prepare('SELECT logo_filename FROM experiences WHERE id = ?').get(req.params.id);
         if (!exp) return res.status(404).json({ error: 'Experience not found' });
-        // Only delete the file if no other experience references it
-        if (exp.logo_filename) {
-            const refCount = db.prepare('SELECT COUNT(*) as cnt FROM experiences WHERE logo_filename = ?').get(exp.logo_filename).cnt;
-            if (refCount <= 1) { const logoPath = path.join(uploadsPath, exp.logo_filename); try { if (fs.existsSync(logoPath)) fs.unlinkSync(logoPath); } catch (e) {} }
-        }
+        // Unlink from experience only — file stays on disk for reuse via the logo picker
         db.prepare('UPDATE experiences SET logo_filename = NULL WHERE id = ?').run(req.params.id);
         res.json({ success: true });
     });
@@ -937,30 +929,30 @@ if (PUBLIC_ONLY) {
         let files = [];
         try { files = fs.readdirSync(uploadsPath).filter(f => f.startsWith('logo_')); } catch (e) {}
         if (!files.length) return res.json([]);
-        // Build filename → company map from current experiences
+        // Build filename → company map and in-use set from current experiences
         const companyMap = {};
         const inUseSet = new Set();
         db.prepare('SELECT logo_filename, company_name FROM experiences WHERE logo_filename IS NOT NULL').all()
             .forEach(r => { if (r.logo_filename) { inUseSet.add(r.logo_filename); if (r.company_name) companyMap[r.logo_filename] = r.company_name; } });
-        // Also check saved datasets for company names and usage
-        try {
-            const datasets = db.prepare('SELECT data FROM saved_datasets').all();
-            for (const ds of datasets) {
-                try {
-                    const data = JSON.parse(ds.data);
-                    if (data.experiences) {
-                        for (const exp of data.experiences) {
-                            if (exp.logo_filename) {
-                                inUseSet.add(exp.logo_filename);
-                                if (exp.company_name && !companyMap[exp.logo_filename]) {
+        // Check saved datasets for company names only (not usage — snapshots are historical)
+        const unmapped = files.filter(f => !companyMap[f]);
+        if (unmapped.length) {
+            try {
+                const datasets = db.prepare('SELECT data FROM saved_datasets').all();
+                for (const ds of datasets) {
+                    try {
+                        const data = JSON.parse(ds.data);
+                        if (data.experiences) {
+                            for (const exp of data.experiences) {
+                                if (exp.logo_filename && exp.company_name && !companyMap[exp.logo_filename]) {
                                     companyMap[exp.logo_filename] = exp.company_name;
                                 }
                             }
                         }
-                    }
-                } catch (e) {}
-            }
-        } catch (e) {}
+                    } catch (e) {}
+                }
+            } catch (e) {}
+        }
         res.json(files.map(f => ({ filename: f, company: companyMap[f] || null, in_use: inUseSet.has(f) })));
     });
 
@@ -970,21 +962,9 @@ if (PUBLIC_ONLY) {
         if (!filename || !filename.startsWith('logo_')) return res.status(400).json({ error: 'Invalid filename' });
         const filePath = path.join(uploadsPath, filename);
         if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });
-        // Check if in use by current experiences
+        // Check if in use by current experiences only (dataset snapshots are historical)
         const expRef = db.prepare('SELECT COUNT(*) as cnt FROM experiences WHERE logo_filename = ?').get(filename).cnt;
         if (expRef > 0) return res.status(409).json({ error: 'Logo is in use by current experiences' });
-        // Check if in use by saved datasets
-        try {
-            const datasets = db.prepare('SELECT id, data FROM saved_datasets').all();
-            for (const ds of datasets) {
-                try {
-                    const data = JSON.parse(ds.data);
-                    if (data.experiences && data.experiences.some(e => e.logo_filename === filename)) {
-                        return res.status(409).json({ error: 'Logo is in use by a saved dataset' });
-                    }
-                } catch (e) {}
-            }
-        } catch (e) {}
         try { fs.unlinkSync(filePath); } catch (e) { return res.status(500).json({ error: 'Failed to delete file' }); }
         res.json({ success: true });
     });
