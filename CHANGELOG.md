@@ -4,13 +4,15 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
-## [1.10.2] - 2026-03-02
+## [1.10.3] - 2026-03-02
 
 ### Fixed
-- Timeline print layout: dots, cards and branch curves misaligned from the track on Safari iOS. Root cause was asymmetric padding (`80px top / 50px bottom`) — the track uses `top: 50%` of the padding box while dots/cards reference 50% of the content box, causing a 15px vertical offset. Restored symmetric padding (`65px`).
-- Reinforced dot/flag positioning with explicit `position`/`transform` in print to prevent Safari rendering quirks.
-- Branch curves now use a reduced stroke width in print and explicit `overflow: visible` for Safari iOS compatibility.
-- Disabled card hover transitions in print to prevent animation artifacts.
+- Timeline print layout on Safari iOS: dots misaligned from track, cards overlapping the line, branch curves invisible.
+- Root cause for dot/card misalignment: asymmetric padding (`80px top / 50px bottom`) — the track uses `top: 50%` of the padding box while dots/cards reference 50% of the content box, causing a 15px vertical offset. Restored symmetric padding (`65px`).
+- Root cause for invisible branches: Safari iOS doesn't render inline SVGs with `preserveAspectRatio="none"` in print. Added CSS-based branch line elements (`div.timeline-branch-line`) as a print fallback — hidden on screen, shown via `@media print`, positioned using the same percentage coordinates as the SVG.
+- Added explicit CSS `stroke` property on SVG branch paths (more reliable than SVG attribute for CSS variable resolution in print).
+- Reinforced dot/flag positioning with explicit `position`/`transform` in print.
+- Disabled card hover transitions in print.
 
 ## [1.10.1] - 2026-03-02
 

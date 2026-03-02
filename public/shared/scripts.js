@@ -650,6 +650,8 @@ function renderBranchCurves(timelineContainer, segments, branches, positions) {
     if (!timelineContainer) return;
     const existing = timelineContainer.querySelector('.timeline-branch-curves');
     if (existing) existing.remove();
+    // Clean up CSS-based print fallback lines from previous renders
+    timelineContainer.querySelectorAll('.timeline-branch-line').forEach(el => el.remove());
     if (!branches.length) return;
 
     const itemsContainer = timelineContainer.querySelector('.timeline-items');
@@ -727,10 +729,11 @@ function renderBranchCurves(timelineContainer, segments, branches, positions) {
         ));
 
         const lastBranchOngoing = !segments[lastBranchIdx].item.end_date;
+        let branchEndX;
 
         if (lastBranchOngoing) {
             // Align branch endpoint with the main track line's actual right edge
-            const branchEndX = trackRightX;
+            branchEndX = trackRightX;
             if (branchStartX < branchEndX) {
                 svg.appendChild(makePath(`M ${branchStartX},${branchY} L ${branchEndX},${branchY}`));
             }
@@ -749,6 +752,7 @@ function renderBranchCurves(timelineContainer, segments, branches, positions) {
             }
 
             const branchLineEnd = mergeX - curveW;
+            branchEndX = branchLineEnd;
 
             // Branch track line
             if (branchStartX < branchLineEnd) {
@@ -759,6 +763,16 @@ function renderBranchCurves(timelineContainer, segments, branches, positions) {
             svg.appendChild(makePath(
                 `M ${branchLineEnd},${branchY} C ${branchLineEnd + curveW / 2},${branchY} ${branchLineEnd + curveW / 2},${mainY} ${mergeX},${mainY}`
             ));
+        }
+
+        // CSS-based branch line fallback for print (Safari iOS doesn't render SVGs reliably)
+        // Hidden on screen via CSS, shown in @media print
+        if (branchStartX < branchEndX) {
+            const line = document.createElement('div');
+            line.className = 'timeline-branch-line';
+            line.style.left = (branchStartX / containerW * 100) + '%';
+            line.style.width = ((branchEndX - branchStartX) / containerW * 100) + '%';
+            timelineContainer.appendChild(line);
         }
     });
 
