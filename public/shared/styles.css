@@ -1060,7 +1060,7 @@ body.has-preview-banner .container {
     #section-timeline:not(.hidden-print) .timeline-company { font-size: 9px; }
     #section-timeline:not(.hidden-print) .timeline-role { font-size: 8px; }
     #section-timeline:not(.hidden-print) .timeline-period { font-size: 8px; }
-    #section-timeline:not(.hidden-print) .timeline-content { padding: 6px 8px; }
+    #section-timeline:not(.hidden-print) .timeline-content { padding: 6px 8px; max-width: 90px; min-width: 40px; }
     #section-timeline:not(.hidden-print) .timeline-dot { width: 10px; height: 10px; }
     #section-timeline:not(.hidden-print) .timeline-flag { width: 16px; height: 16px; }
     #section-timeline:not(.hidden-print) .timeline-card-logo { width: 70px; height: 22px; }
