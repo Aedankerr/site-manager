@@ -70,6 +70,7 @@ Click the **edit icon** on the header section. You can set:
 - **Bio** (professional summary — line breaks are preserved)
 - **Location**
 - **Email**, **Phone**, **LinkedIn** (shown as contact badges)
+- **Languages** (spoken languages, e.g., "English, French, German" — shown as a badge with a globe icon)
 
 ### Profile Picture
 
@@ -84,6 +85,36 @@ Each experience entry includes:
 - **Location** and **Country Code** (2-letter code like `us`, `ch`, `fr` — used for flag icons on the timeline)
 - **Highlights** — bullet points describing your achievements (one per line)
 
+### Company Logos
+
+Each experience entry can have a **company logo**. Logos appear on the timeline as images instead of plain company names.
+
+**Uploading a logo:**
+
+1. Edit an experience entry
+2. In the **Company Logo** section, click **Choose image** to upload a file (JPEG, PNG, or WebP, max 5MB)
+3. A small square image works best
+
+**Reusing logos:**
+
+Click **Use existing** to open the logo picker grid, which shows all previously uploaded logos. Click one to reuse it — this avoids uploading the same logo multiple times.
+
+**Auto-fill:**
+
+When you type a company name that already has a logo (from a current or saved experience), the logo is automatically filled in. This works across datasets.
+
+**Global propagation:**
+
+When a logo is set, a toggle appears: **"Sync logo across all [Company] experiences"**. When enabled:
+
+- The logo is applied to **all** experiences with the same company name — including those in saved datasets
+- Future experiences for the same company will automatically inherit the logo
+- Toggling it off does **not** remove already-applied logos — it only stops future auto-propagation
+
+**Removing a logo:**
+
+Click the **Remove** button in the logo section to unlink a logo from an experience. The file is kept on disk for reuse. To permanently delete an unused logo file, open the logo picker and click the delete button on any logo that is not in use.
+
 ### Certifications
 
 Each certification has a **name**, **provider**, **issue date**, and optional **expiry date** and **credential ID**.
@@ -94,7 +125,7 @@ Each entry has a **degree/title**, **institution**, **start/end dates**, and an 
 
 ### Skills
 
-Skills are organized into **categories** (e.g., "Programming Languages", "Tools & Platforms"). Each category contains individual skill tags. Categories can have custom icons selected from a preset list.
+Skills are organized into **categories** (e.g., "Programming Languages", "Tools & Platforms"). Each category contains individual skill tags. Categories can have an **icon** selected from a preset list: code, server, database, cloud, settings, users, briefcase, cpu, layers, or default. If no icon is chosen, the system auto-detects one based on the category name (e.g., a category named "Programming" automatically gets the code icon).
 
 ### Projects
 
@@ -120,7 +151,8 @@ Custom sections let you add any content that doesn't fit the built-in sections.
 2. Click **Add Custom Section**
 3. Enter a section name
 4. Choose a layout type (see below)
-5. Save — the new section appears in your CV
+5. Optionally choose a **section icon** (star, book, link, globe, heart, award, briefcase) — displayed next to the heading
+6. Save — the new section appears in your CV
 
 ### Layout Types
 
@@ -148,13 +180,25 @@ Click **Manage Items** on any custom section to add, edit, reorder, or delete it
 
 The timeline is automatically generated from your work experiences. It displays:
 
-- Company names and job titles
+- Company logos (or company names if no logo is set)
+- Job titles
 - Date ranges
 - Country flags (when the country changes between experiences)
 
 ### Timeline Click Navigation
 
 Clicking any item on the timeline scrolls you to the corresponding experience card and highlights it briefly.
+
+### Parallel Jobs (Timeline Branching)
+
+When two or more work experiences overlap in time by at least 1 month, the timeline automatically renders them as **parallel tracks**:
+
+- The concurrent position splits onto a **branch track** — an elevated line above the main timeline
+- **S-curve connectors** visually show where the branch forks from and merges back to the main track
+- If a parallel position is ongoing (no end date), the branch line extends to the right edge of the timeline
+- Cards for branch-track items are positioned separately to avoid overlapping with main-track cards
+
+No configuration is needed — branching is fully automatic based on your experience dates. Short overlaps under 1 month (common during job transitions) are intentionally ignored.
 
 ### Timeline Date Format
 
@@ -189,6 +233,34 @@ Go to **Settings → Advanced → Date Format** to choose how dates appear on yo
 | MM-YYYY | 01-2020 |
 | YYYY-MM | 2020-01 |
 | YYYY | 2020 (year only) |
+
+---
+
+## Language
+
+Click the **globe icon** in the toolbar to switch the admin interface language. A dropdown grid shows all available languages — click one to apply it immediately.
+
+**Supported languages:** English, German (Deutsch), French (Français), Dutch (Nederlands), Spanish (Español), Italian (Italiano), Portuguese (Português), Chinese (中文).
+
+The language setting only affects the admin interface — it does not change the content of your CV. Your preference is saved and persists across sessions.
+
+---
+
+## Updates & Version
+
+### Checking Your Version
+
+Open **Settings** — the current version (e.g., `v1.11.0`) is shown in the bottom-left corner of the modal footer.
+
+### Update Notifications
+
+CV Manager automatically checks GitHub for newer versions. If an update is available, a blue banner appears below the toolbar:
+
+> **Update available: v1.12.0** (you're on v1.11.0) — *What's new*
+
+The "What's new" link opens the changelog. You can dismiss the banner with the X button.
+
+The version check is **cached for 24 hours** — if you just published a new version to GitHub, your running instance may not detect it until the cache expires or you **restart the server** (which clears the in-memory cache).
 
 ---
 
@@ -434,6 +506,9 @@ Yes. Most items support drag-and-drop reordering. The order is saved automatical
 **Q: How do I add bullet points to an experience?**
 Edit the experience and enter highlights in the **Highlights** field — one bullet point per line.
 
+**Q: How do I add a company logo?**
+Edit the experience, scroll to the **Company Logo** section, and click **Choose image** to upload. You can also click **Use existing** to reuse a logo you've already uploaded. Enable the **"Sync logo across all [Company]"** toggle to apply the same logo to all experiences at that company.
+
 **Q: I accidentally deleted something. Can I undo it?**
 There's no undo feature. Since edits are auto-saved to the active dataset, the change is persisted immediately. If you have a previous export or a separate saved dataset, you can restore from that. It's good practice to export your CV regularly as a backup.
 
@@ -472,6 +547,23 @@ No. The timeline is automatically generated from your work experiences. Add or e
 
 **Q: The country flag isn't showing on the timeline?**
 Make sure the **Country Code** field on the experience is set to a valid 2-letter ISO country code (e.g., `us`, `gb`, `ch`, `de`, `fr`). Flags are loaded from an external CDN.
+
+**Q: What happens when I have two jobs at the same time?**
+The timeline automatically detects overlapping positions and renders them as **parallel tracks**. The concurrent job appears on an elevated branch line with S-curve connectors showing the fork and merge points. No configuration needed — it's based entirely on your start/end dates. Overlaps shorter than 1 month are ignored (common during job transitions).
+
+**Q: Why does the timeline show a logo instead of the company name?**
+If you've uploaded a company logo for that experience, the timeline displays the logo image instead of text. If the logo file is missing, it falls back to the company name. To remove a logo from the timeline, edit the experience and click **Remove** in the Company Logo section.
+
+### Language & Updates
+
+**Q: How do I change the admin language?**
+Click the **globe icon** in the toolbar and select a language from the dropdown grid. The change applies immediately and is saved across sessions.
+
+**Q: How do I check what version I'm running?**
+Open **Settings** — the version number is shown in the bottom-left corner of the modal (e.g., `v1.11.0`).
+
+**Q: I don't see the update banner even though a new version is out?**
+The version check is cached for 24 hours. Restart your server (or Docker container) to clear the cache and force a fresh check. Your server also needs outbound internet access to reach `raw.githubusercontent.com`.
 
 ### Datasets / Multiple CVs
 

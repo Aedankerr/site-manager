@@ -4,6 +4,27 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.11.1] - 2026-03-02
+
+### Added
+- User Guide: documented company logo management (upload, reuse, auto-fill, global propagation)
+- User Guide: documented timeline branching for parallel/concurrent job experiences
+- User Guide: documented language picker, version display, update notifications
+- User Guide: documented profile Languages field, custom section icons, skill category auto-detection
+
+## [1.11.0] - 2026-03-02
+
+### Added
+- Version display in Settings modal footer showing the current running version
+- Language picker button in toolbar for quick language switching
+
+### Changed
+- Removed "Show All" button from toolbar
+- Moved language selection from Settings tab to toolbar dropdown
+
+### Fixed
+- Update banner text was hardcoded in English instead of using the i18n translation system
+
 ## [1.10.6] - 2026-03-02
 
 ### Fixed
