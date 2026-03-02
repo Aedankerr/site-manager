@@ -81,6 +81,7 @@
     "form.use_existing": "Bestaande gebruiken",
     "form.delete_logo": "Logo verwijderen",
     "form.in_use": "In gebruik",
+    "form.apply_logo_global": "Dit logo toepassen op alle {{company}}-ervaringen",
     "form.name": "Naam",
     "form.initials": "Initialen",
     "form.title": "Titel",

@@ -81,6 +81,7 @@
     "form.use_existing": "Utiliser existant",
     "form.delete_logo": "Supprimer le logo",
     "form.in_use": "Utilisé",
+    "form.apply_logo_global": "Appliquer ce logo à toutes les expériences {{company}}",
     "form.name": "Nom",
     "form.initials": "Initiales",
     "form.title": "Titre",

@@ -4,6 +4,12 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.9.0] - 2026-03-02
+
+### Added
+- Global logo apply: checkbox in the experience modal to apply a logo to all experiences with the same company name across all CV variants (current + saved datasets).
+- New API endpoint `POST /api/logos/apply-global` to propagate a logo to all matching company experiences.
+
 ## [1.8.5] - 2026-03-02
 
 ### Fixed

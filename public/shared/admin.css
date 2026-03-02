@@ -449,6 +449,15 @@
     white-space: nowrap;
     max-width: 100%;
 }
+.logo-apply-global-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--gray-600);
+    cursor: pointer;
+}
+.logo-apply-global-label input[type="checkbox"] { margin: 0; }
 
 /* Toast */
 .toast {

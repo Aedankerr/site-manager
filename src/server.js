@@ -980,6 +980,41 @@ if (PUBLIC_ONLY) {
         res.json({ success: true });
     });
 
+    // Apply a logo globally to all experiences with the same company name (current + datasets)
+    app.post('/api/logos/apply-global', express.json(), (req, res) => {
+        const { company_name, logo_filename } = req.body;
+        if (!company_name || !logo_filename) return res.status(400).json({ error: 'company_name and logo_filename are required' });
+        if (!fs.existsSync(path.join(uploadsPath, logo_filename))) return res.status(404).json({ error: 'Logo file not found' });
+        let updatedCurrent = 0;
+        let updatedDatasets = 0;
+        // Update current experiences
+        const result = db.prepare('UPDATE experiences SET logo_filename = ? WHERE company_name = ?').run(logo_filename, company_name);
+        updatedCurrent = result.changes;
+        // Update saved datasets
+        try {
+            const datasets = db.prepare('SELECT id, data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.experiences) {
+                        let changed = false;
+                        for (const exp of data.experiences) {
+                            if (exp.company_name === company_name && exp.logo_filename !== logo_filename) {
+                                exp.logo_filename = logo_filename;
+                                changed = true;
+                                updatedDatasets++;
+                            }
+                        }
+                        if (changed) {
+                            db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(data), ds.id);
+                        }
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json({ success: true, updated_current: updatedCurrent, updated_datasets: updatedDatasets });
+    });
+
     app.get('/api/settings', (req, res) => { const settings = db.prepare('SELECT * FROM settings').all(); const result = {}; settings.forEach(s => { result[s.key] = s.value; }); res.json(result); });
     app.get('/api/settings/:key', (req, res) => { const setting = db.prepare('SELECT value FROM settings WHERE key = ?').get(req.params.key); res.json({ value: setting?.value || null }); });
     app.put('/api/settings/:key', (req, res) => { db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(req.params.key, req.body.value); res.json({ success: true }); });

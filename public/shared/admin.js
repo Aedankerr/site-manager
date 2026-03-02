@@ -866,6 +866,7 @@ async function openModal(type, id = null) {
         case 'experience':
             title = id ? t('modal.edit_experience') : t('modal.add_experience');
             pendingLogo = null;
+            currentModal.existingLogo = data.logo_filename || null;
             form = experienceForm(data);
             break;
         case 'certification':
@@ -889,6 +890,7 @@ async function openModal(type, id = null) {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').innerHTML = form;
     document.getElementById('modalOverlay').classList.add('active');
+    if (type === 'experience') updateLogoApplyGlobal();
 }
 
 function closeModal() {
@@ -1000,6 +1002,10 @@ function experienceForm(d) {
                 <div class="logo-picker-grid" id="logoPickerGrid" style="display:none;"></div>
             </div>
             <div class="form-hint">${t('form.logo_hint')}</div>
+            <label class="checkbox-label logo-apply-global-label" id="logoApplyGlobalLabel" style="display:none; margin-top: 6px;">
+                <input type="checkbox" id="f-logo-apply-global">
+                <span id="logoApplyGlobalText"></span>
+            </label>
         </div>
         <div class="form-group">
             <label class="form-label">${t('form.job_title')}</label>
@@ -1008,7 +1014,7 @@ function experienceForm(d) {
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label">${t('form.company')}</label>
-                <input type="text" class="form-input" id="f-company_name" value="${escapeHtml(d.company_name || '')}">
+                <input type="text" class="form-input" id="f-company_name" value="${escapeHtml(d.company_name || '')}" oninput="updateLogoApplyGlobal()">
             </div>
             <div class="form-group">
                 <label class="form-label">${t('form.country_code')}</label>
@@ -1189,12 +1195,21 @@ async function saveItem() {
                 highlights: val('f-highlights').split('\n').filter(h => h.trim()),
                 visible: true
             };
-            if (id) {
-                await api(`/api/${endpoint}/${id}`, { method: 'PUT', body: data });
-                await uploadLogo(id);
-            } else {
-                const result = await api(`/api/${endpoint}`, { method: 'POST', body: data });
-                if (result.id) await uploadLogo(result.id);
+            {
+                const applyGlobal = checked('f-logo-apply-global');
+                let logoFilename = null;
+                if (id) {
+                    await api(`/api/${endpoint}/${id}`, { method: 'PUT', body: data });
+                    logoFilename = await uploadLogo(id);
+                } else {
+                    const result = await api(`/api/${endpoint}`, { method: 'POST', body: data });
+                    if (result.id) logoFilename = await uploadLogo(result.id);
+                }
+                // Fall back to the existing logo if user didn't change it
+                if (!logoFilename) logoFilename = currentModal.existingLogo;
+                if (applyGlobal && logoFilename && data.company_name) {
+                    await api('/api/logos/apply-global', { method: 'POST', body: { company_name: data.company_name, logo_filename: logoFilename } });
+                }
             }
             await loadExperiences();
             await loadTimeline();
@@ -1476,6 +1491,7 @@ function previewLogo(input) {
         reader.onload = function(e) {
             const preview = document.getElementById('logoUploadPreview');
             preview.innerHTML = `<img src="${e.target.result}" alt="" id="logoPreviewImg">`;
+            updateLogoApplyGlobal();
         };
         reader.readAsDataURL(file);
     }
@@ -1487,6 +1503,22 @@ function removeLogo() {
     preview.innerHTML = '<div class="logo-preview-placeholder" id="logoPreviewPlaceholder"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>';
     const fileInput = document.getElementById('f-logo');
     if (fileInput) fileInput.value = '';
+    updateLogoApplyGlobal();
+}
+
+function updateLogoApplyGlobal() {
+    const label = document.getElementById('logoApplyGlobalLabel');
+    if (!label) return;
+    const company = (document.getElementById('f-company_name')?.value || '').trim();
+    const hasLogo = pendingLogo === 'remove' ? false : (pendingLogo || document.getElementById('logoPreviewImg'));
+    if (company && hasLogo) {
+        label.style.display = '';
+        document.getElementById('logoApplyGlobalText').textContent = t('form.apply_logo_global', { company });
+    } else {
+        label.style.display = 'none';
+        const cb = document.getElementById('f-logo-apply-global');
+        if (cb) cb.checked = false;
+    }
 }
 
 async function showLogoPicker() {
@@ -1537,23 +1569,27 @@ function selectExistingLogo(filename) {
     if (grid) grid.style.display = 'none';
     const fileInput = document.getElementById('f-logo');
     if (fileInput) fileInput.value = '';
+    updateLogoApplyGlobal();
 }
 
 async function uploadLogo(experienceId) {
     if (pendingLogo === 'remove') {
         try { await fetch(`/api/experiences/${experienceId}/logo`, { method: 'DELETE' }); } catch (err) {}
         pendingLogo = null;
-        return;
+        return null;
     }
     if (pendingLogo && pendingLogo.reuse) {
+        const fname = pendingLogo.reuse;
         try {
-            const response = await api(`/api/experiences/${experienceId}/logo`, { method: 'PUT', body: { filename: pendingLogo.reuse } });
+            const response = await api(`/api/experiences/${experienceId}/logo`, { method: 'PUT', body: { filename: fname } });
             if (response.error) throw new Error(response.error);
         } catch (err) {
             toast(t('toast.logo_upload_failed'), 'error');
+            pendingLogo = null;
+            return null;
         }
         pendingLogo = null;
-        return;
+        return fname;
     }
     if (pendingLogo && pendingLogo instanceof File) {
         const formData = new FormData();
@@ -1561,11 +1597,16 @@ async function uploadLogo(experienceId) {
         try {
             const response = await fetch(`/api/experiences/${experienceId}/logo`, { method: 'POST', body: formData });
             if (!response.ok) throw new Error('Upload failed');
+            const result = await response.json();
+            pendingLogo = null;
+            return result.filename || null;
         } catch (err) {
             toast(t('toast.logo_upload_failed'), 'error');
         }
         pendingLogo = null;
+        return null;
     }
+    return null;
 }
 
 function toast(msg, type = 'success') {
