@@ -4,14 +4,21 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.10.4] - 2026-03-02
+
+### Fixed
+- Branch dot forced onto main line in print: the `#section-timeline .timeline-dot { top: 50% }` print override (specificity 1,2,0) was overriding `.timeline-item.timeline-branch-track .timeline-dot { top: calc(50% - var(--branch-offset-pct)) }` (specificity 0,3,0). Removed `top`/`left`/`transform`/`position` from print dot/flag rules — only size needs overriding.
+- Branch card overlapping header: with the dot incorrectly on the main line but the card correctly elevated, the visual disconnect made the card appear to float into the header. Fixed by the dot specificity correction above.
+- CSS branch line fallback positioned in wrong reference frame: was appended to `.timeline-container` (padding box) but `top: 50%` needs to reference `.timeline-items` (content box). Moved to `itemsContainer`.
+- Increased print padding from 65px to 70px (matching screen) for branch card clearance.
+
 ## [1.10.3] - 2026-03-02
 
 ### Fixed
 - Timeline print layout on Safari iOS: dots misaligned from track, cards overlapping the line, branch curves invisible.
-- Root cause for dot/card misalignment: asymmetric padding (`80px top / 50px bottom`) — the track uses `top: 50%` of the padding box while dots/cards reference 50% of the content box, causing a 15px vertical offset. Restored symmetric padding (`65px`).
+- Root cause for dot/card misalignment: asymmetric padding (`80px top / 50px bottom`) — the track uses `top: 50%` of the padding box while dots/cards reference 50% of the content box, causing a 15px vertical offset. Restored symmetric padding.
 - Root cause for invisible branches: Safari iOS doesn't render inline SVGs with `preserveAspectRatio="none"` in print. Added CSS-based branch line elements (`div.timeline-branch-line`) as a print fallback — hidden on screen, shown via `@media print`, positioned using the same percentage coordinates as the SVG.
 - Added explicit CSS `stroke` property on SVG branch paths (more reliable than SVG attribute for CSS variable resolution in print).
-- Reinforced dot/flag positioning with explicit `position`/`transform` in print.
 - Disabled card hover transitions in print.
 
 ## [1.10.1] - 2026-03-02

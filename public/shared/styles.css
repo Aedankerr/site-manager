@@ -1064,7 +1064,7 @@ body.has-preview-banner .container {
         /* MUST be symmetric: .timeline-track uses top:50% of the padding box,
            while dots/cards use top:50% of the content box (.timeline-items).
            Asymmetric padding shifts the track away from the dots. */
-        padding: 65px 10px;
+        padding: 70px 10px;
     }
     #section-timeline:not(.hidden-print) .timeline-company { font-size: 9px; }
     #section-timeline:not(.hidden-print) .timeline-role { font-size: 8px; }
@@ -1079,22 +1079,11 @@ body.has-preview-banner .container {
         transition: none !important;
     }
     #section-timeline:not(.hidden-print) .timeline-connectors { display: none !important; }
-    #section-timeline:not(.hidden-print) .timeline-dot {
-        width: 10px;
-        height: 10px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-    #section-timeline:not(.hidden-print) .timeline-flag {
-        width: 16px;
-        height: 16px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
+    /* Only resize dots/flags in print — do NOT override top/left/transform
+       because that kills the branch-track offset (calc(50% - var(--branch-offset-pct)))
+       due to the #id selector having higher specificity than class-only selectors */
+    #section-timeline:not(.hidden-print) .timeline-dot { width: 10px; height: 10px; }
+    #section-timeline:not(.hidden-print) .timeline-flag { width: 16px; height: 16px; }
     #section-timeline:not(.hidden-print) .timeline-card-logo { width: 70px; height: 22px; }
     #section-timeline:not(.hidden-print) .timeline-chevron svg { width: 10px; height: 14px; }
     /* Branch curves: improve SVG rendering in print */

@@ -766,13 +766,14 @@ function renderBranchCurves(timelineContainer, segments, branches, positions) {
         }
 
         // CSS-based branch line fallback for print (Safari iOS doesn't render SVGs reliably)
-        // Hidden on screen via CSS, shown in @media print
+        // Hidden on screen via CSS, shown in @media print.
+        // Appended to itemsContainer so top:50% uses the same reference frame as dots/cards.
         if (branchStartX < branchEndX) {
             const line = document.createElement('div');
             line.className = 'timeline-branch-line';
             line.style.left = (branchStartX / containerW * 100) + '%';
             line.style.width = ((branchEndX - branchStartX) / containerW * 100) + '%';
-            timelineContainer.appendChild(line);
+            itemsContainer.appendChild(line);
         }
     });
 
