@@ -4,16 +4,6 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
-## [1.10.2] - 2026-03-02
-
-### Fixed
-- Increased top padding in the print timeline container so branch-track cards above the line no longer crowd the section header.
-
-## [1.10.1] - 2026-03-02
-
-### Fixed
-- Increased spacing between the timeline section header and the closest timeline card in print layout to prevent them from appearing too close together.
-
 ## [1.10.0] - 2026-03-02
 
 ### Changed
@@ -21,70 +11,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 - Removing a logo with the toggle on removes it from all matching experiences (logo file stays available in the picker).
 - Disabling the toggle stops future propagation without affecting logos already applied.
 - Toggle uses the same switch UI as other settings for visual consistency.
-
-## [1.9.1] - 2026-03-02
-
-### Added
-- Auto-fill logo when creating a new experience: typing a company name that already has a logo in any experience or dataset automatically pre-fills the logo preview (debounced 400ms).
-- New API endpoint `GET /api/logos/by-company?name=...` to look up a company's logo.
+- Print timeline container uses asymmetric padding so branch-track cards above the line have proper clearance from the section header.
 
 ## [1.9.0] - 2026-03-02
 
 ### Added
-- Global logo apply: checkbox in the experience modal to apply a logo to all experiences with the same company name across all CV variants (current + saved datasets).
-- New API endpoint `POST /api/logos/apply-global` to propagate a logo to all matching company experiences.
-
-## [1.8.5] - 2026-03-02
-
-### Fixed
-- Logo in-use check now considers all saved datasets, not just current experiences. A logo referenced by any CV variant is protected from deletion.
-- Delete endpoint also validates against saved datasets before allowing removal.
-
-## [1.8.4] - 2026-03-02
-
-### Fixed
-- Logo picker delete button now positioned inside item bounds (was clipped by modal overflow), styled as a visible red × badge.
-- Logos in use without a resolved company name now show an "In use" label instead of appearing blank and un-deletable.
-
-## [1.8.3] - 2026-03-02
-
-### Changed
-- Logo files are no longer deleted when removing or replacing a logo on an experience — files persist on disk for reuse via the logo picker. Only the explicit delete button in the picker removes files.
-- Logo picker delete button now only considers current experiences as "in use" (not saved dataset snapshots), so orphaned logos can actually be cleaned up.
-
-### Fixed
-- Timeline section header and separator too close to cards in print view — added extra margin below the header.
-
-## [1.8.2] - 2026-03-02
-
-### Fixed
-- Logo picker delete button now always visible on unused logos instead of hover-only, and no longer clipped by overflow.
-- Portuguese and Chinese translation consistency for logo deletion strings.
-
-## [1.8.1] - 2026-03-02
-
-### Added
-- Delete unused logos from the logo picker — a delete button (×) appears for logos not referenced by any current experience or saved dataset. Protects in-use logos from deletion.
+- **Global logo apply**: Toggle in the experience modal to apply a logo to all experiences with the same company name across all CV variants (current + saved datasets).
+- **Auto-fill logo**: Typing a company name that already has a logo in any experience or dataset automatically pre-fills the logo preview.
+- New API endpoints `POST /api/logos/apply-global` and `GET /api/logos/by-company?name=...`.
 
 ## [1.8.0] - 2026-03-02
 
 ### Added
-- Logo reuse across CV datasets — the logo picker now shows all previously uploaded logos (not just those in the current dataset), with company names displayed beneath each thumbnail for easy identification.
+- **Logo reuse across CV datasets**: The logo picker now shows all previously uploaded logos (not just those in the current dataset), with company names displayed beneath each thumbnail for easy identification.
+- **Delete unused logos**: A delete button appears on logos not referenced by any current experience or saved dataset.
 
-## [1.7.3] - 2026-03-02
-
-### Fixed
-- Timeline branch track still too far in print — increased height reduction from 54px to 66px for better proportional scaling with smaller print elements.
-
-## [1.7.2] - 2026-03-02
-
-### Fixed
-- Timeline branch track still appearing slightly further from the main line in print — increased height reduction to also compensate for the ~80% element scaling (smaller fonts, dots, cards) in print mode.
-
-## [1.7.1] - 2026-03-02
-
-### Fixed
-- Timeline branch track appearing further from the main line in print view due to the container's content area expanding when print CSS reduced padding without adjusting the container height.
+### Changed
+- Logo files are no longer deleted when removing or replacing a logo on an experience — files persist on disk for reuse via the logo picker. Only the explicit delete button in the picker removes files.
+- Logo in-use check considers all saved datasets, not just current experiences.
 
 ## [1.7.0] - 2026-03-02
 
@@ -101,7 +45,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 - Branch-track dots use a proportional CSS variable (`--branch-offset-pct`) instead of hardcoded pixels, staying aligned at any container size including print.
 - Admin and public views share a single `renderTimelineItems()` implementation instead of duplicating logic.
 - Export/import preserves `logo_filename` per experience; logos work after import as long as files exist in the uploads folder.
-- Print layout scales timeline card widths down to match reduced font sizes.
+- Print layout scales timeline card widths and branch offset down to match reduced print elements.
 
 ## [1.6.11] - 2026-03-01
 
