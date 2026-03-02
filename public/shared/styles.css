@@ -1060,7 +1060,15 @@ body.has-preview-banner .container {
     #section-timeline:not(.hidden-print) .timeline-company { font-size: 9px; }
     #section-timeline:not(.hidden-print) .timeline-role { font-size: 8px; }
     #section-timeline:not(.hidden-print) .timeline-period { font-size: 8px; }
-    #section-timeline:not(.hidden-print) .timeline-content { padding: 6px 8px; max-width: 90px; min-width: 40px; }
+    #section-timeline:not(.hidden-print) .timeline-content {
+        padding: 6px 8px;
+        transform: translateX(-50%) !important;
+        max-width: min(90px, calc(100% + 20px));
+        min-width: 40px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    #section-timeline:not(.hidden-print) .timeline-connectors { display: none !important; }
     #section-timeline:not(.hidden-print) .timeline-dot { width: 10px; height: 10px; }
     #section-timeline:not(.hidden-print) .timeline-flag { width: 16px; height: 16px; }
     #section-timeline:not(.hidden-print) .timeline-card-logo { width: 70px; height: 22px; }
