@@ -4,6 +4,11 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.10.2] - 2026-03-02
+
+### Fixed
+- Increased top padding in the print timeline container so branch-track cards above the line no longer crowd the section header.
+
 ## [1.10.1] - 2026-03-02
 
 ### Fixed
