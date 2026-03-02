@@ -4,6 +4,14 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.11.1] - 2026-03-02
+
+### Added
+- User Guide: documented company logo management (upload, reuse, auto-fill, global propagation)
+- User Guide: documented timeline branching for parallel/concurrent job experiences
+- User Guide: documented language picker, version display, update notifications
+- User Guide: documented profile Languages field, custom section icons, skill category auto-detection
+
 ## [1.11.0] - 2026-03-02
 
 ### Added
