@@ -452,6 +452,15 @@ if (!PUBLIC_ONLY) {
         }
     } catch (err) { console.log('Migration check (logo_filename):', err.message); }
 
+    // Step 2j: Migration - add logo_propagate column to experiences if missing
+    try {
+        const expPropInfo = db.prepare("PRAGMA table_info(experiences)").all();
+        if (!expPropInfo.some(col => col.name === 'logo_propagate')) {
+            console.log('Migrating experiences table: adding logo_propagate column');
+            db.exec('ALTER TABLE experiences ADD COLUMN logo_propagate INTEGER DEFAULT 0');
+        }
+    } catch (err) { console.log('Migration check (logo_propagate):', err.message); }
+
     // Step 2h: Migration - normalize legacy date formats (e.g., "Jan 2020" → "2020-01")
     // Runs once; creates a flag in settings to avoid re-running on every startup
     try {
@@ -981,14 +990,15 @@ if (PUBLIC_ONLY) {
     });
 
     // Apply a logo globally to all experiences with the same company name (current + datasets)
+    // Also sets logo_propagate=1 on all matching experiences
     app.post('/api/logos/apply-global', express.json(), (req, res) => {
         const { company_name, logo_filename } = req.body;
         if (!company_name || !logo_filename) return res.status(400).json({ error: 'company_name and logo_filename are required' });
         if (!fs.existsSync(path.join(uploadsPath, logo_filename))) return res.status(404).json({ error: 'Logo file not found' });
         let updatedCurrent = 0;
         let updatedDatasets = 0;
-        // Update current experiences
-        const result = db.prepare('UPDATE experiences SET logo_filename = ? WHERE company_name = ?').run(logo_filename, company_name);
+        // Update current experiences — set both logo and propagate flag
+        const result = db.prepare('UPDATE experiences SET logo_filename = ?, logo_propagate = 1 WHERE company_name = ?').run(logo_filename, company_name);
         updatedCurrent = result.changes;
         // Update saved datasets
         try {
@@ -1015,14 +1025,58 @@ if (PUBLIC_ONLY) {
         res.json({ success: true, updated_current: updatedCurrent, updated_datasets: updatedDatasets });
     });
 
+    // Remove a logo globally from all experiences with the same company name (current + datasets)
+    // Keeps logo_propagate=1 so future additions will still propagate if re-enabled
+    app.post('/api/logos/remove-global', express.json(), (req, res) => {
+        const { company_name } = req.body;
+        if (!company_name) return res.status(400).json({ error: 'company_name is required' });
+        let updatedCurrent = 0;
+        let updatedDatasets = 0;
+        // Remove logo from current experiences (keep propagate flag)
+        const result = db.prepare('UPDATE experiences SET logo_filename = NULL WHERE company_name = ?').run(company_name);
+        updatedCurrent = result.changes;
+        // Update saved datasets
+        try {
+            const datasets = db.prepare('SELECT id, data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.experiences) {
+                        let changed = false;
+                        for (const exp of data.experiences) {
+                            if (exp.company_name === company_name && exp.logo_filename) {
+                                exp.logo_filename = null;
+                                changed = true;
+                                updatedDatasets++;
+                            }
+                        }
+                        if (changed) {
+                            db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(data), ds.id);
+                        }
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json({ success: true, updated_current: updatedCurrent, updated_datasets: updatedDatasets });
+    });
+
+    // Update logo_propagate flag for all experiences with the same company name
+    app.post('/api/logos/set-propagate', express.json(), (req, res) => {
+        const { company_name, propagate } = req.body;
+        if (!company_name) return res.status(400).json({ error: 'company_name is required' });
+        const flag = propagate ? 1 : 0;
+        const result = db.prepare('UPDATE experiences SET logo_propagate = ? WHERE company_name = ?').run(flag, company_name);
+        res.json({ success: true, updated: result.changes });
+    });
+
     // Look up which logo is used for a given company name (current experiences + datasets)
     app.get('/api/logos/by-company', (req, res) => {
         const name = (req.query.name || '').trim();
         if (!name) return res.json({ logo_filename: null });
         // Check current experiences first
-        const exp = db.prepare('SELECT logo_filename FROM experiences WHERE company_name = ? AND logo_filename IS NOT NULL LIMIT 1').get(name);
+        const exp = db.prepare('SELECT logo_filename, logo_propagate FROM experiences WHERE company_name = ? AND logo_filename IS NOT NULL LIMIT 1').get(name);
         if (exp && exp.logo_filename && fs.existsSync(path.join(uploadsPath, exp.logo_filename))) {
-            return res.json({ logo_filename: exp.logo_filename });
+            return res.json({ logo_filename: exp.logo_filename, logo_propagate: !!exp.logo_propagate });
         }
         // Fall back to saved datasets
         try {

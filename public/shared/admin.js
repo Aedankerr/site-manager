@@ -867,6 +867,7 @@ async function openModal(type, id = null) {
             title = id ? t('modal.edit_experience') : t('modal.add_experience');
             pendingLogo = null;
             currentModal.existingLogo = data.logo_filename || null;
+            currentModal.existingPropagate = !!data.logo_propagate;
             form = experienceForm(data);
             break;
         case 'certification':
@@ -890,7 +891,10 @@ async function openModal(type, id = null) {
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').innerHTML = form;
     document.getElementById('modalOverlay').classList.add('active');
-    if (type === 'experience') updateLogoApplyGlobal();
+    if (type === 'experience') {
+        updateLogoApplyGlobal();
+        initLogoPropagate();
+    }
 }
 
 function closeModal() {
@@ -1002,10 +1006,13 @@ function experienceForm(d) {
                 <div class="logo-picker-grid" id="logoPickerGrid" style="display:none;"></div>
             </div>
             <div class="form-hint">${t('form.logo_hint')}</div>
-            <label class="checkbox-label logo-apply-global-label" id="logoApplyGlobalLabel" style="display:none; margin-top: 6px;">
-                <input type="checkbox" id="f-logo-apply-global">
-                <span id="logoApplyGlobalText"></span>
-            </label>
+            <div class="logo-propagate-toggle" id="logoApplyGlobalLabel" style="display:none; margin-top: 6px;">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="f-logo-apply-global" onchange="onLogoPropagateToggle(this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
+                <span class="logo-propagate-text" id="logoApplyGlobalText"></span>
+            </div>
         </div>
         <div class="form-group">
             <label class="form-label">${t('form.job_title')}</label>
@@ -1196,8 +1203,10 @@ async function saveItem() {
                 visible: true
             };
             {
-                const applyGlobal = checked('f-logo-apply-global');
+                const propagateOn = checked('f-logo-apply-global');
+                const wasPropagate = currentModal.existingPropagate;
                 let logoFilename = null;
+                let logoRemoved = (pendingLogo === 'remove');
                 if (id) {
                     await api(`/api/${endpoint}/${id}`, { method: 'PUT', body: data });
                     logoFilename = await uploadLogo(id);
@@ -1206,9 +1215,19 @@ async function saveItem() {
                     if (result.id) logoFilename = await uploadLogo(result.id);
                 }
                 // Fall back to the existing logo if user didn't change it
-                if (!logoFilename) logoFilename = currentModal.existingLogo;
-                if (applyGlobal && logoFilename && data.company_name) {
-                    await api('/api/logos/apply-global', { method: 'POST', body: { company_name: data.company_name, logo_filename: logoFilename } });
+                if (!logoFilename && !logoRemoved) logoFilename = currentModal.existingLogo;
+                if (propagateOn && data.company_name) {
+                    if (logoRemoved) {
+                        // Remove logo from all matching experiences (but keep file in uploads for picker)
+                        await api('/api/logos/remove-global', { method: 'POST', body: { company_name: data.company_name } });
+                    } else if (logoFilename) {
+                        // Apply logo to all matching experiences + set propagate flag
+                        await api('/api/logos/apply-global', { method: 'POST', body: { company_name: data.company_name, logo_filename: logoFilename } });
+                    }
+                } else if (!propagateOn && wasPropagate && data.company_name) {
+                    // Propagate was turned off — update flag on all matching experiences
+                    // but don't remove logos already applied
+                    await api('/api/logos/set-propagate', { method: 'POST', body: { company_name: data.company_name, propagate: false } });
                 }
             }
             await loadExperiences();
@@ -1511,14 +1530,28 @@ function updateLogoApplyGlobal() {
     if (!label) return;
     const company = (document.getElementById('f-company_name')?.value || '').trim();
     const hasLogo = pendingLogo === 'remove' ? false : (pendingLogo || document.getElementById('logoPreviewImg'));
-    if (company && hasLogo) {
-        label.style.display = '';
+    const cb = document.getElementById('f-logo-apply-global');
+    if (company && (hasLogo || (cb && cb.checked))) {
+        label.style.display = 'flex';
         document.getElementById('logoApplyGlobalText').textContent = t('form.apply_logo_global', { company });
     } else {
         label.style.display = 'none';
-        const cb = document.getElementById('f-logo-apply-global');
         if (cb) cb.checked = false;
     }
+}
+
+function initLogoPropagate() {
+    // Called after form is rendered to restore persisted toggle state
+    if (currentModal.existingPropagate) {
+        const cb = document.getElementById('f-logo-apply-global');
+        if (cb) cb.checked = true;
+        updateLogoApplyGlobal();
+    }
+}
+
+function onLogoPropagateToggle(checked) {
+    // When toggling off, just hide if no logo — don't touch other experiences
+    updateLogoApplyGlobal();
 }
 
 let _logoLookupTimer = null;
@@ -1538,6 +1571,11 @@ function onCompanyNameInput() {
                 pendingLogo = { reuse: result.logo_filename };
                 const preview = document.getElementById('logoUploadPreview');
                 if (preview) preview.innerHTML = `<img src="/uploads/${encodeURIComponent(result.logo_filename)}?${Date.now()}" alt="" id="logoPreviewImg">`;
+                // If the source experience has propagate enabled, auto-enable the toggle
+                if (result.logo_propagate) {
+                    const cb = document.getElementById('f-logo-apply-global');
+                    if (cb) cb.checked = true;
+                }
                 updateLogoApplyGlobal();
             }
         } catch (e) {}

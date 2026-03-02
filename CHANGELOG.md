@@ -4,6 +4,14 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.10.0] - 2026-03-02
+
+### Changed
+- Logo propagation is now a persistent toggle instead of a one-time checkbox. When enabled, the toggle state is saved on all matching company experiences and automatically pre-enabled on new/existing experiences for the same company.
+- Removing a logo with the toggle on removes it from all matching experiences (logo file stays available in the picker).
+- Disabling the toggle stops future propagation without affecting logos already applied.
+- Toggle uses the same switch UI as other settings for visual consistency.
+
 ## [1.9.1] - 2026-03-02
 
 ### Added
