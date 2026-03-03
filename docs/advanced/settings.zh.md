@@ -2,7 +2,7 @@
 
 ## 搜索引擎索引（Robots Meta）
 
-在 **Settings → Advanced → Search Engine Indexing** 中控制搜索引擎如何与您的公开简历交互：
+在**设置 → 高级 → 搜索引擎索引**中控制搜索引擎如何与您的公开简历交互：
 
 | 选项 | 效果 |
 |------|------|
@@ -17,8 +17,8 @@
 
 默认情况下，公开的版本化 URL（`/v/slug`）**不会被** 搜索引擎索引——它们会带有 `noindex, nofollow` meta 标签。如果您想分享直接链接但不希望这些页面出现在搜索结果中，这非常有用。
 
-要允许搜索引擎抓取版本化 URL，请在 **Settings → Advanced** 中启用 **Index Versioned URLs**。此设置独立于上述主搜索引擎索引选项，后者仅影响主页面 `/`。
+要允许搜索引擎抓取版本化 URL，请在**设置 → 高级**中启用**索引版本化 URL**。此设置独立于上述主搜索引擎索引选项，后者仅影响主页面 `/`。
 
 ## 跟踪代码
 
-在 **Settings → Advanced → Tracking Code** 中粘贴分析跟踪代码（Google Analytics、Matomo、Plausible 等）。该代码仅注入到公开简历页面中，不会出现在管理界面中。
+在**设置 → 高级 → 跟踪代码**中粘贴分析跟踪代码（Google Analytics、Matomo、Plausible 等）。该代码仅注入到公开简历页面中，不会出现在管理界面中。
