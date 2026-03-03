@@ -2,7 +2,7 @@
 
 ## Profil / Kopfbereich
 
-Klicken Sie auf das **Bearbeiten-Symbol** im Kopfbereich. Sie können folgendes festlegen:
+Klicken Sie auf das **Bearbeiten-Symbol** im Kopfbereich. Sie können Folgendes festlegen:
 
 - **Name** und **Initialen** (werden im Avatar-Kreis angezeigt, wenn kein Foto hochgeladen wurde)
 - **Titel** (Ihre Hauptrolle/Position)
