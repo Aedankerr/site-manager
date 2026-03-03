@@ -1,4 +1,4 @@
-# Scorciatoie da tastiera
+# Scorciatoie da Tastiera
 
 | Scorciatoia | Azione |
 |-------------|--------|
