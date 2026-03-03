@@ -1,6 +1,6 @@
 # Guida utente
 
-Questa guida copre tutto cio che si puo fare con l'interfaccia admin di CV Manager.
+Questa guida copre tutto ciò che potete fare con l'interfaccia admin di CV Manager.
 
 ## Argomenti
 
@@ -10,19 +10,19 @@ Questa guida copre tutto cio che si puo fare con l'interfaccia admin di CV Manag
 - **[Timeline](timeline.md)** — Timeline generata automaticamente con supporto per posizioni parallele
 - **[Tema e aspetto](theme.md)** — Colori e opzioni per il formato data
 - **[Lingua](language.md)** — Cambio della lingua dell'interfaccia admin
-- **[Dataset](datasets.md)** — Salvataggio di piu versioni del CV per diversi destinatari
+- **[Dataset](datasets.md)** — Salvataggio di più versioni del CV per diversi destinatari
 - **[Stampa e PDF](print-pdf.md)** — Esportazione del CV con numeri di pagina e suddivisione configurabili
 - **[Importazione ed esportazione](import-export.md)** — Backup e ripristino dei dati del CV
 
 ## Aggiornamenti e versione
 
-Aprire le **Impostazioni** — la versione corrente (es. `v1.11.0`) e mostrata nell'angolo in basso a sinistra del footer della finestra modale.
+Aprite le **Impostazioni** — la versione corrente (es. `v1.11.0`) è mostrata nell'angolo in basso a sinistra del footer della finestra modale.
 
-CV Manager verifica automaticamente su GitHub la disponibilita di versioni piu recenti. Se un aggiornamento e disponibile, appare un banner blu sotto la barra degli strumenti:
+CV Manager verifica automaticamente su GitHub la disponibilità di versioni più recenti. Se un aggiornamento è disponibile, appare un banner blu sotto la barra degli strumenti:
 
-> **Aggiornamento disponibile: v1.12.0** (versione attuale v1.11.0) — *Novita*
+> **Aggiornamento disponibile: v1.12.0** (versione attuale v1.11.0) — *Novità*
 
-Il link "Novita" apre il changelog. E possibile chiudere il banner con il pulsante X.
+Il link "Novità" apre il changelog. È possibile chiudere il banner con il pulsante X.
 
 !!! note "Nota"
     Il controllo della versione viene memorizzato nella cache per 24 ore. Riavviare il server (o il container Docker) per svuotare la cache e forzare un nuovo controllo.

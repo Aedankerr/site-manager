@@ -13,13 +13,13 @@ CV Manager è un'applicazione web che funziona sul vostro server tramite Docker.
 
 I dati vengono archiviati localmente in un database SQLite. Nessuna informazione viene inviata a server esterni.
 
-## Funzionalita principali
+## Funzionalità principali
 
 - **7 sezioni predefinite** — Informazioni personali, Timeline, Esperienze lavorative, Certificazioni, Formazione, Competenze, Progetti
-- **Sezioni personalizzate** — Possibilita di aggiungere qualsiasi contenuto con 7 tipi di layout (griglie, elenchi, schede, link social, elenchi puntati, testo libero)
+- **Sezioni personalizzate** — Possibilità di aggiungere qualsiasi contenuto con 7 tipi di layout (griglie, elenchi, schede, link social, elenchi puntati, testo libero)
 - **Visualizzazione timeline** — Generata automaticamente dalle esperienze lavorative con supporto per posizioni parallele
 - **Versioni multiple del CV** — Salvataggio di dataset per diversi destinatari con URL pubblici versionati
-- **Personalizzazione del tema** — Selettore colore, formati data, modalita chiara/scura
+- **Personalizzazione del tema** — Selettore colore, formati data, modalità chiara/scura
 - **Stampa ed esportazione PDF** — Output di stampa ottimizzato con numeri di pagina e suddivisione configurabili
 - **Compatibile con ATS** — Markup Schema.org, HTML semantico, blocco di testo nascosto per ATS
 - **8 lingue per l'interfaccia** — Inglese, Tedesco, Francese, Olandese, Spagnolo, Italiano, Portoghese, Cinese
@@ -31,9 +31,9 @@ I dati vengono archiviati localmente in un database SQLite. Nessuna informazione
 <div class="grid cards" markdown>
 
 - :material-rocket-launch: **[Per iniziare](getting-started/index.md)** — Installazione e configurazione di CV Manager
-- :material-book-open-variant: **[Guida utente](guide/index.md)** — Scopra come utilizzare ogni funzionalita
+- :material-book-open-variant: **[Guida utente](guide/index.md)** — Scoprite come utilizzare ogni funzionalità
 - :material-cog: **[Avanzate](advanced/index.md)** — SEO, sicurezza e impostazioni ATS
-- :material-frequently-asked-questions: **[FAQ](reference/faq.md)** — Risposte alle domande piu frequenti
+- :material-frequently-asked-questions: **[FAQ](reference/faq.md)** — Risposte alle domande più frequenti
 
 </div>
 

@@ -1,8 +1,8 @@
 # Per iniziare
 
-CV Manager e un'applicazione web che funziona sul proprio server (tramite Docker). Offre due interfacce:
+CV Manager è un'applicazione web che funziona sul vostro server (tramite Docker). Offre due interfacce:
 
-- **Admin** (porta predefinita 3000) — dove si costruisce e gestisce il proprio CV
+- **Admin** (porta predefinita 3000) — dove costruite e gestite il vostro CV
 - **Pubblica** (porta predefinita 3001) — una versione di sola lettura da condividere con recruiter, datori di lavoro o chiunque altro
 
 I dati vengono archiviati localmente in un database SQLite. Nessuna informazione viene inviata a server esterni.

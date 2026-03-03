@@ -2,10 +2,10 @@
 
 ## Profilo / Intestazione
 
-Fare clic sull'**icona di modifica** nella sezione intestazione. E possibile impostare:
+Fate clic sull'**icona di modifica** nella sezione intestazione. Potete impostare:
 
-- **Nome** e **Iniziali** (mostrate nel cerchio avatar se non e stata caricata una foto)
-- **Titolo** (il proprio ruolo/posizione principale)
+- **Nome** e **Iniziali** (mostrate nel cerchio avatar se non è stata caricata una foto)
+- **Titolo** (il vostro ruolo/posizione principale)
 - **Sottotitolo** (contesto aggiuntivo, ad es. reparto o specializzazione)
 - **Biografia** (riassunto professionale — le interruzioni di riga vengono preservate)
 - **Sede**
@@ -14,34 +14,34 @@ Fare clic sull'**icona di modifica** nella sezione intestazione. E possibile imp
 
 ## Foto profilo
 
-Nella finestra di modifica del profilo, e possibile caricare una foto profilo (JPEG, PNG o WebP). L'immagine sostituisce il cerchio con le iniziali. Per rimuoverla, utilizzare l'opzione di eliminazione nella stessa finestra.
+Nella finestra di modifica del profilo, potete caricare una foto profilo (JPEG, PNG o WebP). L'immagine sostituisce il cerchio con le iniziali. Per rimuoverla, utilizzate l'opzione di eliminazione nella stessa finestra.
 
 ## Esperienze lavorative
 
 Ogni voce di esperienza include:
 
 - **Titolo professionale** e **Nome dell'azienda**
-- **Data di inizio** e **Data di fine** (lasciare la data di fine vuota per le posizioni attuali — viene mostrato "Presente")
+- **Data di inizio** e **Data di fine** (lasciate la data di fine vuota per le posizioni attuali — viene mostrato "Presente")
 - **Sede** e **Codice paese** (codice a 2 lettere come `us`, `ch`, `fr` — utilizzato per le icone delle bandiere sulla timeline)
-- **Punti salienti** — elenco puntato con le proprie realizzazioni (uno per riga)
+- **Punti salienti** — elenco puntato con le vostre realizzazioni (uno per riga)
 
 ## Loghi aziendali
 
-Ogni voce di esperienza puo avere un **logo aziendale**. I loghi appaiono sulla timeline come immagini al posto dei semplici nomi delle aziende.
+Ogni voce di esperienza può avere un **logo aziendale**. I loghi appaiono sulla timeline come immagini al posto dei semplici nomi delle aziende.
 
 ### Caricamento di un logo
 
-1. Modificare una voce di esperienza
-2. Nella sezione **Logo aziendale**, fare clic su **Scegli immagine** per caricare un file (JPEG, PNG o WebP, max 5MB)
+1. Modificate una voce di esperienza
+2. Nella sezione **Logo aziendale**, fate clic su **Scegli immagine** per caricare un file (JPEG, PNG o WebP, max 5MB)
 3. Un'immagine quadrata di piccole dimensioni funziona meglio
 
 ### Riutilizzo dei loghi
 
-Fare clic su **Usa esistente** per aprire la griglia di selezione dei loghi, che mostra tutti i loghi caricati in precedenza. Fare clic su uno per riutilizzarlo — in questo modo si evita di caricare lo stesso logo piu volte.
+Fate clic su **Usa esistente** per aprire la griglia di selezione dei loghi, che mostra tutti i loghi caricati in precedenza. Fate clic su uno per riutilizzarlo — in questo modo evitate di caricare lo stesso logo più volte.
 
 ### Compilazione automatica
 
-Quando si digita il nome di un'azienda che ha gia un logo (da un'esperienza corrente o salvata), il logo viene compilato automaticamente. Questo funziona anche tra diversi dataset.
+Quando digitate il nome di un'azienda che ha già un logo (da un'esperienza corrente o salvata), il logo viene compilato automaticamente. Questo funziona anche tra diversi dataset.
 
 ### Propagazione globale
 
@@ -53,7 +53,7 @@ Quando viene impostato un logo, appare un interruttore: **"Sincronizza il logo s
 
 ### Rimozione di un logo
 
-Fare clic sul pulsante **Rimuovi** nella sezione logo per scollegare un logo da un'esperienza. Il file viene mantenuto su disco per il riutilizzo. Per eliminare definitivamente un file logo non utilizzato, aprire il selettore loghi e fare clic sul pulsante elimina su qualsiasi logo non in uso.
+Fate clic sul pulsante **Rimuovi** nella sezione logo per scollegare un logo da un'esperienza. Il file viene mantenuto su disco per il riutilizzo. Per eliminare definitivamente un file logo non utilizzato, aprite il selettore loghi e fate clic sul pulsante elimina su qualsiasi logo non in uso.
 
 ## Certificazioni
 

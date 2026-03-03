@@ -32,10 +32,10 @@ Entrambi i container condividono la stessa directory dei dati (tipicamente `/mnt
 
 ## Rendere il CV pubblico con Cloudflare Tunnel
 
-1. Configurare un Cloudflare Tunnel che punti alla porta 3001 (il server pubblico)
-2. Utilizzare **Cloudflare Access** per proteggere la porta 3000 (admin) con autenticazione
-3. Il CV e ora accessibile al proprio dominio mentre l'admin resta protetto
+1. Configurate un Cloudflare Tunnel che punti alla porta 3001 (il server pubblico)
+2. Utilizzate **Cloudflare Access** per proteggere la porta 3000 (admin) con autenticazione
+3. Il CV è ora accessibile sul vostro dominio mentre l'admin resta protetto
 
 ## Esecuzione senza Docker
 
-Installare Node.js 18+, eseguire `npm install` nella directory del progetto, quindi `node src/server.js`. L'admin funziona sulla porta 3000 e il sito pubblico sulla porta 3001.
+Installate Node.js 18+, eseguite `npm install` nella directory del progetto, quindi `node src/server.js`. L'admin funziona sulla porta 3000 e il sito pubblico sulla porta 3001.

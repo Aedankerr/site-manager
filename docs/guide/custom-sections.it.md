@@ -4,12 +4,12 @@ Le sezioni personalizzate consentono di aggiungere qualsiasi contenuto che non r
 
 ## Creazione di una sezione personalizzata
 
-1. Aprire **Impostazioni** → scheda **Sezioni personalizzate**
-2. Fare clic su **Aggiungi sezione personalizzata**
-3. Inserire un nome per la sezione
-4. Scegliere un tipo di layout (vedere sotto)
-5. Opzionalmente scegliere un'**icona di sezione** (stella, libro, link, globo, cuore, premio, valigetta) — visualizzata accanto all'intestazione
-6. Salvare — la nuova sezione appare nel CV
+1. Aprite **Impostazioni** → scheda **Sezioni personalizzate**
+2. Fate clic su **Aggiungi sezione personalizzata**
+3. Inserite un nome per la sezione
+4. Scegliete un tipo di layout (vedere sotto)
+5. Opzionalmente scegliete un'**icona di sezione** (stella, libro, link, globo, cuore, premio, valigetta) — visualizzata accanto all'intestazione
+6. Salvate — la nuova sezione appare nel CV
 
 ## Tipi di layout
 
@@ -29,7 +29,7 @@ Per i layout griglia, elenco, schede e elenco puntato, ogni elemento ha una case
 
 ## Gestione degli elementi delle sezioni personalizzate
 
-Fare clic su **Gestisci elementi** su qualsiasi sezione personalizzata per aggiungere, modificare, riordinare o eliminare elementi all'interno di quella sezione.
+Fate clic su **Gestisci elementi** su qualsiasi sezione personalizzata per aggiungere, modificare, riordinare o eliminare elementi all'interno di quella sezione.
 
 !!! note "Nota"
-    Non esiste un limite massimo per le sezioni personalizzate. E possibile crearne quante se ne desiderano. Si puo anche cambiare il tipo di layout di una sezione personalizzata dopo la creazione — basta modificare la sezione e selezionare un layout diverso.
+    Non esiste un limite massimo per le sezioni personalizzate. Potete crearne quante ne desiderate. Potete anche cambiare il tipo di layout di una sezione personalizzata dopo la creazione — basta modificare la sezione e selezionare un layout diverso.
