@@ -365,14 +365,16 @@ function computeTimelineBranches(items) {
 
     for (let i = 1; i < segments.length; i++) {
         // Find ALL preceding items that genuinely overlap.
-        // Require >= 3 months of overlap to branch. This filters out brief
-        // transitional overlaps (starting a new job 1-2 months before leaving
-        // the old one) while correctly branching any genuinely concurrent
-        // positions, regardless of how long either position lasted.
+        // Two conditions (either one triggers branching):
+        // 1. >= 3 months overlap — filters brief 1-2 month transitions
+        // 2. Overlap covers the item's entire duration — short items that fall
+        //    entirely within another item's range (e.g. a 2-month acting role
+        //    during a long parallel employment) should always branch.
+        const durationI = segments[i].endMonths - segments[i].startMonths;
         const overlapping = [];
         for (let j = 0; j < i; j++) {
             const overlapMonths = Math.min(segments[j].endMonths, segments[i].endMonths) - segments[i].startMonths;
-            if (overlapMonths >= 3) {
+            if (overlapMonths >= 3 || (durationI > 0 && overlapMonths >= durationI)) {
                 overlapping.push(j);
             }
         }
