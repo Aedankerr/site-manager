@@ -23,7 +23,7 @@ docker run -d -p 3000:3000 -p 3001:3001 -v cv-data:/app/data vincentmakes/cv-man
 
 ## Unraid
 
-Installazione tramite **Community Applications** — cercare "cv-manager". Sono disponibili due template:
+Installazione tramite **Community Applications** — cercate "cv-manager". Sono disponibili due template:
 
 - **cv-manager** (Admin) — mappato sulla porta 3000
 - **cv-manager-public** (Pubblico) — mappato sulla porta 3001, sola lettura
