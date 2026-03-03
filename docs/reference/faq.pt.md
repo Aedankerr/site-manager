@@ -26,7 +26,7 @@
     Edite a experiência, role até a seção **Logotipo da Empresa** e clique em **Escolher imagem** para fazer upload. Você também pode clicar em **Usar existente** para reutilizar um logotipo já enviado. Ative o toggle **"Sincronizar logotipo em todas as experiências da [Empresa]"** para aplicar o mesmo logotipo a todas as experiências naquela empresa.
 
 ??? question "Excluí algo acidentalmente. Posso desfazer?"
-    Não há recurso de desfazer. Como as edições são salvas automaticamente no dataset ativo, a alteração é persistida imediatamente. Se você tem uma exportação anterior ou um dataset salvo separado, pode restaurar a partir deles. É uma boa prática exportar seu CV regularmente como backup.
+    Não há recurso de desfazer. Como as edições são salvas automaticamente no conjunto de dados ativo, a alteração é persistida imediatamente. Se você tem uma exportação anterior ou um conjunto de dados salvo separado, pode restaurar a partir deles. É uma boa prática exportar seu CV regularmente como backup.
 
 ## Seções Personalizadas
 
@@ -68,7 +68,7 @@
     A linha do tempo detecta automaticamente posições sobrepostas e as renderiza como **trilhas paralelas**. O emprego concorrente aparece em uma linha de ramificação elevada com conectores em curva S mostrando os pontos de bifurcação e junção. Nenhuma configuração necessária — é baseado inteiramente nas suas datas de início/fim. Sobreposições menores que 1 mês são ignoradas (comum durante transições de emprego).
 
 ??? question "Por que a linha do tempo mostra um logotipo em vez do nome da empresa?"
-    Se você enviou um logotipo da empresa para essa experiência, a linha do tempo exibe a imagem do logotipo em vez do texto. Se o arquivo do logotipo estiver ausente, ele volta a exibir o nome da empresa. Para remover um logotipo da linha do tempo, edite a experiência e clique em **Remove** na seção Company Logo.
+    Se você enviou um logotipo da empresa para essa experiência, a linha do tempo exibe a imagem do logotipo em vez do texto. Se o arquivo do logotipo estiver ausente, ele volta a exibir o nome da empresa. Para remover um logotipo da linha do tempo, edite a experiência e clique em **Remover** na seção Logotipo da Empresa.
 
 ## Idioma e Atualizações
 
