@@ -18,7 +18,7 @@ Jede Änderung, die Sie vornehmen (Einträge hinzufügen, Inhalte bearbeiten, Re
 
 ## Einen neuen Datensatz speichern
 
-Klicken Sie auf **Speichern unter...** in der Werkzeugleiste, geben Sie einen Namen ein (z. B. „Technischer Lebenslauf", „Marketing-Stelle"), und Ihr aktueller Lebenslauf-Zustand wird als neuer Snapshot gespeichert. Der neue Datensatz wird zum aktiven Datensatz.
+Klicken Sie auf **Speichern unter...** in der Werkzeugleiste, geben Sie einen Namen ein (z. B. „Technischer Lebenslauf", „Marketing-Stelle"), und Ihr aktueller Lebenslauf-Zustand wird als neue Momentaufnahme gespeichert. Der neue Datensatz wird zum aktiven Datensatz.
 
 ## Das Öffnen-Modal
 
@@ -62,7 +62,7 @@ Um eine bestimmte Version öffentlich zu teilen:
 
 So können Sie maßgeschneiderte Lebenslauf-Versionen mit verschiedenen Zielgruppen teilen. Sie könnten beispielsweise einen „Technischen Lebenslauf" für Ingenieur-Stellen öffentlich machen, während Sie einen „Management-Lebenslauf" privat halten, bis er benötigt wird.
 
-**URL kopieren**: Klicken Sie auf das Kopier-Symbol neben dem Slug, um die vollständige URL in die Zwischenablage zu kopieren. Die Toast-Nachricht zeigt Ihnen an, ob Sie eine öffentliche oder eine Vorschau-URL kopiert haben.
+**URL kopieren**: Klicken Sie auf das Kopier-Symbol neben dem Slug, um die vollständige URL in die Zwischenablage zu kopieren. Die Benachrichtigung zeigt Ihnen an, ob Sie eine öffentliche oder eine Vorschau-URL kopiert haben.
 
 !!! note
     Die öffentliche Hauptseite unter `/` zeigt immer den **Standard-Datensatz** — nicht Ihre aktuellen Bearbeitungen. Das bedeutet, dass Sie im Admin-Bereich experimentieren können, ohne zu beeinflussen, was Besucher sehen.

@@ -26,7 +26,7 @@
     Bearbeiten Sie die Berufserfahrung, scrollen Sie zum Abschnitt **Firmenlogo** und klicken Sie auf **Bild auswählen**, um ein Bild hochzuladen. Sie können auch auf **Vorhandenes verwenden** klicken, um ein bereits hochgeladenes Logo wiederzuverwenden. Aktivieren Sie den Schalter **„Logo über alle [Unternehmen]-Erfahrungen synchronisieren"**, um dasselbe Logo auf alle Berufserfahrungen bei diesem Unternehmen anzuwenden.
 
 ??? question "Ich habe versehentlich etwas gelöscht. Kann ich das rückgängig machen?"
-    Es gibt keine Rückgängig-Funktion. Da Änderungen automatisch im aktiven Datensatz gespeichert werden, wird die Änderung sofort persistiert. Wenn Sie einen früheren Export oder einen separaten gespeicherten Datensatz haben, können Sie von dort wiederherstellen. Es empfiehlt sich, Ihren Lebenslauf regelmäßig als Backup zu exportieren.
+    Es gibt keine Rückgängig-Funktion. Da Änderungen automatisch im aktiven Datensatz gespeichert werden, wird die Änderung sofort übernommen. Wenn Sie einen früheren Export oder einen separaten gespeicherten Datensatz haben, können Sie von dort wiederherstellen. Es empfiehlt sich, Ihren Lebenslauf regelmäßig als Backup zu exportieren.
 
 ## Benutzerdefinierte Abschnitte
 
@@ -37,12 +37,12 @@
     Ja. Bearbeiten Sie den Abschnitt und wählen Sie ein anderes Layout. Beachten Sie, dass einige Felder möglicherweise nicht zwischen Layout-Typen übertragen werden (z. B. beim Wechsel von Karten zu Social Links).
 
 ??? question "Was ist der Unterschied zwischen den Layouts 'Aufzählungspunkte' und 'Freitext'?"
-    **Aufzählungspunkte** rendert jede Zeile als Aufzählungspunkt mit einem Gruppentitel. **Freitext** rendert reinen Text mit beibehaltenen Zeilenumbrüchen und ohne Titel — ähnlich dem Über-mich-/Bio-Abschnitt.
+    **Aufzählungspunkte** stellt jede Zeile als Aufzählungspunkt mit einem Gruppentitel dar. **Freitext** zeigt reinen Text mit beibehaltenen Zeilenumbrüchen und ohne Titel an — ähnlich dem Über-mich-/Bio-Abschnitt.
 
 ## Drucken & PDF
 
 ??? question "Warum sieht mein PDF anders aus als auf dem Bildschirm?"
-    Die Druckausgabe verwendet dedizierte Druckstile, die für Papier optimiert sind. Einige visuelle Effekte (Hover-Zustände, Animationen, Verläufe) werden vereinfacht. Ausgeblendete Einträge und Admin-Steuerelemente werden automatisch entfernt.
+    Die Druckausgabe verwendet spezielle Druckstile, die für Papier optimiert sind. Einige visuelle Effekte (Hover-Zustände, Animationen, Verläufe) werden vereinfacht. Ausgeblendete Einträge und Admin-Steuerelemente werden automatisch entfernt.
 
 ??? question "Wie bringe ich meinen Lebenslauf auf weniger Seiten unter?"
     Versuchen Sie, **Abschnittsumbrüche erlauben** und **Eintragsumbrüche erlauben** in den Drucken-&-Export-Einstellungen zu aktivieren. Sie können auch weniger wichtige Einträge oder Abschnitte ausblenden oder kompaktere Layouts für benutzerdefinierte Abschnitte verwenden. Außerdem können Sie die Druckausgabe über den Druckdialog jedes Browsers skalieren (manchmal etwas versteckt).
@@ -51,7 +51,7 @@
     Prüfen Sie, ob diese Einträge auf ausgeblendet gesetzt wurden (Augen-Symbol). Ausgeblendete Einträge werden von der Druckausgabe und der öffentlichen Ansicht ausgeschlossen.
 
 ??? question "Seitenzahlen werden nicht angezeigt?"
-    Stellen Sie sicher, dass **Seitenzahlen** unter Einstellungen → Drucken & Export aktiviert ist. Einige Browser-PDF-Viewer zeigen CSS-generierte Seitenzahlen möglicherweise nicht an — versuchen Sie, das PDF herunterzuladen und in einem dedizierten Reader zu öffnen.
+    Stellen Sie sicher, dass **Seitenzahlen** unter Einstellungen → Drucken & Export aktiviert ist. Einige Browser-PDF-Viewer zeigen CSS-generierte Seitenzahlen möglicherweise nicht an — versuchen Sie, das PDF herunterzuladen und in einem separaten PDF-Reader zu öffnen.
 
 ## Zeitstrahl
 
@@ -124,10 +124,10 @@
 ## Docker & Infrastruktur
 
 ??? question "Meine Änderungen erscheinen nicht auf der öffentlichen Seite?"
-    Die öffentliche Seite zeigt den **Standard-Datensatz**, der automatisch aktualisiert wird, wenn Sie im Admin-Bereich bearbeiten. Versuchen Sie einen Hard-Refresh (`Ctrl+Shift+R`) auf der öffentlichen Seite. Wenn Sie separate Container betreiben, stellen Sie sicher, dass sie dasselbe Datenvolumen teilen.
+    Die öffentliche Seite zeigt den **Standard-Datensatz**, der automatisch aktualisiert wird, wenn Sie im Admin-Bereich bearbeiten. Versuchen Sie ein erzwungenes Neuladen (`Ctrl+Shift+R`) auf der öffentlichen Seite. Wenn Sie separate Container betreiben, stellen Sie sicher, dass sie dasselbe Datenvolumen teilen.
 
 ??? question "Ich erhalte einen 'Port already in use'-Fehler?"
-    Ändern Sie das Host-Port-Mapping in Ihrer Docker-Konfiguration. Zum Beispiel: Mappen Sie auf `3010:3000` und `3011:3001`. Ändern Sie **nicht** die Umgebungsvariable `PUBLIC_PORT` — das ist der interne Container-Port.
+    Ändern Sie die Host-Port-Zuordnung in Ihrer Docker-Konfiguration. Zum Beispiel: Verwenden Sie `3010:3000` und `3011:3001`. Ändern Sie **nicht** die Umgebungsvariable `PUBLIC_PORT` — das ist der interne Container-Port.
 
 ??? question "Wie sichere ich meine Daten?"
     Zwei Optionen: Verwenden Sie die **Exportieren**-Schaltfläche in der Admin-Werkzeugleiste (exportiert JSON), oder sichern Sie das Verzeichnis `data/`, das die SQLite-Datenbank und hochgeladene Bilder enthält.

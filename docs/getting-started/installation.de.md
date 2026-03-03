@@ -25,8 +25,8 @@ docker run -d -p 3000:3000 -p 3001:3001 -v cv-data:/app/data vincentmakes/cv-man
 
 Installation über **Community Applications** — suchen Sie nach „cv-manager". Zwei Vorlagen sind verfügbar:
 
-- **cv-manager** (Admin) — auf Port 3000 gemappt
-- **cv-manager-public** (Öffentlich) — auf Port 3001 gemappt, schreibgeschützt
+- **cv-manager** (Admin) — auf Port 3000 zugeordnet
+- **cv-manager-public** (Öffentlich) — auf Port 3001 zugeordnet, schreibgeschützt
 
 Beide Container teilen sich dasselbe Datenverzeichnis (typischerweise `/mnt/user/appdata/cv-manager`).
 
