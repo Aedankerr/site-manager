@@ -4,6 +4,14 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.11.2] - 2026-03-03
+
+### Fixed
+- Timeline parallel experience detection now checks all overlapping items instead of only the nearest, preventing incorrect track assignments when 3+ jobs overlap
+- Timeline overlap threshold uses actual months (>= 2) instead of raw YYYYMM subtraction, filtering out 1-month job transition noise
+- Timeline cards no longer overflow the container — bidirectional clamping keeps cards within bounds
+- Timeline container height calculation accounts for full branch offset (28px) instead of partial (8px)
+
 ## [1.11.1] - 2026-03-02
 
 ### Added

@@ -189,6 +189,7 @@ body {
     position: relative;
     padding: 70px 10px;
     min-height: 220px;
+    overflow: hidden;
 }
 
 .timeline-track {

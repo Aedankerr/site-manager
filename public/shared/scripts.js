@@ -348,33 +348,65 @@ function computeTimelineBranches(items) {
     };
     const getStart = (item) => parseDateForSort(item.start_date);
 
+    // Convert YYYYMM to absolute months for accurate overlap calculation
+    const toMonths = (yyyymm) => Math.floor(yyyymm / 100) * 12 + (yyyymm % 100);
+
     const segments = items.map(item => ({
         item,
         track: 0,
         branchGroup: null,
         startNum: getStart(item),
-        endNum: getEnd(item)
+        endNum: getEnd(item),
+        startMonths: toMonths(getStart(item)),
+        endMonths: toMonths(getEnd(item))
     }));
 
     const branches = [];
 
     for (let i = 1; i < segments.length; i++) {
-        for (let j = i - 1; j >= 0; j--) {
-            const overlap = Math.min(segments[j].endNum, segments[i].endNum) - segments[i].startNum;
-            // Ignore overlaps of less than 1 month (noise from job transitions)
-            if (overlap >= 1) {
-                segments[i].track = segments[j].track === 0 ? 1 : 0;
-                const existingBranch = branches.find(b => b.mergeAfterIdx >= i - 1 && segments[j].branchGroup === branches.indexOf(b));
-                if (existingBranch) {
-                    existingBranch.mergeAfterIdx = i;
-                    segments[i].branchGroup = branches.indexOf(existingBranch);
-                } else {
-                    segments[i].branchGroup = branches.length;
-                    segments[j].branchGroup = branches.length;
-                    branches.push({ forkBeforeIdx: j, mergeAfterIdx: i });
-                }
+        // Find ALL preceding items that genuinely overlap (>= 2 months filters transition noise)
+        const overlapping = [];
+        for (let j = 0; j < i; j++) {
+            const overlapMonths = Math.min(segments[j].endMonths, segments[i].endMonths) - segments[i].startMonths;
+            if (overlapMonths >= 2) {
+                overlapping.push(j);
+            }
+        }
+
+        if (overlapping.length === 0) continue;
+
+        // Determine which tracks are occupied by overlapping items
+        const tracksOccupied = new Set(overlapping.map(j => segments[j].track));
+
+        // Assign to the track that avoids conflicts
+        if (tracksOccupied.has(0) && !tracksOccupied.has(1)) {
+            segments[i].track = 1;
+        } else if (!tracksOccupied.has(0) && tracksOccupied.has(1)) {
+            segments[i].track = 0;
+        } else {
+            // Both tracks occupied — prefer branch track to keep main line cleaner
+            segments[i].track = 1;
+        }
+
+        // Branch grouping: find the nearest item on the opposite track as the branch partner
+        const oppositeTrack = segments[i].track === 0 ? 1 : 0;
+        let branchPartner = -1;
+        for (let k = overlapping.length - 1; k >= 0; k--) {
+            if (segments[overlapping[k]].track === oppositeTrack) {
+                branchPartner = overlapping[k];
                 break;
             }
+        }
+        if (branchPartner === -1) branchPartner = overlapping[overlapping.length - 1];
+
+        const existingBranch = branches.find(b => b.mergeAfterIdx >= i - 1 && segments[branchPartner].branchGroup === branches.indexOf(b));
+        if (existingBranch) {
+            existingBranch.mergeAfterIdx = i;
+            segments[i].branchGroup = branches.indexOf(existingBranch);
+        } else {
+            segments[i].branchGroup = branches.length;
+            segments[branchPartner].branchGroup = branches.length;
+            branches.push({ forkBeforeIdx: branchPartner, mergeAfterIdx: i });
         }
     }
 
@@ -594,10 +626,13 @@ function layoutTimelineCards(timelineContainer) {
         });
     });
 
-    // Resolve overlaps within each side (top / bottom)
+    // Resolve overlaps within each side (top / bottom) with bidirectional clamping
     ['top', 'bottom'].forEach(side => {
         const sideCards = cards.filter(c => c.isTop === (side === 'top')).sort((a, b) => a.left - b.left);
+        if (sideCards.length === 0) return;
         const gap = 6;
+
+        // Forward pass: push right to resolve overlaps
         for (let i = 1; i < sideCards.length; i++) {
             const prev = sideCards[i - 1];
             const curr = sideCards[i];
@@ -606,6 +641,38 @@ function layoutTimelineCards(timelineContainer) {
             const overlap = prevRight + gap - currLeft;
             if (overlap > 0) {
                 curr.offsetX += overlap;
+            }
+        }
+
+        // Backward pass: pull back from right container edge
+        const lastCard = sideCards[sideCards.length - 1];
+        const rightOverflow = (lastCard.left + lastCard.offsetX + lastCard.width) - containerW;
+        if (rightOverflow > 0) {
+            lastCard.offsetX -= rightOverflow;
+            for (let i = sideCards.length - 2; i >= 0; i--) {
+                const curr = sideCards[i];
+                const next = sideCards[i + 1];
+                const currRight = curr.left + curr.offsetX + curr.width;
+                const nextLeft = next.left + next.offsetX;
+                if (currRight + gap > nextLeft) {
+                    curr.offsetX -= (currRight + gap - nextLeft);
+                }
+            }
+        }
+
+        // Clamp first card to left edge
+        const firstCard = sideCards[0];
+        const leftOverflow = -(firstCard.left + firstCard.offsetX);
+        if (leftOverflow > 0) {
+            firstCard.offsetX += leftOverflow;
+            for (let i = 1; i < sideCards.length; i++) {
+                const prev = sideCards[i - 1];
+                const curr = sideCards[i];
+                const prevRight = prev.left + prev.offsetX + prev.width;
+                const currLeft = curr.left + curr.offsetX;
+                if (prevRight + gap > currLeft) {
+                    curr.offsetX += (prevRight + gap - currLeft);
+                }
             }
         }
     });
@@ -794,8 +861,8 @@ function resizeTimelineContainer() {
         if (!content) return;
         const contentHeight = content.offsetHeight;
         const isBranch = item.classList.contains('timeline-branch-track');
-        // Branch-track top cards need extra room (24px offset vs 16px for main)
-        const extra = isBranch ? 8 : 0;
+        // Branch-track top cards need extra room for the branch offset (28px vs 16px for main)
+        const extra = isBranch ? 28 : 0;
         if (item.classList.contains('top')) {
             maxTopHeight = Math.max(maxTopHeight, contentHeight + extra);
         } else {
