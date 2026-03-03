@@ -4,15 +4,15 @@ Deze handleiding behandelt alles wat u kunt doen met de admin-interface van CV M
 
 ## Onderwerpen
 
-- **[Secties](sections.md)** — Ingebouwde secties, volgorde wijzigen, hernoemen en verbergen
-- **[Inhoud bewerken](editing.md)** — Profiel, foto's, werkervaring, logo's, certificeringen, opleiding, vaardigheden en projecten
-- **[Aangepaste secties](custom-sections.md)** — Maak extra secties met 7 lay-outtypen
-- **[Tijdlijn](timeline.md)** — Automatisch gegenereerde tijdlijn met ondersteuning voor parallelle functies
-- **[Thema & Uiterlijk](theme.md)** — Kleuren en datumnotatiekeuzes
-- **[Taal](language.md)** — Verander de taal van de admin-interface
-- **[Datasets](datasets.md)** — Bewaar meerdere CV-versies voor verschillende doelgroepen
-- **[Afdrukken & PDF](print-pdf.md)** — Exporteer uw CV met configureerbare paginanummers en paginascheiding
-- **[Importeren & Exporteren](import-export.md)** — Maak een back-up van uw CV-gegevens en herstel deze
+- **[Secties](sections.nl.md)** — Ingebouwde secties, volgorde wijzigen, hernoemen en verbergen
+- **[Inhoud bewerken](editing.nl.md)** — Profiel, foto's, werkervaring, logo's, certificeringen, opleiding, vaardigheden en projecten
+- **[Aangepaste secties](custom-sections.nl.md)** — Maak extra secties met 7 lay-outtypen
+- **[Tijdlijn](timeline.nl.md)** — Automatisch gegenereerde tijdlijn met ondersteuning voor parallelle functies
+- **[Thema & Uiterlijk](theme.nl.md)** — Kleuren en datumnotatiekeuzes
+- **[Taal](language.nl.md)** — Verander de taal van de admin-interface
+- **[Datasets](datasets.nl.md)** — Bewaar meerdere CV-versies voor verschillende doelgroepen
+- **[Afdrukken & PDF](print-pdf.nl.md)** — Exporteer uw CV met configureerbare paginanummers en paginascheiding
+- **[Importeren & Exporteren](import-export.nl.md)** — Maak een back-up van uw CV-gegevens en herstel deze
 
 ## Updates & Versie
 

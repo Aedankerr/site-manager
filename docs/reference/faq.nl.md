@@ -113,7 +113,7 @@
 ## Publieke site en SEO
 
 ??? question "Hoe deel ik mijn CV?"
-    Deel de URL van uw publieke server (poort 3001). Als u een domein heeft ingesteld met Cloudflare Tunnel of een reverse proxy, deel dan dat domein. De hoofd-URL toont altijd uw standaarddataset. U kunt ook specifieke versies delen via openbare versie-URL's (zie [Datasets](../guide/datasets.md)).
+    Deel de URL van uw publieke server (poort 3001). Als u een domein heeft ingesteld met Cloudflare Tunnel of een reverse proxy, deel dan dat domein. De hoofd-URL toont altijd uw standaarddataset. U kunt ook specifieke versies delen via openbare versie-URL's (zie [Datasets](../guide/datasets.nl.md)).
 
 ??? question "Indexeren zoekmachines mijn CV?"
     Standaard wel — de hoofdpagina van de publieke site bevat de juiste metatags, een sitemap en robots.txt. Om indexering te voorkomen, wijzigt u de instelling **Zoekmachine-indexering** naar "Niet indexeren" in Instellingen → Geavanceerd. Openbare versie-URL's (`/v/slug`) worden standaard **niet geïndexeerd**; schakel **Versie-URL's indexeren** in als u wilt dat ze worden gecrawld.

@@ -9,5 +9,5 @@ Uw gegevens worden lokaal opgeslagen in een SQLite-database. Er wordt niets naar
 
 ## Volgende stappen
 
-- **[Installatie](installation.md)** — Deploy CV Manager met Docker Compose, Docker Hub of Unraid
-- **[Eerste stappen](first-steps.md)** — Stel uw CV in na de installatie
+- **[Installatie](installation.nl.md)** — Deploy CV Manager met Docker Compose, Docker Hub of Unraid
+- **[Eerste stappen](first-steps.nl.md)** — Stel uw CV in na de installatie
