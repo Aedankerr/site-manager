@@ -4,10 +4,11 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
-## [1.12.2] - 2026-03-03
+## [1.12.3] - 2026-03-03
 
 ### Fixed
-- Timeline branches not displaying when printing from iPhone — the `overflow: hidden` on the timeline container was clipping branch-track elements and SVG curves on iOS Safari's print renderer
+- Timeline branches not displaying when printing from iPhone — iOS Safari doesn't render SVGs in print, so restored the CSS fallback branch line that was removed in the revert
+- Timeline cards overlapping with the section header on iPhone print — restored CSS-based centering (`left: 50%; transform: translateX(-50%)`) for print since JS-computed inline positioning doesn't apply reliably on iOS Safari's print renderer
 
 ## [1.12.1] - 2026-03-03
 
