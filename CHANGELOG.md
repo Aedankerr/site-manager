@@ -4,6 +4,11 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.12.2] - 2026-03-03
+
+### Fixed
+- Timeline branches not displaying when printing from iPhone — the `overflow: hidden` on the timeline container was clipping branch-track elements and SVG curves on iOS Safari's print renderer
+
 ## [1.12.1] - 2026-03-03
 
 ### Fixed

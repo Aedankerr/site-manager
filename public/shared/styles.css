@@ -1067,6 +1067,10 @@ body.has-preview-banner .container {
     #section-timeline:not(.hidden-print) .timeline-container {
         display: block !important;
         min-height: 200px;
+        /* Override overflow:hidden so branch tracks (above the main line) and
+           SVG S-curves are not clipped.  iOS Safari print clips children even
+           when they set overflow:visible if the parent is overflow:hidden. */
+        overflow: visible !important;
         /* MUST be symmetric: .timeline-track uses top:50% of the padding box,
            while dots/cards use top:50% of the content box (.timeline-items).
            Asymmetric padding shifts the track away from the dots. */
