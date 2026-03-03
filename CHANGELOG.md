@@ -12,7 +12,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 - Timeline cards no longer overflow the container — bidirectional clamping keeps cards within bounds
 - Timeline container height calculation accounts for full branch offset (28px) instead of partial (8px)
 - Timeline chevrons now appear on the branch line for branch-track items (moved into .timeline-items to share coordinate system with dots)
-- Timeline chevrons render behind dots (z-index lowered from 3 to 1)
+- Timeline chevrons render between branch lines and dots (z-index layering: SVG lines 1 → chevrons 2 → dots/flags 3)
 - Timeline card offsets use percentage-based left positioning so they scale correctly across container sizes
 - Timeline print: removed double branch line caused by both SVG curves and CSS fallback rendering simultaneously
 - Timeline hover no longer breaks card centering (transform now preserves translateX(-50%))
