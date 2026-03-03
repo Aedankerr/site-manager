@@ -4,6 +4,12 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.11.4] - 2026-03-03
+
+### Fixed
+- Item visibility now persists correctly when saving/loading datasets and importing data (strict comparison `!== false` failed for SQLite integer `0`, changed to loose `!= false`)
+- `gatherCvData()` now stores `visible` as boolean for all section types, consistent with API responses
+
 ## [1.11.3] - 2026-03-03
 
 ### Fixed
