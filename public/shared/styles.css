@@ -348,11 +348,9 @@ body {
     top: calc(50% + 36px);
 }
 
-/* Chevrons on the branch track — use fixed 28px (not --branch-offset-pct)
-   because the chevron is in .timeline-container (includes padding) while
-   --branch-offset-pct is a percentage of .timeline-items (content only) */
+/* Chevrons on the branch track — same offset as dots (both in .timeline-items) */
 .timeline-chevron.timeline-chevron-branch {
-    top: calc(50% - 28px);
+    top: calc(50% - var(--branch-offset-pct, 28px));
 }
 
 /* CSS fallback for branch line in print (SVG doesn't render on Safari iOS) */
@@ -1104,16 +1102,10 @@ body.has-preview-banner .container {
         stroke: var(--accent) !important;
         stroke-width: 3px !important;
     }
-    /* CSS fallback branch line — Safari iOS doesn't render SVG in print */
+    /* CSS fallback branch line — hidden by default since SVG branch curves render.
+       Was causing a "double line" when both the SVG and CSS fallback were visible. */
     #section-timeline:not(.hidden-print) .timeline-branch-line {
-        display: block;
-        position: absolute;
-        top: calc(50% - var(--branch-offset-pct, 8%));
-        height: 3px;
-        background: var(--accent);
-        border-radius: 2px;
-        transform: translateY(-50%);
-        z-index: 1;
+        display: none;
     }
     #section-timeline:not(.hidden-print) .timeline-track {
         height: 3px;

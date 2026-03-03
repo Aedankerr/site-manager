@@ -571,8 +571,9 @@ function renderTimelineItems(items, options) {
     }
 
     // Add white chevrons at the start date of each experience
+    // Placed inside .timeline-items so they share the same coordinate system as dots
     // Branch-track items get their chevron on the branch line, not the main track
-    timelineContainer.querySelectorAll('.timeline-chevron').forEach(el => el.remove());
+    container.querySelectorAll('.timeline-chevron').forEach(el => el.remove());
     if (track) {
         positions.forEach((pos, idx) => {
             const chevron = document.createElement('div');
@@ -582,7 +583,7 @@ function renderTimelineItems(items, options) {
                 <path d="M1 1 L8 7 L1 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
             </svg>`;
             chevron.style.left = pos.startPct + '%';
-            timelineContainer.appendChild(chevron);
+            container.appendChild(chevron);
         });
     }
 
