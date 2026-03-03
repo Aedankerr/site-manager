@@ -469,7 +469,7 @@ async function loadTimeline() {
 
 // Shared timeline rendering used by both admin and public views.
 // Items must have: { company, role, countryCode, logo, visible, id, start_date, end_date }
-// Options: interactive (adds click handlers / hidden-print class for admin)
+// Options: interactive (adds click handlers for admin)
 function renderTimelineItems(items, options) {
     const interactive = options && options.interactive;
     const container = document.getElementById('timelineItems');
@@ -485,7 +485,7 @@ function renderTimelineItems(items, options) {
         timelineContainer.classList.toggle('has-branches', hasBranches);
     }
 
-    const uniqueCountries = new Set(items.map(i => (i.countryCode || '').toLowerCase()).filter(Boolean));
+    const uniqueCountries = new Set(visibleItems.map(i => (i.countryCode || '').toLowerCase()).filter(Boolean));
     const showFlags = uniqueCountries.size > 1;
 
     const positions = computeTimePositions(segments);
