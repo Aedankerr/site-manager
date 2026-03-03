@@ -571,11 +571,13 @@ function renderTimelineItems(items, options) {
     }
 
     // Add white chevrons at the start date of each experience
+    // Branch-track items get their chevron on the branch line, not the main track
     timelineContainer.querySelectorAll('.timeline-chevron').forEach(el => el.remove());
     if (track) {
-        positions.forEach(pos => {
+        positions.forEach((pos, idx) => {
             const chevron = document.createElement('div');
-            chevron.className = 'timeline-chevron';
+            const isBranch = segments[idx].track === 1;
+            chevron.className = 'timeline-chevron' + (isBranch ? ' timeline-chevron-branch' : '');
             chevron.innerHTML = `<svg width="10" height="14" viewBox="0 0 10 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 1 L8 7 L1 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
             </svg>`;
@@ -586,6 +588,18 @@ function renderTimelineItems(items, options) {
 
     layoutTimelineCards(timelineContainer);
     renderBranchCurves(timelineContainer, segments, branches, positions);
+
+    // Re-run card layout at print dimensions so offsets and connector lines
+    // are correct for the printed page (print CSS changes card/container sizes)
+    if (window._timelinePrintAbort) window._timelinePrintAbort.abort();
+    const ac = new AbortController();
+    window._timelinePrintAbort = ac;
+    window.addEventListener('beforeprint', () => {
+        layoutTimelineCards(timelineContainer);
+    }, { signal: ac.signal });
+    window.addEventListener('afterprint', () => {
+        requestAnimationFrame(() => layoutTimelineCards(timelineContainer));
+    }, { signal: ac.signal });
 }
 
 // Detect overlapping timeline cards and offset them, drawing angled connector lines

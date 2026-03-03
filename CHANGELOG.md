@@ -11,6 +11,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 - Timeline overlap threshold uses actual months instead of raw YYYYMM subtraction, with adaptive minimum so short-duration items (e.g. 1-month acting roles) are correctly detected as parallel
 - Timeline cards no longer overflow the container — bidirectional clamping keeps cards within bounds
 - Timeline container height calculation accounts for full branch offset (28px) instead of partial (8px)
+- Timeline chevrons now appear on the branch line for branch-track items instead of always on the main track
+- Timeline print layout: cards no longer overlap and connector lines from dots to offset cards are now visible (removed restrictive CSS overrides, added beforeprint/afterprint re-layout)
 
 ## [1.11.1] - 2026-03-02
 

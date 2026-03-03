@@ -348,6 +348,11 @@ body {
     top: calc(50% + 36px);
 }
 
+/* Chevrons on the branch track */
+.timeline-chevron.timeline-chevron-branch {
+    top: calc(50% - var(--branch-offset-pct, 28px));
+}
+
 /* CSS fallback for branch line in print (SVG doesn't render on Safari iOS) */
 .timeline-branch-line {
     display: none;
@@ -1072,14 +1077,12 @@ body.has-preview-banner .container {
     #section-timeline:not(.hidden-print) .timeline-period { font-size: 8px; }
     #section-timeline:not(.hidden-print) .timeline-content {
         padding: 6px 8px;
-        transform: translateX(-50%) !important;
         max-width: min(90px, calc(100% + 20px));
         min-width: 40px;
         overflow: hidden;
         text-overflow: ellipsis;
         transition: none !important;
     }
-    #section-timeline:not(.hidden-print) .timeline-connectors { display: none !important; }
     /* Only resize dots/flags in print — do NOT override top/left/transform
        because that kills the branch-track offset (calc(50% - var(--branch-offset-pct)))
        due to the #id selector having higher specificity than class-only selectors */
