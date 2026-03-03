@@ -475,7 +475,10 @@ function renderTimelineItems(items, options) {
     const container = document.getElementById('timelineItems');
     const timelineContainer = container.closest('.timeline-container');
 
-    const { branches, segments } = computeTimelineBranches(items);
+    // Filter out hidden experiences so the timeline is regenerated dynamically
+    const visibleItems = items.filter(item => item.visible !== false);
+
+    const { branches, segments } = computeTimelineBranches(visibleItems);
     const hasBranches = branches.length > 0;
 
     if (timelineContainer) {
@@ -532,7 +535,6 @@ function renderTimelineItems(items, options) {
             ? `<img src="https://flagcdn.com/w40/${countryCode}.png" class="timeline-flag" alt="${countryCode.toUpperCase()}" onerror="this.outerHTML='<div class=\\'timeline-dot\\'></div>'">`
             : '<div class="timeline-dot"></div>';
 
-        const hiddenClass = interactive && item.visible === false ? 'hidden-print' : '';
         const branchClass = seg.track === 1 ? 'timeline-branch-track' : '';
 
         const { leftPct, widthPct } = positions[idx];
@@ -547,7 +549,7 @@ function renderTimelineItems(items, options) {
             : `style="left: ${itemLeft}%; width: ${widthPct}%;"`;
 
         return `
-            <div class="timeline-item ${pos} ${branchClass} ${hiddenClass}" ${interactiveAttrs}>
+            <div class="timeline-item ${pos} ${branchClass}" ${interactiveAttrs}>
                 <div class="timeline-content">
                     ${companyLine}
                     <div class="timeline-role">${escapeHtml(item.role)}</div>

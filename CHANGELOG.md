@@ -4,6 +4,12 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.11.3] - 2026-03-03
+
+### Fixed
+- Hiding an experience now dynamically removes it from the timeline instead of leaving a dimmed entry
+- Timeline is regenerated when experience visibility is toggled, ensuring layout recalculates correctly
+
 ## [1.11.2] - 2026-03-03
 
 ### Fixed
