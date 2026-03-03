@@ -1,4 +1,4 @@
-# Geavanceerde Instellingen
+# Geavanceerde instellingen
 
 ## Zoekmachine-indexering (Robots Meta)
 

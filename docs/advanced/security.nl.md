@@ -1,6 +1,6 @@
 # Beveiliging & Privacy
 
-## De Beheerinterface Beschermen
+## De beheerinterface beschermen
 
 De beheerinterface (poort 3000) geeft volledige toegang om uw CV-gegevens te bewerken en te verwijderen. **Deze mag nooit rechtstreeks aan het internet worden blootgesteld.**
 
@@ -10,7 +10,7 @@ De beheerinterface (poort 3000) geeft volledige toegang om uw CV-gegevens te bew
 - **Alleen VPN** — Houd poort 3000 alleen toegankelijk vanuit uw lokale netwerk of VPN. Stel deze nooit open naar het internet via port forwarding.
 - **Reverse proxy met authenticatie** — Als u Nginx, Caddy of Traefik gebruikt, voeg dan HTTP-basisauthenticatie of een authenticatie-middleware toe vóór poort 3000.
 
-## Beveiliging van de Publieke Site
+## Beveiliging van de publieke site
 
 De publieke site (poort 3001) is ontworpen om aan het internet te worden blootgesteld — deze blokkeert alle schrijfbewerkingen, dwingt snelheidsbeperking af (60 verzoeken/minuut per IP) en bevat beveiligingsheaders (CSP, X-Frame-Options, XSS-bescherming).
 

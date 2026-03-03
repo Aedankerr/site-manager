@@ -1,12 +1,12 @@
 # Datasets (Meerdere CV-versies)
 
-## Hoe Datasets Werken
+## Hoe datasets werken
 
 Datasets zijn opgeslagen momentopnames van uw CV. Eén dataset is altijd de **standaard** — dit is de versie die bezoekers zien op uw hoofd-URL (`/`). U kunt extra datasets aanmaken voor verschillende doelgroepen (bijv. een technisch CV, een management-CV) en deze delen via hun eigen URL's.
 
 Wanneer u CV Manager voor het eerst installeert, wordt automatisch een "Default"-dataset aangemaakt op basis van uw CV-gegevens. Alle bewerkingen die u in het beheerpaneel maakt, worden **automatisch opgeslagen** naar de actieve dataset — er is geen aparte "opslaan"-stap.
 
-## De Banner van de Actieve Dataset
+## De banner van de actieve dataset
 
 Een banner onder de werkbalk toont welke dataset u momenteel bewerkt. Deze toont:
 
@@ -16,11 +16,11 @@ Een banner onder de werkbalk toont welke dataset u momenteel bewerkt. Deze toont
 
 Elke wijziging die u maakt (items toevoegen, inhoud bewerken, volgorde wijzigen, zichtbaarheid in-/uitschakelen) wordt na een korte vertraging automatisch opgeslagen in de actieve dataset.
 
-## Een Nieuwe Dataset Opslaan
+## Een nieuwe dataset opslaan
 
 Klik op **Save As...** in de werkbalk, voer een naam in (bijv. "Technisch CV", "Marketing Functie") en uw huidige CV-status wordt opgeslagen als een nieuwe momentopname. De nieuwe dataset wordt de actieve dataset.
 
-## Het Open-venster
+## Het open-venster
 
 Klik op **Open...** om alle opgeslagen datasets te bekijken. Een **legenda** bovenaan verklaart de drie besturingselementen:
 
@@ -39,7 +39,7 @@ Elke dataset-rij toont:
 - **Load**-knop — schakelt naar deze dataset (toont "Reload" als deze al actief is)
 - **Delete**-knop — verwijdert de dataset permanent (uitgeschakeld voor de huidige standaard)
 
-## De Standaarddataset Instellen
+## De standaarddataset instellen
 
 De standaarddataset is de versie die bezoekers zien wanneer zij uw hoofd-URL (`/`) bezoeken. Om deze te wijzigen:
 
@@ -49,7 +49,7 @@ De standaarddataset is de versie die bezoekers zien wanneer zij uw hoofd-URL (`/
 
 Dit ontkoppelt uw openbare CV van uw bewerkingen. U kunt vrij inhoud bewerken in het beheerpaneel zonder dat bezoekers werk-in-uitvoering zien, totdat u er klaar voor bent.
 
-## Openbare Versie-URL's
+## Openbare versie-URL's
 
 Elke opgeslagen dataset (behalve de standaard) krijgt een uniek URL-pad (bijv. `/v/technical-cv-1`). Standaard zijn deze **privé** — alleen toegankelijk vanuit de beheerinterface voor voorvertoningen.
 

@@ -1,6 +1,6 @@
 # Afdrukken & PDF-export
 
-## Uw CV Afdrukken
+## Uw CV afdrukken
 
 Klik op **Print / PDF** in de werkbalk (of druk op `Ctrl+P` / `Cmd+P`). Gebruik de optie "Opslaan als PDF" van uw browser om een PDF-bestand te maken. De afdrukuitvoer sluit alle beheerelementen, verborgen items en verborgen secties uit.
 
@@ -20,7 +20,7 @@ Twee opties bepalen hoe inhoud over pagina's wordt verdeeld:
 
 Beide zijn te vinden in **Settings → Print & Export**. Als uw CV lange secties bevat, voorkomt het inschakelen van deze opties overmatige witruimte.
 
-## Openbare Afdrukknop
+## Openbare afdrukknop
 
 Schakel **Settings → Print & Export → Public Print Button** in of uit om een afdrukknop op het publieke CV te tonen of te verbergen. Wanneer ingeschakeld, kunnen bezoekers uw CV direct afdrukken.
 

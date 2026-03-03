@@ -9,4 +9,4 @@ Volg na het installeren van CV Manager deze stappen om uw CV in te stellen:
 5. Klik op **Afdrukken / PDF** om te exporteren, of deel de publieke URL op poort 3001
 
 !!! tip "Tip"
-    De publieke site op poort 3001 toont een alleen-lezen versie van uw CV. Deel die URL met recruiters en werkgevers — zij zien geen admin-bediening.
+    De publieke site op poort 3001 toont een alleen-lezen versie van uw CV. Deel die URL met recruiters en werkgevers — zij zien geen beheerknoppen.

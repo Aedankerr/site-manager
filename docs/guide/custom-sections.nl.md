@@ -8,7 +8,7 @@ Met aangepaste secties kunt u inhoud toevoegen die niet past bij de ingebouwde s
 2. Klik op **Aangepaste sectie toevoegen**
 3. Voer een sectienaam in
 4. Kies een lay-outtype (zie hieronder)
-5. Kies optioneel een **sectiepictogram** (ster, boek, link, wereldbol, hart, onderscheiding, aktetas) — weergegeven naast de kop
+5. Kies optioneel een **sectiepictogram** (ster, boek, link, wereldbol, hart, onderscheiding, aktentas) — weergegeven naast de kop
 6. Sla op — de nieuwe sectie verschijnt in uw CV
 
 ## Lay-outtypen

@@ -11,7 +11,7 @@ CV Manager wordt geleverd met 7 ingebouwde secties:
 | **Werkervaring** | Arbeidsverleden met functietitel, bedrijf, datums, locatie, landenvlag en opsommingstekens met hoogtepunten. |
 | **Certificeringen** | Professionele certificeringen met aanbieder en datums. |
 | **Opleiding** | Diploma's, instellingen, datums en beschrijvingen. |
-| **Vaardigheden** | Gegroepeerde vaardigheidscategorieen met individuele vaardigheidstags. Elke categorie kan een aangepast pictogram hebben. |
+| **Vaardigheden** | Gegroepeerde vaardigheidscategorieën met individuele vaardigheidstags. Elke categorie kan een aangepast pictogram hebben. |
 | **Projecten** | Uitgelichte projecten met beschrijvingen, technologietags en externe links. |
 
 ## Volgorde van secties wijzigen

@@ -33,8 +33,8 @@
 ??? question "Hoeveel aangepaste secties kan ik aanmaken?"
     Er is geen vaste limiet. U kunt er zoveel aanmaken als u nodig heeft.
 
-??? question "Kan ik het layouttype van een aangepaste sectie wijzigen nadat ik deze heb aangemaakt?"
-    Ja. Bewerk de sectie en selecteer een andere layout. Houd er rekening mee dat sommige velden mogelijk niet behouden blijven bij het wisselen van layouttype (bijv. bij het overschakelen van kaarten naar sociale links).
+??? question "Kan ik het lay-outtype van een aangepaste sectie wijzigen nadat ik deze heb aangemaakt?"
+    Ja. Bewerk de sectie en selecteer een andere lay-out. Houd er rekening mee dat sommige velden mogelijk niet behouden blijven bij het wisselen van lay-outtype (bijv. bij het overschakelen van kaarten naar sociale links).
 
 ??? question "Wat is het verschil tussen de layouts 'Opsommingstekens' en 'Vrije tekst'?"
     **Opsommingstekens** geeft elke regel weer als een lijstitem met opsommingsteken en een groepstitel. **Vrije tekst** geeft platte tekst weer met behouden regelafbrekingen en zonder titel — vergelijkbaar met de sectie Over mij/Bio.
@@ -45,7 +45,7 @@
     De afdrukuitvoer gebruikt speciale afdrukstijlen die zijn geoptimaliseerd voor papier. Sommige visuele effecten (hover-statussen, animaties, verlopen) worden vereenvoudigd. Verborgen items en beheerknoppen worden automatisch verwijderd.
 
 ??? question "Hoe pas ik mijn CV op minder pagina's?"
-    Probeer **Sectiesplitsing toestaan** en **Itemsplitsing toestaan** in te schakelen in de instellingen voor Afdrukken en exporteren. U kunt ook minder belangrijke items of secties verbergen, of compactere aangepaste sectie-layouts gebruiken. U kunt ook de afdrukschaal aanpassen via het afdrukvenster van uw browser (soms wat verborgen).
+    Probeer **Sectiesplitsing toestaan** en **Itemsplitsing toestaan** in te schakelen in de instellingen voor Afdrukken en exporteren. U kunt ook minder belangrijke items of secties verbergen, of compactere aangepaste sectie-lay-outs gebruiken. U kunt ook de afdrukschaal aanpassen via het afdrukvenster van uw browser (soms wat verborgen).
 
 ??? question "Waarom ontbreken sommige items in mijn afgedrukte CV?"
     Controleer of die items zijn ingesteld als verborgen (oogpictogram). Verborgen items worden uitgesloten van de afdrukuitvoer en de publieke weergave.
@@ -108,7 +108,7 @@
     Nee. De dataset die momenteel als standaard is geselecteerd (via het keuzerondje) kan niet worden verwijderd. Stel eerst een andere dataset in als standaard en verwijder vervolgens de oude.
 
 ??? question "Indexeren zoekmachines mijn versie-URL's?"
-    Standaard niet — pagina's met versienummers krijgen `noindex, nofollow`. Om indexering toe te staan, schakelt u **Versie-URL's indexeren** in via Instellingen → Geavanceerd.
+    Standaard niet — versie-URL-pagina's krijgen `noindex, nofollow`. Om indexering toe te staan, schakelt u **Versie-URL's indexeren** in via Instellingen → Geavanceerd.
 
 ## Publieke site en SEO
 
