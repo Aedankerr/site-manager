@@ -6,7 +6,7 @@
     Nee. Alles draait lokaal op uw server. Uw CV-gegevens worden opgeslagen in een SQLite-databasebestand in de `/data` map.
 
 ??? question "Kan ik CV Manager zonder Docker gebruiken?"
-    Ja. Installeer Node.js 18+, voer `npm install` uit in de projectmap en vervolgens `node src/server.js`. De beheerinterface draait op poort 3000 en de publieke site op poort 3001.
+    Ja. Installeer Node.js 18+, voer `npm install` uit in de projectmap en voer vervolgens `node src/server.js` uit. De beheerinterface draait op poort 3000 en de publieke site op poort 3001.
 
 ??? question "Kunnen meerdere personen dezelfde instantie gebruiken?"
     CV Manager is ontworpen als een applicatie voor één gebruiker. Elke instantie beheert het CV van één persoon. Voor meerdere personen kunt u afzonderlijke containers draaien.

@@ -108,7 +108,7 @@
     Nein. Der aktuell als Standard ausgewählte Datensatz (über das Optionsfeld) kann nicht gelöscht werden. Legen Sie zuerst einen anderen Datensatz als Standard fest und löschen Sie dann den alten.
 
 ??? question "Werden Suchmaschinen meine versionierten URLs indexieren?"
-    Standardmäßig nein — versionierte Seiten erhalten `noindex, nofollow`. Um die Indexierung zu erlauben, aktivieren Sie **Index Versioned URLs** unter Settings → Advanced.
+    Standardmäßig nein — versionierte Seiten erhalten `noindex, nofollow`. Um die Indexierung zu erlauben, aktivieren Sie **Versionierte URLs indexieren** unter Einstellungen → Erweitert.
 
 ## Öffentliche Seite & SEO
 
@@ -116,17 +116,17 @@
     Teilen Sie die URL Ihres öffentlichen Servers (Port 3001). Wenn Sie eine Domain mit Cloudflare Tunnel oder einem Reverse Proxy eingerichtet haben, teilen Sie diese Domain. Die Stamm-URL zeigt immer Ihren Standard-Datensatz. Sie können auch bestimmte Versionen über öffentliche versionierte URLs teilen (siehe [Datensätze](../guide/datasets.de.md)).
 
 ??? question "Werden Suchmaschinen meinen Lebenslauf indexieren?"
-    Standardmäßig ja — die öffentliche Hauptseite enthält korrekte Meta-Tags, eine Sitemap und robots.txt. Um die Indexierung zu verhindern, ändern Sie die Einstellung **Search Engine Indexing** auf "No Index" unter Settings → Advanced. Öffentliche versionierte URLs (`/v/slug`) werden standardmäßig **nicht indexiert**; aktivieren Sie **Index Versioned URLs**, wenn Sie möchten, dass sie gecrawlt werden.
+    Standardmäßig ja — die öffentliche Hauptseite enthält korrekte Meta-Tags, eine Sitemap und robots.txt. Um die Indexierung zu verhindern, ändern Sie die Einstellung **Suchmaschinenindexierung** auf „Nicht indexieren" unter Einstellungen → Erweitert. Öffentliche versionierte URLs (`/v/slug`) werden standardmäßig **nicht indexiert**; aktivieren Sie **Versionierte URLs indexieren**, wenn Sie möchten, dass sie gecrawlt werden.
 
 ??? question "Kann ich Google Analytics zu meinem Lebenslauf hinzufügen?"
-    Ja. Fügen Sie Ihren Tracking-Code unter **Settings → Advanced → Tracking Code** ein. Er wird nur auf den öffentlichen Seiten eingefügt.
+    Ja. Fügen Sie Ihren Tracking-Code unter **Einstellungen → Erweitert → Tracking-Code** ein. Er wird nur auf den öffentlichen Seiten eingefügt.
 
 ## Docker & Infrastruktur
 
 ??? question "Meine Änderungen erscheinen nicht auf der öffentlichen Seite?"
     Die öffentliche Seite zeigt den **Standard-Datensatz**, der automatisch aktualisiert wird, wenn Sie im Admin-Bereich bearbeiten. Versuchen Sie einen Hard-Refresh (`Ctrl+Shift+R`) auf der öffentlichen Seite. Wenn Sie separate Container betreiben, stellen Sie sicher, dass sie dasselbe Datenvolumen teilen.
 
-??? question "Ich erhalte einen 'port already in use'-Fehler?"
+??? question "Ich erhalte einen 'Port already in use'-Fehler?"
     Ändern Sie das Host-Port-Mapping in Ihrer Docker-Konfiguration. Zum Beispiel: Mappen Sie auf `3010:3000` und `3011:3001`. Ändern Sie **nicht** die Umgebungsvariable `PUBLIC_PORT` — das ist der interne Container-Port.
 
 ??? question "Wie sichere ich meine Daten?"

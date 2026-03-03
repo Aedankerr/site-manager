@@ -81,7 +81,7 @@
 ??? question "Não vejo o banner de atualização mesmo havendo uma nova versão disponível?"
     A verificação de versão é armazenada em cache por 24 horas. Reinicie seu servidor (ou container Docker) para limpar o cache e forçar uma nova verificação. Seu servidor também precisa de acesso de saída à internet para alcançar `raw.githubusercontent.com`.
 
-## Datasets / Múltiplos CVs
+## Conjuntos de Dados / Múltiplos CVs
 
 ??? question "O que é o conjunto de dados 'Default'?"
     O conjunto de dados padrão é a versão do seu CV que os visitantes veem na sua URL raiz (`/`). Na primeira instalação, o CV Manager cria automaticamente um conjunto de dados "Default" a partir dos dados do seu CV. Você pode alterar qual conjunto de dados é o padrão a qualquer momento usando o botão de rádio no modal Abrir.
@@ -130,7 +130,7 @@
     Altere o mapeamento de porta do host na sua configuração Docker. Por exemplo, mapeie para `3010:3000` e `3011:3001`. **Não** altere a variável de ambiente `PUBLIC_PORT` — essa é a porta interna do container.
 
 ??? question "Como faço backup dos meus dados?"
-    Duas opções: use o botão **Export** na barra de ferramentas do admin (exporta JSON) ou faça backup do diretório `data/` que contém o banco de dados SQLite e as imagens enviadas.
+    Duas opções: use o botão **Exportar** na barra de ferramentas do admin (exporta JSON) ou faça backup do diretório `data/` que contém o banco de dados SQLite e as imagens enviadas.
 
 ??? question "A foto de perfil não está aparecendo?"
     Certifique-se de que a imagem foi enviada pela interface de admin. O arquivo é armazenado em `data/uploads/picture.jpeg`. Verifique as permissões do arquivo se estiver rodando no Linux.
