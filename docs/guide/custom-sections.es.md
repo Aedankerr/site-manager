@@ -8,7 +8,7 @@ Las secciones personalizadas le permiten agregar cualquier contenido que no enca
 2. Haga clic en **Add Custom Section**
 3. Introduzca un nombre para la sección
 4. Elija un tipo de diseño (ver más abajo)
-5. Opcionalmente elija un **icono de sección** (star, book, link, globe, heart, award, briefcase) — se muestra junto al encabezado
+5. Opcionalmente elija un **ícono de sección** (star, book, link, globe, heart, award, briefcase) — se muestra junto al encabezado
 6. Guarde — la nueva sección aparecerá en su CV
 
 ## Tipos de diseño
@@ -19,7 +19,7 @@ Las secciones personalizadas le permiten agregar cualquier contenido que no enca
 | **3-Column Grid** | Elementos compactos como premios, publicaciones o credenciales breves |
 | **Vertical List** | Elementos secuenciales con enlaces opcionales, como trabajo voluntario o membresías |
 | **Card Grid** | Elementos enriquecidos con título, subtítulo, descripción y enlace — como piezas de portafolio |
-| **Social Links** | Enlaces a plataformas con iconos específicos (LinkedIn, GitHub, Twitter/X, YouTube, Instagram, Dribbble, Behance, Website, Email, Phone o Custom) |
+| **Social Links** | Enlaces a plataformas con íconos específicos (LinkedIn, GitHub, Twitter/X, YouTube, Instagram, Dribbble, Behance, Website, Email, Phone o Custom) |
 | **Bullet Points** | Listas de viñetas agrupadas, similares a los logros destacados de experiencia — ideales para logros clave o competencias |
 | **Free Text** | Bloque de texto plano con saltos de línea preservados — similar a la sección Acerca de, útil para cartas de presentación, declaraciones personales o cualquier contenido de formato libre |
 

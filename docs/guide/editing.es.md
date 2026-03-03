@@ -2,7 +2,7 @@
 
 ## Perfil / Encabezado
 
-Haga clic en el **icono de edición** en la sección del encabezado. Puede configurar:
+Haga clic en el **ícono de edición** en la sección del encabezado. Puede configurar:
 
 - **Nombre** e **Iniciales** (se muestran en el círculo del avatar si no se ha subido una foto)
 - **Título** (su cargo o puesto principal)
@@ -10,7 +10,7 @@ Haga clic en el **icono de edición** en la sección del encabezado. Puede confi
 - **Biografía** (resumen profesional — se preservan los saltos de línea)
 - **Ubicación**
 - **Correo electrónico**, **Teléfono**, **LinkedIn** (se muestran como insignias de contacto)
-- **Idiomas** (idiomas hablados, por ejemplo, "Inglés, Francés, Alemán" — se muestra como una insignia con un icono de globo)
+- **Idiomas** (idiomas hablados, por ejemplo, "Inglés, Francés, Alemán" — se muestra como una insignia con un ícono de globo)
 
 ## Foto de perfil
 
@@ -22,7 +22,7 @@ Cada entrada de experiencia incluye:
 
 - **Cargo** y **Nombre de la empresa**
 - **Fecha de inicio** y **Fecha de fin** (deje la fecha de fin vacía para puestos actuales — se muestra "Present")
-- **Ubicación** y **Código de país** (código de 2 letras como `us`, `ch`, `fr` — se usa para los iconos de bandera en la línea de tiempo)
+- **Ubicación** y **Código de país** (código de 2 letras como `us`, `ch`, `fr` — se usa para los íconos de bandera en la línea de tiempo)
 - **Logros destacados** — viñetas que describen sus logros (uno por línea)
 
 ## Logotipos de empresas
@@ -41,13 +41,13 @@ Haga clic en **Use existing** para abrir la cuadrícula del selector de logotipo
 
 ### Autocompletado
 
-Cuando escribe un nombre de empresa que ya tiene un logotipo (de una experiencia actual o guardada), el logotipo se completa automáticamente. Esto funciona entre datasets.
+Cuando escribe un nombre de empresa que ya tiene un logotipo (de una experiencia actual o guardada), el logotipo se completa automáticamente. Esto funciona entre conjuntos de datos.
 
 ### Propagación global
 
 Cuando se establece un logotipo, aparece un interruptor: **"Sync logo across all [Company] experiences"**. Cuando está activado:
 
-- El logotipo se aplica a **todas** las experiencias con el mismo nombre de empresa — incluyendo las de datasets guardados
+- El logotipo se aplica a **todas** las experiencias con el mismo nombre de empresa — incluyendo las de conjuntos de datos guardados
 - Las experiencias futuras de la misma empresa heredarán automáticamente el logotipo
 - Desactivarlo **no** elimina los logotipos ya aplicados — solo detiene la propagación automática futura
 
@@ -65,7 +65,7 @@ Cada entrada tiene un **título/grado**, **institución**, **fechas de inicio/fi
 
 ## Habilidades
 
-Las habilidades se organizan en **categorías** (por ejemplo, "Lenguajes de programación", "Herramientas y plataformas"). Cada categoría contiene etiquetas de habilidades individuales. Las categorías pueden tener un **icono** seleccionado de una lista predefinida: code, server, database, cloud, settings, users, briefcase, cpu, layers o default. Si no se elige un icono, el sistema detecta automáticamente uno basado en el nombre de la categoría (por ejemplo, una categoría llamada "Programming" obtiene automáticamente el icono code).
+Las habilidades se organizan en **categorías** (por ejemplo, "Lenguajes de programación", "Herramientas y plataformas"). Cada categoría contiene etiquetas de habilidades individuales. Las categorías pueden tener un **ícono** seleccionado de una lista predefinida: code, server, database, cloud, settings, users, briefcase, cpu, layers o default. Si no se elige un ícono, el sistema detecta automáticamente uno basado en el nombre de la categoría (por ejemplo, una categoría llamada "Programming" obtiene automáticamente el ícono code).
 
 ## Proyectos
 

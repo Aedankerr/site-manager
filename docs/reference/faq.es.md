@@ -26,7 +26,7 @@
     Edite la experiencia, desplácese hasta la sección **Company Logo** y haga clic en **Choose image** para subir una imagen. También puede hacer clic en **Use existing** para reutilizar un logotipo que ya haya subido. Active el interruptor **"Sync logo across all [Company]"** para aplicar el mismo logotipo a todas las experiencias en esa empresa.
 
 ??? question "Eliminé algo accidentalmente. ¿Puedo deshacerlo?"
-    No hay función de deshacer. Dado que las ediciones se guardan automáticamente en el conjunto de datos activo, el cambio se persiste inmediatamente. Si tiene una exportación anterior o un conjunto de datos guardado separado, puede restaurar desde ahí. Es una buena práctica exportar su CV regularmente como copia de seguridad.
+    No hay función de deshacer. Dado que las ediciones se guardan automáticamente en el conjunto de datos activo, el cambio se almacena de inmediato. Si tiene una exportación anterior o un conjunto de datos guardado separado, puede restaurar desde ahí. Se recomienda exportar su CV regularmente como copia de seguridad.
 
 ## Secciones personalizadas
 
@@ -45,23 +45,23 @@
     La salida de impresión utiliza estilos de impresión dedicados optimizados para papel. Algunos efectos visuales (estados de hover, animaciones, degradados) se simplifican. Los elementos ocultos y los controles de administración se eliminan automáticamente.
 
 ??? question "¿Cómo hago que mi CV ocupe menos páginas?"
-    Intente habilitar **Allow Section Splits** y **Allow Item Splits** en la configuración de Print & Export. También puede ocultar elementos o secciones menos importantes, o usar diseños de secciones personalizadas más compactos. También puede escalar la impresión a través del modal de impresión desde cualquier navegador (a veces está un poco oculto).
+    Intente habilitar **Allow Section Splits** y **Allow Item Splits** en la configuración de Print & Export. También puede ocultar elementos o secciones menos importantes, o usar diseños de secciones personalizadas más compactos. Además, puede ajustar la escala de impresión desde el cuadro de diálogo de impresión del navegador (esta opción a veces no es visible de inmediato).
 
 ??? question "¿Por qué faltan algunos elementos en mi CV impreso?"
-    Verifique si esos elementos han sido ocultados (icono de ojo). Los elementos ocultos se excluyen de la salida de impresión y de la vista pública.
+    Verifique si esos elementos están ocultos (ícono de ojo). Los elementos ocultos se excluyen de la salida de impresión y de la vista pública.
 
-??? question "¿Los números de página no aparecen?"
+??? question "Los números de página no aparecen"
     Asegúrese de que **Page Numbers** esté habilitado en Settings → Print & Export. Algunos visores de PDF del navegador pueden no mostrar los números de página generados por CSS — intente descargar el PDF y abrirlo en un lector dedicado.
 
 ## Línea de tiempo
 
-??? question "¿La línea de tiempo muestra las fechas incorrectas / solo años / fechas completas?"
+??? question "La línea de tiempo muestra las fechas incorrectas / solo años / fechas completas"
     La línea de tiempo tiene su propia configuración de fechas. Vaya a **Settings → Advanced → Timeline: Years Only** para alternar entre la visualización de solo años y el formato de fecha completo.
 
 ??? question "¿Puedo agregar entradas a la línea de tiempo directamente?"
     No. La línea de tiempo se genera automáticamente a partir de sus experiencias laborales. Agregue o edite experiencias y la línea de tiempo se actualiza en consecuencia.
 
-??? question "¿La bandera del país no aparece en la línea de tiempo?"
+??? question "La bandera del país no aparece en la línea de tiempo"
     Asegúrese de que el campo **Country Code** en la experiencia esté configurado con un código de país ISO de 2 letras válido (por ejemplo, `us`, `gb`, `ch`, `de`, `fr`). Las banderas se cargan desde un CDN externo.
 
 ??? question "¿Qué sucede cuando tengo dos trabajos al mismo tiempo?"
@@ -73,12 +73,12 @@
 ## Idioma y actualizaciones
 
 ??? question "¿Cómo cambio el idioma del panel de administración?"
-    Haga clic en el **icono de globo** en la barra de herramientas y seleccione un idioma de la cuadrícula desplegable. El cambio se aplica inmediatamente y se guarda entre sesiones.
+    Haga clic en el **ícono de globo** en la barra de herramientas y seleccione un idioma de la cuadrícula desplegable. El cambio se aplica inmediatamente y se guarda entre sesiones.
 
 ??? question "¿Cómo verifico qué versión estoy ejecutando?"
     Abra **Settings** — el número de versión se muestra en la esquina inferior izquierda del modal (por ejemplo, `v1.11.0`).
 
-??? question "¿No veo el banner de actualización aunque hay una nueva versión disponible?"
+??? question "No veo el banner de actualización aunque hay una nueva versión disponible"
     La verificación de versión se almacena en caché durante 24 horas. Reinicie su servidor (o contenedor Docker) para borrar la caché y forzar una verificación nueva. Su servidor también necesita acceso a Internet saliente para alcanzar `raw.githubusercontent.com`.
 
 ## Conjuntos de datos / Múltiples CVs
@@ -99,7 +99,7 @@
     Solo si los hace públicos. Cada conjunto de datos tiene un interruptor en el modal Open. Cuando se establece como público, esa versión se vuelve accesible en `/v/slug` en el sitio público (puerto 3001). Los conjuntos de datos privados solo se pueden previsualizar desde la interfaz de administración.
 
 ??? question "¿Cómo comparto una versión específica de mi CV con alguien?"
-    Abra el modal **Open...**, active el conjunto de datos como público, luego haga clic en el icono de copiar junto a la URL del slug. Comparta ese enlace — funciona en el sitio público sin exponer su interfaz de administración.
+    Abra el modal **Open...**, active el conjunto de datos como público, luego haga clic en el ícono de copiar junto a la URL del slug. Comparta ese enlace — funciona en el sitio público sin exponer su interfaz de administración.
 
 ??? question "¿Puedo tener múltiples versiones públicas al mismo tiempo?"
     Sí. Puede hacer públicos tantos conjuntos de datos como desee. Cada uno obtiene su propia URL (por ejemplo, `/v/technical-cv-1`, `/v/marketing-cv-2`). La página principal `/` muestra el conjunto de datos predeterminado.
@@ -123,14 +123,14 @@
 
 ## Docker e infraestructura
 
-??? question "¿Mis cambios no aparecen en el sitio público?"
+??? question "Mis cambios no aparecen en el sitio público"
     El sitio público sirve el **conjunto de datos predeterminado**, que se actualiza automáticamente cuando edita en el panel de administración. Intente una recarga forzada (`Ctrl+Shift+R`) en el sitio público. Si ejecuta contenedores separados, asegúrese de que compartan el mismo volumen de datos.
 
-??? question "¿Recibo un error de 'puerto en uso'?"
+??? question "Recibo un error de 'puerto en uso'"
     Cambie el mapeo de puertos del host en su configuración de Docker. Por ejemplo, mapee a `3010:3000` y `3011:3001`. **No** cambie la variable de entorno `PUBLIC_PORT` — ese es el puerto interno del contenedor.
 
 ??? question "¿Cómo hago una copia de seguridad de mis datos?"
     Dos opciones: use el botón **Export** en la barra de herramientas del administrador (exporta JSON), o haga una copia de seguridad del directorio `data/` que contiene la base de datos SQLite y las imágenes subidas.
 
-??? question "¿La foto de perfil no se muestra?"
+??? question "La foto de perfil no se muestra"
     Asegúrese de que la imagen fue subida a través de la interfaz de administración. El archivo se almacena en `data/uploads/picture.jpeg`. Verifique los permisos de archivo si ejecuta en Linux.

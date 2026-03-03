@@ -62,7 +62,7 @@ Para compartir una versión específica públicamente:
 
 Esto le permite compartir versiones personalizadas de su CV con diferentes audiencias. Por ejemplo, podría hacer público un "Technical CV" para roles de ingeniería mientras mantiene un "Management CV" privado hasta que lo necesite.
 
-**Copiar la URL**: Haga clic en el icono de copiar junto al slug para copiar la URL completa a su portapapeles. El mensaje de notificación le indicará si copió una URL pública o solo de previsualización.
+**Copiar la URL**: Haga clic en el ícono de copiar junto al slug para copiar la URL completa a su portapapeles. El mensaje de notificación le indicará si copió una URL pública o solo de previsualización.
 
 !!! note
     La página pública principal en `/` siempre muestra el **conjunto de datos predeterminado** — no sus ediciones en vivo. Esto significa que puede experimentar con seguridad en el panel de administración sin afectar lo que ven los visitantes.
