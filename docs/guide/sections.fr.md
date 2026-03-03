@@ -1,30 +1,30 @@
 # Sections
 
-## Sections integrees
+## Sections intégrées
 
-CV Manager est fourni avec 7 sections integrees :
+CV Manager est fourni avec 7 sections intégrées :
 
 | Section | Description |
 |---------|-------------|
-| **A propos** | Votre resume professionnel / biographie. Prend en charge le texte multiligne. |
-| **Chronologie** | Generee automatiquement a partir de vos experiences professionnelles. Affiche une frise chronologique visuelle avec des drapeaux de pays. |
-| **Experience** | Parcours professionnel avec intitule de poste, entreprise, dates, lieu, drapeau de pays et points cles. |
+| **À propos** | Votre résumé professionnel / biographie. Prend en charge le texte multiligne. |
+| **Chronologie** | Générée automatiquement à partir de vos expériences professionnelles. Affiche une frise chronologique visuelle avec des drapeaux de pays. |
+| **Expérience** | Parcours professionnel avec intitulé de poste, entreprise, dates, lieu, drapeau de pays et points clés. |
 | **Certifications** | Certifications professionnelles avec organisme et dates. |
-| **Formation** | Diplomes, etablissements, dates et descriptions. |
-| **Competences** | Categories de competences regroupees avec des etiquettes individuelles. Chaque categorie peut avoir une icone personnalisee. |
-| **Projets** | Projets mis en avant avec descriptions, etiquettes de technologies et liens externes. |
+| **Formation** | Diplômes, établissements, dates et descriptions. |
+| **Compétences** | Catégories de compétences regroupées avec des étiquettes individuelles. Chaque catégorie peut avoir une icône personnalisée. |
+| **Projets** | Projets mis en avant avec descriptions, étiquettes de technologies et liens externes. |
 
-## Reordonnancement des sections
+## Réordonnancement des sections
 
-1. Cliquez sur **Parametres** dans la barre d'outils
+1. Cliquez sur **Paramètres** dans la barre d'outils
 2. Allez dans l'onglet **Sections et titres**
-3. Utilisez les **boutons fleches** pour deplacer les sections vers le haut ou vers le bas
+3. Utilisez les **boutons flèches** pour déplacer les sections vers le haut ou vers le bas
 4. Cliquez sur **Enregistrer** — l'ordre s'applique aux vues d'administration et publique
 
 ## Renommer les titres de section
 
-Dans le meme onglet **Sections et titres**, vous pouvez renommer le titre d'affichage de n'importe quelle section. Par exemple, renommez « Experience » en « Parcours professionnel » ou « Competences » en « Expertise technique ». Effacez le nom personnalise pour revenir au nom par defaut.
+Dans le même onglet **Sections et titres**, vous pouvez renommer le titre d'affichage de n'importe quelle section. Par exemple, renommez « Expérience » en « Parcours professionnel » ou « Compétences » en « Expertise technique ». Effacez le nom personnalisé pour revenir au nom par défaut.
 
 ## Masquer des sections
 
-Chaque section dispose d'un **bouton de visibilite** (icone d'oeil) dans son coin superieur droit. Le desactiver masque la section de l'impression/PDF tout en la gardant visible dans l'administration pour la modification.
+Chaque section dispose d'un **bouton de visibilité** (icône d'œil) dans son coin supérieur droit. Le désactiver masque la section de l'impression/PDF tout en la gardant visible dans l'administration pour la modification.

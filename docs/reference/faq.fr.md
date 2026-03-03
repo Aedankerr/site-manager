@@ -26,7 +26,7 @@
     Modifiez l'expérience, faites défiler jusqu'à la section **Company Logo** et cliquez sur **Choose image** pour télécharger un fichier. Vous pouvez également cliquer sur **Use existing** pour réutiliser un logo déjà téléchargé. Activez l'option **« Sync logo across all [Company] »** pour appliquer le même logo à toutes les expériences de cette entreprise.
 
 ??? question "J'ai accidentellement supprimé quelque chose. Puis-je annuler ?"
-    Il n'y a pas de fonction d'annulation. Comme les modifications sont automatiquement enregistrées dans le jeu de données actif, le changement est immédiatement persisté. Si vous disposez d'un export précédent ou d'un jeu de données enregistré séparément, vous pouvez restaurer à partir de celui-ci. Il est recommandé d'exporter régulièrement votre CV en tant que sauvegarde.
+    Il n'y a pas de fonction d'annulation. Comme les modifications sont automatiquement enregistrées dans le jeu de données actif, le changement prend effet immédiatement. Si vous disposez d'un export précédent ou d'un jeu de données enregistré séparément, vous pouvez restaurer à partir de celui-ci. Il est recommandé d'exporter régulièrement votre CV en tant que sauvegarde.
 
 ## Sections personnalisées
 
