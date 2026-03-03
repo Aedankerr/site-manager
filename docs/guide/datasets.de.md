@@ -60,7 +60,7 @@ Um eine bestimmte Version öffentlich zu teilen:
 3. Schalten Sie den **Schalter** daneben um — er wird blau und ein grünes **Öffentlich**-Badge erscheint
 4. Die `/v/slug`-URL ist nun auf der **öffentlichen Seite** (Port 3001) zugänglich
 
-So können Sie maßgeschneiderte Lebenslauf-Versionen mit verschiedenen Zielgruppen teilen. Sie könnten beispielsweise einen "Technischen Lebenslauf" für Ingenieur-Stellen öffentlich machen, während Sie einen "Management-Lebenslauf" privat halten, bis er benötigt wird.
+So können Sie maßgeschneiderte Lebenslauf-Versionen mit verschiedenen Zielgruppen teilen. Sie könnten beispielsweise einen „Technischen Lebenslauf" für Ingenieur-Stellen öffentlich machen, während Sie einen „Management-Lebenslauf" privat halten, bis er benötigt wird.
 
 **URL kopieren**: Klicken Sie auf das Kopier-Symbol neben dem Slug, um die vollständige URL in die Zwischenablage zu kopieren. Die Toast-Nachricht zeigt Ihnen an, ob Sie eine öffentliche oder eine Vorschau-URL kopiert haben.
 

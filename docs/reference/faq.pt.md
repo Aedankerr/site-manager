@@ -62,7 +62,7 @@
     Não. A linha do tempo é gerada automaticamente a partir das suas experiências profissionais. Adicione ou edite experiências e a linha do tempo é atualizada automaticamente.
 
 ??? question "A bandeira do país não está aparecendo na linha do tempo?"
-    Certifique-se de que o campo **Country Code** na experiência está definido com um código de país ISO de 2 letras válido (ex.: `us`, `gb`, `ch`, `de`, `fr`). As bandeiras são carregadas de um CDN externo.
+    Certifique-se de que o campo **Código do País** na experiência está definido com um código de país ISO de 2 letras válido (ex.: `us`, `gb`, `ch`, `de`, `fr`). As bandeiras são carregadas de um CDN externo.
 
 ??? question "O que acontece quando tenho dois empregos ao mesmo tempo?"
     A linha do tempo detecta automaticamente posições sobrepostas e as renderiza como **trilhas paralelas**. O emprego concorrente aparece em uma linha de ramificação elevada com conectores em curva S mostrando os pontos de bifurcação e junção. Nenhuma configuração necessária — é baseado inteiramente nas suas datas de início/fim. Sobreposições menores que 1 mês são ignoradas (comum durante transições de emprego).

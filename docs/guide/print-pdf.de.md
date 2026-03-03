@@ -24,7 +24,7 @@ Beide Optionen finden Sie unter **Einstellungen → Drucken & Export**. Wenn Ihr
 
 Schalten Sie **Einstellungen → Drucken & Export → Öffentliche Drucktaste** um, um eine Druckschaltfläche auf dem öffentlichen Lebenslauf ein- oder auszublenden. Wenn aktiviert, können Besucher Ihren Lebenslauf direkt drucken.
 
-## Best Practices für die PDF-Ausgabe
+## Tipps für die PDF-Ausgabe
 
 !!! tip "Skalierung"
     Die meisten Browser haben eine **Skalierung**-Option im Druckdialog (manchmal unter „Weitere Einstellungen" oder „Erweitert"). Eine Einstellung auf **80–90 %** liefert oft ein deutlich besseres Ergebnis — sie strafft die Abstände und kann helfen, Ihren Lebenslauf auf weniger Seiten unterzubringen, ohne die Lesbarkeit zu beeinträchtigen.
