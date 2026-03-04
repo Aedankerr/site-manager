@@ -1,26 +1,40 @@
-version: '3.8'
+version: '1.0'
 
 # Use this version for Unraid with bind mount to appdata
 # Before starting, create the data directory:
-#   mkdir -p /mnt/user/appdata/cv-manager/data
+#   mkdir -p /mnt/user/appdata/site-manager/data
 
 services:
-  cv-manager:
+  site-manager:
     build: .
-    container_name: cv-manager
+    container_name: site-manager
     ports:
-      - "3000:3000"   # Admin interface (keep internal/protected)
-      - "3001:3001"   # Public read-only (expose via CF tunnel)
-      # To change the host port, only change the LEFT side (e.g. "8080:3001")
+      - "3010:3010"   # Admin interface (keep internal/protected)
+      - "3011:3011"   # Public read-only (expose via CF tunnel)
+      # To change the host port, only change the LEFT side (e.g. "8080:3011")
       # Do NOT change PUBLIC_PORT below - it must match the right side of the port mapping
+
     volumes:
       # Bind mount - change path to your Unraid appdata location
-      - /mnt/user/appdata/cv-manager/data:/app/data
+      - /mnt/user/appdata/site-manager/data:/app/data
+      - /mnt/user/appdata/site-manager/uploads:/app/uploads
+      
     environment:
       - NODE_ENV=production
-      - PORT=3000
-      - PUBLIC_PORT=3001
-      - DB_PATH=/app/data/cv.db
+      - PORT=3010
+      - PUBLIC_PORT=3011
+      - DB_PATH=/app/data/site.db
+
+      # Hybrid auth (Cloudflare Access + local fallback)
+      - ADMIN_TRUST_CLOUDFLARE_ACCESS=true
+      - ADMIN_ALLOWED_EMAILS=you@example.com
+      - SESSION_SECRET=change-this-to-a-long-random-string
+      - ADMIN_PASSWORD_HASH=$2a$10$REPLACE_WITH_BCRYPT_HASH
+      
+      # Uploads
+      - UPLOAD_MAX_MB=15
+      - COOKIE_SECURE=true
+      
     networks:
       - guac-net
     # Run as specific user/group if needed (uncomment and adjust)
