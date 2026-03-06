@@ -223,34 +223,68 @@
   /* Fade-up animation */
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
   .fade-up { animation:fadeUp .45s ease both; }
-</style>
 
-  /* Timeline */
-  .timeline-line { position:absolute; left:0; top:0; bottom:0; width:2px; background:linear-gradient(to bottom,var(--brand),transparent); }
-  .timeline-dot { width:12px; height:12px; border-radius:50%; background:var(--brand); position:absolute; left:-5px; top:6px; }
-
-  /* Hero overlay */
+  /* ── Additional component styles ── */
+  /* Hero with background image */
   .hero-bg { background-size:cover; background-position:center; }
   .hero-bg::before { content:''; position:absolute; inset:0; background:rgba(0,0,0,.45); }
 
-  /* Project card hover */
-  .proj-card { transition:transform .2s,box-shadow .2s; }
-  .proj-card:hover { transform:translateY(-3px); box-shadow:0 12px 30px rgba(0,0,0,.10); }
-
-  /* Tech pill */
-  .tech-pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:.7rem; font-weight:500; background:#e0e7ff; color:#4338ca; }
-
-  /* Nav active */
+  /* Nav link active / hover state */
   .nav-link { transition:color .15s; }
   .nav-link.active, .nav-link:hover { color:var(--brand); }
 
-  /* Section fade-in */
-  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
-  .fade-up { animation:fadeUp .5s ease both; }
-
-  /* Contact card */
-  .contact-card { display:flex; align-items:center; gap:12px; padding:16px; border-radius:12px; background:#f8fafc; text-decoration:none; color:inherit; transition:background .15s,transform .15s; }
+  /* Contact card as anchor */
+  .contact-card { text-decoration:none; color:inherit; }
   .contact-card:hover { background:#eef2ff; transform:translateY(-2px); }
+
+  /* ── Missing utility classes (Tailwind-equivalent) ── */
+  .antialiased { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  .block { display:block; }
+  .text-center { text-align:center; }
+  .transition-all { transition:all .15s ease; }
+  .z-10 { z-index:10; }
+  .mb-8 { margin-bottom:2rem; }
+  .py-3 { padding-top:.75rem; padding-bottom:.75rem; }
+  .p-1 { padding:.25rem; }
+  .p-5 { padding:1.25rem; }
+  .space-y-2 > * + * { margin-top:.5rem; }
+  .space-y-10 > * + * { margin-top:2.5rem; }
+  .max-w-xl { max-width:36rem; margin-left:auto; margin-right:auto; }
+  .max-w-2xl { max-width:42rem; margin-left:auto; margin-right:auto; }
+  .tracking-tight { letter-spacing:-.025em; }
+  .leading-tight { line-height:1.25; }
+  .leading-relaxed { line-height:1.625; }
+  .line-clamp-3 { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+  .truncate { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .overflow-hidden { overflow:hidden; }
+
+  /* Background white with opacity (navbar) */
+  .bg-white\/90 { background:rgba(255,255,255,.9); }
+
+  /* Gradient background for project placeholder */
+  .bg-gradient-to-br { background-image:linear-gradient(135deg,#e0e7ff,#f3e8ff); }
+
+  /* Hover interactions */
+  .hover\:scale-105:hover { transform:scale(1.05); }
+  .hover\:shadow-xl:hover { box-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 8px 10px -6px rgba(0,0,0,.1); }
+  .hover\:text-indigo-600:hover { color:#4f46e5; }
+
+  /* Responsive grid columns — sm, md, lg breakpoints */
+  @media(min-width:640px){
+    .sm\:grid-cols-2 { grid-template-columns:repeat(2,1fr); }
+  }
+  @media(min-width:768px){
+    /* Responsive display utilities */
+    .md\:flex { display:flex !important; }
+    .md\:hidden { display:none !important; }
+    .md\:block { display:block !important; }
+    .md\:grid-cols-2 { grid-template-columns:repeat(2,1fr); }
+    .md\:text-5xl { font-size:3rem; line-height:1.1; }
+    .md\:text-xl { font-size:1.25rem; line-height:1.75rem; }
+  }
+  @media(min-width:1024px){
+    .lg\:grid-cols-3 { grid-template-columns:repeat(3,1fr); }
+  }
 </style>
 </head>
 <body class="bg-white text-gray-900 antialiased">
@@ -265,7 +299,7 @@
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
   </div>
-  <div id="mobileMenu" class="hidden md:hidden border-t border-gray-100 px-6 py-3 space-y-2" id="mobileNav"></div>
+  <div id="mobileMenu" class="hidden md:hidden border-t border-gray-100 px-6 py-3 space-y-2"></div>
 </nav>
 
 <!-- ── Page content ────────────────────────────────────── -->

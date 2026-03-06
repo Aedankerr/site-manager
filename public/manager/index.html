@@ -77,9 +77,102 @@
   .dark .nav-item { color:#94a3b8; }
   .dark .nav-item:hover { background:#1e293b; color:#e2e8f0; }
   .dark .nav-item.active { background:#1e1b4b; color:#a5b4fc; }
+
+  /* ── Mobile responsive layout ── */
+
+  /* Mobile top bar — hidden on desktop */
+  .mobile-topbar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    flex-shrink: 0;
+  }
+  .dark .mobile-topbar {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+  .mobile-topbar-title {
+    font-size: .9rem;
+    font-weight: 600;
+    color: #1e293b;
+    flex: 1;
+  }
+  .dark .mobile-topbar-title { color: #e2e8f0; }
+
+  /* Sidebar backdrop (mobile only) */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 39;
+    backdrop-filter: blur(2px);
+  }
+  .sidebar-backdrop.open { display: block; }
+
+  @media (max-width: 767px) {
+    /* Show mobile top bar, hide form-row grids */
+    .mobile-topbar { display: flex; }
+
+    /* App wrapper stacks vertically */
+    #app { flex-direction: column !important; }
+
+    /* Sidebar becomes a fixed drawer */
+    #sidebar {
+      position: fixed !important;
+      top: 0; left: 0; bottom: 0;
+      width: 260px !important;
+      z-index: 40;
+      transform: translateX(-100%);
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+      overflow-y: auto;
+    }
+    #sidebar.open { transform: translateX(0); }
+
+    /* Main area takes full width */
+    #app > main { width: 100% !important; }
+
+    /* Block editor: collapse 2-col grids to 1-col */
+    .field-row-2col { grid-template-columns: 1fr !important; }
+
+    /* Modals — full-width on mobile (modal-inner is mobile-only; no base styles needed) */
+    .modal-inner { margin: 12px !important; max-height: calc(100vh - 24px) !important; max-height: calc(100dvh - 24px) !important; }
+
+    /* Uptime card: stack actions below info */
+    .uptime-card { flex-wrap: wrap; }
+    .uptime-card-actions { flex-shrink: 0; }
+  }
+
+  @media (min-width: 768px) {
+    /* Always show sidebar on desktop, never show mobile topbar */
+    .mobile-topbar { display: none !important; }
+    #sidebar { transform: none !important; position: relative !important; }
+    .sidebar-backdrop { display: none !important; }
+  }
 </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+
+<!-- ── Mobile top bar ────────────────────────────────── -->
+<div class="mobile-topbar" id="mobileTopbar">
+  <button onclick="toggleSidebar()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0" aria-label="Open menu">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <span class="mobile-topbar-title" id="mobilePageTitle">Site Manager</span>
+  <button onclick="toggleTheme()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0" aria-label="Toggle theme">
+    <svg id="mobileThemeIconSun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    <svg id="mobileThemeIconMoon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+  </button>
+</div>
+
+<!-- ── Sidebar backdrop (mobile only) ─────────────────── -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
 <!-- ── Login Overlay ─────────────────────────────────── -->
 <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm hidden">
@@ -108,7 +201,7 @@
 <div id="app" class="hidden flex h-screen overflow-hidden">
 
   <!-- Sidebar -->
-  <aside class="flex flex-col w-[220px] bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex-shrink-0">
+  <aside id="sidebar" class="flex flex-col w-[220px] bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex-shrink-0">
     <!-- Logo -->
     <div class="flex items-center gap-2.5 px-4 py-4 border-b border-slate-100 dark:border-slate-800">
       <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center flex-shrink-0">
@@ -277,7 +370,7 @@
 
 <!-- Add Block type picker -->
 <div id="modalAddBlock" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden" onclick="closeModal('modalAddBlock')">
-  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden fade-in" onclick="event.stopPropagation()">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm mx-4 modal-inner overflow-hidden fade-in" onclick="event.stopPropagation()">
     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
       <h2 class="font-semibold">Add Block</h2>
       <button onclick="closeModal('modalAddBlock')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
@@ -305,7 +398,7 @@
 
 <!-- Block editor modal -->
 <div id="modalEditBlock" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden" onclick="closeModal('modalEditBlock')">
-  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col overflow-hidden fade-in" onclick="event.stopPropagation()">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 modal-inner max-h-[90vh] flex flex-col overflow-hidden fade-in" onclick="event.stopPropagation()">
     <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
       <h2 id="editBlockTitle" class="font-semibold"></h2>
       <button onclick="closeModal('modalEditBlock')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
@@ -320,7 +413,7 @@
 
 <!-- Media picker modal -->
 <div id="modalMediaPicker" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden" onclick="closeModal('modalMediaPicker')">
-  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col overflow-hidden fade-in" onclick="event.stopPropagation()">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 modal-inner max-h-[80vh] flex flex-col overflow-hidden fade-in" onclick="event.stopPropagation()">
     <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
       <h2 class="font-semibold">Media Library</h2>
       <button onclick="closeModal('modalMediaPicker')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
@@ -345,7 +438,7 @@
 
 <!-- Add monitor modal -->
 <div id="modalAddMonitor" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden" onclick="closeModal('modalAddMonitor')">
-  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden fade-in" onclick="event.stopPropagation()">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm mx-4 modal-inner overflow-hidden fade-in" onclick="event.stopPropagation()">
     <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
       <h2 class="font-semibold" id="monitorModalTitle">Add Monitor</h2>
       <button onclick="closeModal('modalAddMonitor')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
@@ -399,10 +492,26 @@ function applyTheme(t) {
   document.documentElement.classList.toggle('dark', t === 'dark');
   document.getElementById('themeIconSun').classList.toggle('hidden', t !== 'dark');
   document.getElementById('themeIconMoon').classList.toggle('hidden', t === 'dark');
+  document.getElementById('mobileThemeIconSun').classList.toggle('hidden', t !== 'dark');
+  document.getElementById('mobileThemeIconMoon').classList.toggle('hidden', t === 'dark');
   localStorage.setItem('smTheme', t);
 }
 function toggleTheme() { applyTheme(state.theme === 'dark' ? 'light' : 'dark'); }
 applyTheme(state.theme);
+
+// ── Mobile sidebar toggle
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const isOpen = sidebar.classList.toggle('open');
+  backdrop.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
 
 // ═══════════════════════════════════════════════════════
 //  API HELPERS
@@ -470,9 +579,11 @@ function selectPage(slug) {
   state.currentSection = null;
   setActiveNav('nav-' + slug);
   showSection('sectionPage');
-  document.getElementById('pageTitle').textContent =
-    { home: 'Home', projects: 'Projects', cv: 'CV', contacts: 'Contacts' }[slug] || slug;
+  const label = { home: 'Home', projects: 'Projects', cv: 'CV', contacts: 'Contacts' }[slug] || slug;
+  document.getElementById('pageTitle').textContent = label;
+  document.getElementById('mobilePageTitle').textContent = label;
   loadBlocks(slug);
+  closeSidebar();
 }
 
 function selectSection(name) {
@@ -480,9 +591,12 @@ function selectSection(name) {
   state.currentSection = name;
   setActiveNav('nav-' + name);
   showSection('section' + name.charAt(0).toUpperCase() + name.slice(1));
+  const label = { media: 'Media', uptime: 'Uptime', settings: 'Settings' }[name] || name;
+  document.getElementById('mobilePageTitle').textContent = label;
   if (name === 'media') loadMedia();
   if (name === 'uptime') loadUptime();
   if (name === 'settings') loadSettings();
+  closeSidebar();
 }
 
 function setActiveNav(id) {
@@ -671,7 +785,7 @@ function heroEditor(c) {
       <label class="block text-sm font-medium mb-1.5">Subtitle</label>
       <textarea id="ef_subtitle" rows="2" placeholder="A short description" class="field resize-none">${escHtml(c.subtitle||'')}</textarea>
     </div>
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-2 gap-4 field-row-2col">
       <div>
         <label class="block text-sm font-medium mb-1.5">Button Text</label>
         <input id="ef_primary_button_text" type="text" value="${escAttr(c.primary_button_text||'')}" placeholder="Get Started" class="field">
@@ -726,7 +840,7 @@ function projectItemHTML(p, i) {
       <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Project ${i + 1}</span>
       <button onclick="removeProjectItem(this)" type="button" class="text-xs text-red-400 hover:text-red-600 font-medium">Remove</button>
     </div>
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-3 field-row-2col">
       <div>
         <label class="text-xs font-medium text-slate-500 mb-1 block">Name</label>
         <input type="text" class="field proj-name" value="${escAttr(p.name||'')}" placeholder="Project name">
@@ -810,7 +924,7 @@ function timelineItemHTML(it, i) {
       <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Item ${i + 1}</span>
       <button onclick="removeTimelineItem(this)" type="button" class="text-xs text-red-400 hover:text-red-600 font-medium">Remove</button>
     </div>
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-3 field-row-2col">
       <div>
         <label class="text-xs font-medium text-slate-500 mb-1 block">Role</label>
         <input type="text" class="field tl-role" value="${escAttr(it.role||'')}" placeholder="Software Engineer">
@@ -820,7 +934,7 @@ function timelineItemHTML(it, i) {
         <input type="text" class="field tl-company" value="${escAttr(it.company||'')}" placeholder="Acme Corp">
       </div>
     </div>
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-3 field-row-2col">
       <div>
         <label class="text-xs font-medium text-slate-500 mb-1 block">Start Date</label>
         <input type="text" class="field tl-start_date" value="${escAttr(it.start_date||'')}" placeholder="2020-01">
