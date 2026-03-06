@@ -3,11 +3,55 @@ const Database = require('better-sqlite3');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const multer = require('multer');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const bcrypt = require('bcryptjs');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const PUBLIC_PORT = process.env.PUBLIC_PORT || 3001;
+const PORT = process.env.PORT || 3010;
+const PUBLIC_PORT = process.env.PUBLIC_PORT || 3011;
+
+// Cloudflare Access / session auth configuration
+const TRUST_CF_ACCESS = process.env.ADMIN_TRUST_CLOUDFLARE_ACCESS === 'true';
+const ALLOWED_EMAILS = process.env.ADMIN_ALLOWED_EMAILS
+    ? process.env.ADMIN_ALLOWED_EMAILS.split(',').map(e => e.trim()).filter(Boolean)
+    : [];
+const SESSION_SECRET = process.env.SESSION_SECRET || 'cv-manager-dev-secret';
+const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true';
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || null;
+
+const AUTH_ENABLED = TRUST_CF_ACCESS || ALLOWED_EMAILS.length > 0 || !!ADMIN_PASSWORD_HASH;
+if (AUTH_ENABLED && !process.env.SESSION_SECRET) {
+    console.warn('WARNING: SESSION_SECRET is not set. Using a default secret — set SESSION_SECRET in production.');
+}
+
+function requireAuth(req, res, next) {
+    // If Cloudflare Access is trusted, check the verified email header first
+    if (TRUST_CF_ACCESS) {
+        const cfEmail = req.headers['cf-access-authenticated-user-email'];
+        if (cfEmail && (ALLOWED_EMAILS.length === 0 || ALLOWED_EMAILS.includes(cfEmail))) {
+            return next();
+        }
+    }
+
+    // If no auth is configured at all, allow access (backward-compatible)
+    if (!TRUST_CF_ACCESS && ALLOWED_EMAILS.length === 0 && !ADMIN_PASSWORD_HASH) {
+        return next();
+    }
+
+    // Fall back to local session authentication
+    if (req.session && req.session.authenticated) {
+        return next();
+    }
+
+    // Not authenticated
+    if (req.originalUrl.startsWith('/api/')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    res.redirect('/login');
+}
 
 // Version from package.json
 const CURRENT_VERSION = require(path.join(__dirname, '..', 'package.json')).version;
@@ -113,6 +157,46 @@ try {
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser());
+app.use(session({
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: COOKIE_SECURE,
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+    },
+}));
+
+// Login / logout (served before requireAuth so unauthenticated users can reach them)
+app.get('/login', (req, res) => {
+    if (req.session && req.session.authenticated) return res.redirect('/');
+    const csrfToken = crypto.randomBytes(16).toString('hex');
+    req.session.csrfToken = csrfToken;
+    const error = req.query.error ? '<p style="color:red">Invalid password.</p>' : '';
+    res.type('html').send(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Login</title><style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f5f5f5}form{background:#fff;padding:2rem;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:280px}h2{margin:0 0 1.5rem;text-align:center}input{width:100%;padding:.6rem;margin:.5rem 0 1rem;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;font-size:1rem}button{width:100%;padding:.7rem;background:#2563eb;color:#fff;border:none;border-radius:4px;font-size:1rem;cursor:pointer}button:hover{background:#1d4ed8}</style></head><body><form method="POST" action="/login"><h2>Admin Login</h2>${error}<input type="hidden" name="_csrf" value="${csrfToken}"><label>Password<input type="password" name="password" autofocus required></label><button type="submit">Sign in</button></form></body></html>`);
+});
+app.post('/login', express.urlencoded({ extended: false }), async (req, res) => {
+    const { password, _csrf } = req.body;
+    if (!_csrf || !req.session.csrfToken || _csrf !== req.session.csrfToken) {
+        return res.status(403).send('Forbidden');
+    }
+    req.session.csrfToken = null;
+    if (ADMIN_PASSWORD_HASH && password && await bcrypt.compare(password, ADMIN_PASSWORD_HASH)) {
+        req.session.authenticated = true;
+        return res.redirect('/');
+    }
+    res.redirect('/login?error=1');
+});
+app.get('/logout', (req, res) => {
+    req.session.destroy(() => res.redirect('/login'));
+});
+
+// Apply auth middleware to all admin API routes
+app.use('/api', requireAuth);
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Favicon and icons (admin uses icon.png with pencil badge)
