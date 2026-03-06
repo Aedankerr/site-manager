@@ -1,28 +1,1816 @@
-const { randomUUID } = require('crypto');
+const express = require('express');
+const Database = require('better-sqlite3');
+const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 
-const MAX_MB = Number(process.env.UPLOAD_MAX_MB || 15);
-const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const app = express();
+const PORT = process.env.PORT || 3000;
+const PUBLIC_PORT = process.env.PUBLIC_PORT || 3001;
 
-const genericStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsPath),
-  filename: (req, file, cb) => {
-    const ext =
-      file.mimetype === 'image/png' ? '.png' :
-      file.mimetype === 'image/webp' ? '.webp' : '.jpg';
-    cb(null, `${randomUUID()}${ext}`);
-  }
-});
+// Version from package.json
+const CURRENT_VERSION = require(path.join(__dirname, '..', 'package.json')).version;
 
-const genericUpload = multer({
-  storage: genericStorage,
-  limits: { fileSize: MAX_MB * 1024 * 1024 },
-  fileFilter: (req, file, cb) => cb(null, allowed.has(file.mimetype))
-});
+// Cached version check (in-memory only, never persisted)
+let versionCache = { latest: null, checkedAt: null, changelog: null };
+const VERSION_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+const VERSION_URL = 'https://raw.githubusercontent.com/vincentmakes/cv-manager/main/version.json';
 
-app.post('/api/uploads', genericUpload.single('file'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  res.json({
-    url: `/uploads/${req.file.filename}`,
-    filename: req.file.filename
-  });
-});
+async function checkLatestVersion() {
+    // Return cached if fresh enough
+    if (versionCache.checkedAt && (Date.now() - versionCache.checkedAt) < VERSION_CHECK_INTERVAL) {
+        return versionCache;
+    }
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
+        const res = await fetch(VERSION_URL, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (res.ok) {
+            const data = await res.json();
+            versionCache = { latest: data.version || null, checkedAt: Date.now(), changelog: data.changelog || null };
+        }
+    } catch (err) {
+        // Silently fail - no internet, timeout, etc.
+        if (!versionCache.checkedAt) {
+            versionCache = { latest: null, checkedAt: Date.now(), changelog: null };
+        }
+    }
+    return versionCache;
+}
+
+function compareVersions(a, b) {
+    const pa = a.split('.').map(Number);
+    const pb = b.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+        if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+        if ((pa[i] || 0) > (pb[i] || 0)) return 1;
+    }
+    return 0;
+}
+
+const DB_PATH = process.env.DB_PATH 
+    ? path.resolve(process.env.DB_PATH)
+    : path.join(__dirname, '..', 'data', 'cv.db');
+
+const dataDir = path.dirname(DB_PATH);
+console.log(`Data directory: ${dataDir}`);
+console.log(`Database path: ${DB_PATH}`);
+
+const SECTION_DISPLAY_NAMES = {
+    'about': 'Professional Summary',
+    'timeline': 'Career Timeline',
+    'experience': 'Work Experience',
+    'certifications': 'Certifications',
+    'education': 'Education',
+    'skills': 'Skills & Expertise',
+    'projects': 'Featured Projects'
+};
+
+const DEFAULT_SECTION_ORDER = ['about', 'timeline', 'experience', 'certifications', 'education', 'skills', 'projects'];
+
+function checkFilesystemAccess(dir) {
+    const testFile = path.join(dir, '.write-test-' + process.pid);
+    try {
+        fs.writeFileSync(testFile, 'test');
+        fs.unlinkSync(testFile);
+        return { status: 'writable' };
+    } catch (err) {
+        if (err.code === 'EROFS') return { status: 'readonly' };
+        if (err.code === 'EACCES') return { status: 'permission_denied', error: err.message };
+        return { status: 'error', error: err.message };
+    }
+}
+
+let PUBLIC_ONLY = process.env.PUBLIC_ONLY === 'true' || process.env.PUBLIC_ONLY === '1';
+
+try {
+    if (!fs.existsSync(dataDir)) {
+        if (PUBLIC_ONLY) { console.error(`Data directory does not exist: ${dataDir}`); process.exit(1); }
+        try { fs.mkdirSync(dataDir, { recursive: true, mode: 0o755 }); }
+        catch (mkdirErr) { if (mkdirErr.code === 'EACCES') { console.error('ERROR: Cannot create data directory'); process.exit(1); } throw mkdirErr; }
+    }
+    
+    if (!PUBLIC_ONLY) {
+        const accessCheck = checkFilesystemAccess(dataDir);
+        if (accessCheck.status === 'writable') { console.log('Running in ADMIN mode (read-write)'); }
+        else if (accessCheck.status === 'readonly') {
+            if (fs.existsSync(DB_PATH)) { console.log('Running in PUBLIC-ONLY mode (read-only)'); PUBLIC_ONLY = true; }
+            else { console.error('ERROR: Read-only mount but no database found!'); process.exit(1); }
+        } else { console.error(`Error: ${accessCheck.error}`); process.exit(1); }
+    } else {
+        if (!fs.existsSync(DB_PATH)) { console.error(`Database does not exist: ${DB_PATH}`); process.exit(1); }
+        console.log('Running in PUBLIC-ONLY mode (read-only)');
+    }
+} catch (err) { console.error(`Error with data directory: ${err.message}`); process.exit(1); }
+
+let db;
+try {
+    if (PUBLIC_ONLY) { db = new Database(DB_PATH, { readonly: true }); console.log('Database opened in read-only mode'); }
+    else { db = new Database(DB_PATH); console.log('Database opened successfully'); db.pragma('journal_mode = WAL'); }
+} catch (err) { console.error(`Failed to open database: ${err.message}`); process.exit(1); }
+
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Favicon and icons (admin uses icon.png with pencil badge)
+const adminIconPath = path.join(__dirname, '../icon.png');
+app.get('/favicon.ico', (req, res) => res.sendFile(adminIconPath));
+app.get('/favicon.png', (req, res) => res.sendFile(adminIconPath));
+app.get('/apple-touch-icon.png', (req, res) => res.sendFile(adminIconPath));
+
+const uploadsPath = path.join(dataDir, 'uploads');
+if (!PUBLIC_ONLY && !fs.existsSync(uploadsPath)) { fs.mkdirSync(uploadsPath, { recursive: true }); }
+app.use('/uploads', express.static(uploadsPath));
+
+// Get tracking code from settings for server-side injection
+function getTrackingCode() {
+    try {
+        const setting = db.prepare('SELECT value FROM settings WHERE key = ?').get('trackingCode');
+        return (setting?.value && setting.value.trim()) ? setting.value.trim() : '';
+    } catch (e) { return ''; }
+}
+
+function servePublicIndex(req, res) {
+    try {
+        // Check if a default dataset exists — serve from it instead of live DB
+        let defaultDataset = null;
+        try {
+            defaultDataset = db.prepare('SELECT * FROM saved_datasets WHERE is_default = 1').get();
+        } catch (e) { /* is_default column may not exist yet */ }
+
+        if (defaultDataset && defaultDataset.slug) {
+            const data = JSON.parse(defaultDataset.data);
+            const name = data.profile?.name || defaultDataset.name;
+            const bio = data.profile?.bio || 'Professional CV';
+            const description = bio.substring(0, 160).replace(/\n/g, ' ');
+            
+            let html = fs.readFileSync(path.join(__dirname, '../public-readonly/index.html'), 'utf8');
+            html = html.replace(/<title>[^<]*<\/title>/, `<title>${name} - CV</title>`);
+            html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${description.replace(/"/g, '&quot;')}">`);
+            
+            // Inject robots meta from settings
+            const robotsSetting = db.prepare('SELECT value FROM settings WHERE key = ?').get('robotsMeta');
+            const robotsValue = robotsSetting?.value || 'index, follow';
+            html = html.replace(/<meta name="robots"[^>]*>/, `<meta name="robots" id="metaRobots" content="${robotsValue}">`);
+            
+            const ogTags = `\n    <meta property="og:title" content="${name} - CV">\n    <meta property="og:description" content="${description.replace(/"/g, '&quot;')}">\n    <meta property="og:type" content="profile">`;
+            html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${description.replace(/"/g, '&quot;')}">${ogTags}`);
+            
+            // Inject tracking code right after <head> (server-side for GA verification)
+            const trackingCode = getTrackingCode();
+            if (trackingCode) {
+                html = html.replace('<head>', `<head>\n${trackingCode}`);
+            }
+            
+            // Inject default dataset slug (no DATASET_PREVIEW = no preview banner)
+            const datasetScript = `<script>window.DATASET_SLUG = "${defaultDataset.slug}";</script>`;
+            html = html.replace('</head>', `${datasetScript}</head>`);
+            
+            return res.type('html').send(html);
+        }
+
+        // Fallback: serve from live DB (no default dataset set)
+        const profile = db.prepare('SELECT name, title, bio FROM profile WHERE id = 1').get();
+        const name = profile?.name || 'CV';
+        const bio = profile?.bio || 'Professional CV';
+        const description = bio.substring(0, 160).replace(/\n/g, ' ');
+        
+        let html = fs.readFileSync(path.join(__dirname, '../public-readonly/index.html'), 'utf8');
+        html = html.replace(/<title>[^<]*<\/title>/, `<title>${name} - CV</title>`);
+        html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${description.replace(/"/g, '&quot;')}">`);
+        
+        // Inject robots meta from settings
+        const robotsSetting = db.prepare('SELECT value FROM settings WHERE key = ?').get('robotsMeta');
+        const robotsValue = robotsSetting?.value || 'index, follow';
+        html = html.replace(/<meta name="robots"[^>]*>/, `<meta name="robots" id="metaRobots" content="${robotsValue}">`);
+        
+        const ogTags = `\n    <meta property="og:title" content="${name} - CV">\n    <meta property="og:description" content="${description.replace(/"/g, '&quot;')}">\n    <meta property="og:type" content="profile">`;
+        html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${description.replace(/"/g, '&quot;')}">${ogTags}`);
+        
+        // Inject tracking code right after <head> (server-side for GA verification)
+        const trackingCode = getTrackingCode();
+        if (trackingCode) {
+            html = html.replace('<head>', `<head>\n${trackingCode}`);
+        }
+        
+        res.type('html').send(html);
+    } catch (err) { res.sendFile(path.join(__dirname, '../public-readonly/index.html')); }
+}
+
+// Serve a public dataset page by slug (for /v/:slug on public server)
+function serveDatasetPage(req, res) {
+    try {
+        const dataset = db.prepare('SELECT * FROM saved_datasets WHERE slug = ? AND (is_public = 1 OR is_default = 1)').get(req.params.slug);
+        if (!dataset) return res.status(404).send('Not found');
+        
+        const data = JSON.parse(dataset.data);
+        const name = data.profile?.name || dataset.name;
+        const bio = data.profile?.bio || '';
+        const description = bio.substring(0, 160).replace(/\n/g, ' ');
+        
+        let html = fs.readFileSync(path.join(__dirname, '../public-readonly/index.html'), 'utf8');
+        html = html.replace(/<title>[^<]*<\/title>/, `<title>${name} - CV (${dataset.name})</title>`);
+        html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${description.replace(/"/g, '&quot;')}">`);
+        
+        const ogTags = `\n    <meta property="og:title" content="${name} - CV (${dataset.name})">\n    <meta property="og:description" content="${description.replace(/"/g, '&quot;')}">\n    <meta property="og:type" content="profile">`;
+        html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${description.replace(/"/g, '&quot;')}">${ogTags}`);
+        
+        // Inject slug only (no DATASET_PREVIEW = public view, no preview banner)
+        const datasetScript = `<script>window.DATASET_SLUG = "${dataset.slug}";</script>`;
+        html = html.replace('</head>', `${datasetScript}</head>`);
+        
+        // Apply noindex if slugsIndex setting is not enabled
+        const slugsIndexSetting = db.prepare('SELECT value FROM settings WHERE key = ?').get('slugsIndex');
+        if (!slugsIndexSetting || slugsIndexSetting.value !== 'true') {
+            html = html.replace(/<meta name="robots"[^>]*>/, '<meta name="robots" id="metaRobots" content="noindex, nofollow">');
+        }
+        
+        // Inject tracking code right after <head> (server-side for GA verification)
+        const trackingCode = getTrackingCode();
+        if (trackingCode) {
+            html = html.replace('<head>', `<head>\n${trackingCode}`);
+        }
+        
+        res.type('html').send(html);
+    } catch (err) {
+        if (err.message?.includes('no such column')) return res.status(404).send('Not found');
+        res.status(500).send('Error loading page');
+    }
+}
+
+// Serve dataset data as JSON for public slug API
+function serveDatasetData(req, res) {
+    try {
+        // Allow access if dataset is public OR is the default (default = served at /)
+        const dataset = db.prepare('SELECT * FROM saved_datasets WHERE slug = ? AND (is_public = 1 OR is_default = 1)').get(req.params.slug);
+        if (!dataset) return res.status(404).json({ error: 'Not found' });
+        const data = JSON.parse(dataset.data);
+        res.json({ name: dataset.name, slug: dataset.slug, ...data });
+    } catch (err) {
+        if (err.message?.includes('no such column')) return res.status(404).json({ error: 'Not found' });
+        res.status(500).json({ error: err.message });
+    }
+}
+
+// Layout types for custom sections
+// SVG icons (matching app style)
+const SVG_ICONS = {
+    link: '<span class="material-symbols-outlined" style="font-size:20px">link</span>',
+    grid2: '<span class="material-symbols-outlined" style="font-size:20px">view_column_2</span>',
+    grid3: '<span class="material-symbols-outlined" style="font-size:20px">view_week</span>',
+    list: '<span class="material-symbols-outlined" style="font-size:20px">format_list_bulleted</span>',
+    cards: '<span class="material-symbols-outlined" style="font-size:20px">grid_view</span>',
+    linkedin: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>',
+    github: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>',
+    twitter: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>',
+    instagram: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>',
+    youtube: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>',
+    globe: '<span class="material-symbols-outlined" style="font-size:16px">language</span>',
+    mail: '<span class="material-symbols-outlined" style="font-size:16px">email</span>',
+    phone: '<span class="material-symbols-outlined" style="font-size:16px">phone</span>',
+    edit: '<span class="material-symbols-outlined" style="font-size:16px">edit</span>',
+    dribbble: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>',
+    behance: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 7h-7M22 12h-7M16.5 17a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM2 17V7h5a3 3 0 0 1 0 6H2m0 4h5.5a3 3 0 0 0 0-6H2"/></svg>',
+    bluesky: '<svg width="16" height="16" viewBox="0 0 600 530" fill="currentColor"><path d="M135.72 44.03C202.216 93.951 273.74 195.401 300 249.98c26.262-54.578 97.784-156.03 164.28-205.95C512.26 8.009 590-19.862 590 68.825c0 17.712-10.155 148.79-16.111 170.07-20.703 73.984-96.144 92.854-163.25 81.433 117.3 19.964 147.14 86.092 82.697 152.22-122.39 125.636-175.91-31.518-189.63-71.766-2.514-7.38-3.69-10.832-3.706-7.905-.016-2.927 1.192.525-3.706 7.905-13.72 40.248-67.24 197.402-189.63 71.765-64.444-66.128-34.605-132.256 82.697-152.22-67.106 11.42-142.547-7.45-163.25-81.432C20.155 217.613 10 86.536 10 68.824c0-88.687 77.74-60.816 125.72-24.795z"/></svg>',
+    bullets: '<span class="material-symbols-outlined" style="font-size:20px">format_list_bulleted</span>',
+    freetext: '<span class="material-symbols-outlined" style="font-size:20px">notes</span>',
+    pictureGrid: '<span class="material-symbols-outlined" style="font-size:20px">photo_library</span>',
+    timeline: '<span class="material-symbols-outlined" style="font-size:20px">work_history</span>'
+};
+
+// Layout types as array for frontend iteration
+const LAYOUT_TYPES = [
+    { id: 'social-links', name: 'Social Links', icon: SVG_ICONS.link },
+    { id: 'grid-2', name: '2-Column Grid', icon: SVG_ICONS.grid2 },
+    { id: 'grid-3', name: '3-Column Grid', icon: SVG_ICONS.grid3 },
+    { id: 'list', name: 'Vertical List', icon: SVG_ICONS.list },
+    { id: 'cards', name: 'Card Grid', icon: SVG_ICONS.cards },
+    { id: 'bullet-list', name: 'Bullet Points', icon: SVG_ICONS.bullets },
+    { id: 'free-text', name: 'Free Text', icon: SVG_ICONS.freetext },
+    { id: 'picture-grid', name: 'Picture Grid', icon: SVG_ICONS.pictureGrid },
+    { id: 'timeline', name: 'Additional Experiences', icon: SVG_ICONS.timeline }
+];
+
+// Social platform definitions as array for frontend iteration
+const SOCIAL_PLATFORMS = [
+    { id: 'linkedin', name: 'LinkedIn', icon: SVG_ICONS.linkedin, color: '#0077b5' },
+    { id: 'github', name: 'GitHub', icon: SVG_ICONS.github, color: '#333' },
+    { id: 'twitter', name: 'Twitter/X', icon: SVG_ICONS.twitter, color: '#1da1f2' },
+    { id: 'instagram', name: 'Instagram', icon: SVG_ICONS.instagram, color: '#e4405f' },
+    { id: 'youtube', name: 'YouTube', icon: SVG_ICONS.youtube, color: '#ff0000' },
+    { id: 'dribbble', name: 'Dribbble', icon: SVG_ICONS.dribbble, color: '#ea4c89' },
+    { id: 'behance', name: 'Behance', icon: SVG_ICONS.behance, color: '#1769ff' },
+    { id: 'bluesky', name: 'Bluesky', icon: SVG_ICONS.bluesky, color: '#0085ff' },
+    { id: 'website', name: 'Website', icon: SVG_ICONS.globe, color: '#0066ff' },
+    { id: 'email', name: 'Email', icon: SVG_ICONS.mail, color: '#ea4335' },
+    { id: 'phone', name: 'Phone', icon: SVG_ICONS.phone, color: '#34a853' },
+    { id: 'custom', name: 'Custom', icon: SVG_ICONS.link, color: '#666' }
+];
+
+if (!PUBLIC_ONLY) {
+    // Step 1: Create tables (without sort_order in section_visibility for compatibility)
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS profile (id INTEGER PRIMARY KEY CHECK (id = 1), name TEXT NOT NULL DEFAULT 'Your Name', initials TEXT DEFAULT 'YN', title TEXT DEFAULT 'Your Title', subtitle TEXT DEFAULT '', bio TEXT DEFAULT '', location TEXT DEFAULT '', linkedin TEXT DEFAULT '', email TEXT DEFAULT '', phone TEXT DEFAULT '', languages TEXT DEFAULT '', visible INTEGER DEFAULT 1, profile_picture_enabled INTEGER DEFAULT 1, open_to_work INTEGER DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+        CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
+        CREATE TABLE IF NOT EXISTS experiences (id INTEGER PRIMARY KEY AUTOINCREMENT, job_title TEXT NOT NULL, company_name TEXT NOT NULL, start_date TEXT, end_date TEXT, location TEXT, country_code TEXT DEFAULT '', highlights TEXT, sort_order INTEGER DEFAULT 0, visible INTEGER DEFAULT 1, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+        CREATE TABLE IF NOT EXISTS certifications (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, provider TEXT, issue_date TEXT, expiry_date TEXT, credential_id TEXT, sort_order INTEGER DEFAULT 0, visible INTEGER DEFAULT 1, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+        CREATE TABLE IF NOT EXISTS education (id INTEGER PRIMARY KEY AUTOINCREMENT, degree_title TEXT NOT NULL, institution_name TEXT NOT NULL, start_date TEXT, end_date TEXT, description TEXT, sort_order INTEGER DEFAULT 0, visible INTEGER DEFAULT 1, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+        CREATE TABLE IF NOT EXISTS skill_categories (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, icon TEXT DEFAULT 'default', sort_order INTEGER DEFAULT 0, visible INTEGER DEFAULT 1, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+        CREATE TABLE IF NOT EXISTS skills (id INTEGER PRIMARY KEY AUTOINCREMENT, category_id INTEGER NOT NULL, name TEXT NOT NULL, sort_order INTEGER DEFAULT 0, FOREIGN KEY (category_id) REFERENCES skill_categories(id) ON DELETE CASCADE);
+        CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT, technologies TEXT, link TEXT, sort_order INTEGER DEFAULT 0, visible INTEGER DEFAULT 1, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+        CREATE TABLE IF NOT EXISTS section_visibility (section_name TEXT PRIMARY KEY, visible INTEGER DEFAULT 1);
+        CREATE TABLE IF NOT EXISTS saved_datasets (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, data TEXT NOT NULL, slug TEXT UNIQUE, is_public INTEGER DEFAULT 0, is_default INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+        
+        -- Custom sections tables
+        CREATE TABLE IF NOT EXISTS custom_sections (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            section_key TEXT UNIQUE NOT NULL,
+            layout_type TEXT NOT NULL DEFAULT 'grid-3',
+            icon TEXT DEFAULT 'layers',
+            sort_order INTEGER DEFAULT 100,
+            visible INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        CREATE TABLE IF NOT EXISTS custom_section_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            section_id INTEGER NOT NULL,
+            title TEXT,
+            subtitle TEXT,
+            description TEXT,
+            link TEXT,
+            icon TEXT,
+            image TEXT,
+            metadata TEXT,
+            sort_order INTEGER DEFAULT 0,
+            visible INTEGER DEFAULT 1,
+            FOREIGN KEY (section_id) REFERENCES custom_sections(id) ON DELETE CASCADE
+        );
+    `);
+
+    // Step 2: Migration - add sort_order column if missing
+    try {
+        const tableInfo = db.prepare("PRAGMA table_info(section_visibility)").all();
+        const hasSortOrder = tableInfo.some(col => col.name === 'sort_order');
+        if (!hasSortOrder) {
+            console.log('Migrating section_visibility table: adding sort_order column');
+            db.exec('ALTER TABLE section_visibility ADD COLUMN sort_order INTEGER DEFAULT 0');
+            // Set default sort order for existing sections
+            DEFAULT_SECTION_ORDER.forEach((section, index) => {
+                db.prepare('UPDATE section_visibility SET sort_order = ? WHERE section_name = ?').run(index, section);
+            });
+        }
+    } catch (err) { console.log('Migration check:', err.message); }
+
+    // Step 2b: Migration - add slug column to saved_datasets if missing
+    try {
+        const datasetsInfo = db.prepare("PRAGMA table_info(saved_datasets)").all();
+        const hasSlug = datasetsInfo.some(col => col.name === 'slug');
+        if (!hasSlug) {
+            console.log('Migrating saved_datasets table: adding slug column');
+            db.exec('ALTER TABLE saved_datasets ADD COLUMN slug TEXT UNIQUE');
+        }
+        // Only try to generate slugs if column exists now
+        const verifySlug = db.prepare("PRAGMA table_info(saved_datasets)").all();
+        if (verifySlug.some(col => col.name === 'slug')) {
+            const datasetsWithoutSlug = db.prepare('SELECT id, name FROM saved_datasets WHERE slug IS NULL').all();
+            if (datasetsWithoutSlug.length > 0) {
+                console.log(`Generating slugs for ${datasetsWithoutSlug.length} datasets`);
+                datasetsWithoutSlug.forEach(ds => {
+                    const slug = generateSlug(ds.name, ds.id);
+                    db.prepare('UPDATE saved_datasets SET slug = ? WHERE id = ?').run(slug, ds.id);
+                });
+            }
+        }
+    } catch (err) { 
+        console.error('Migration error (saved_datasets slug):', err.message);
+        // Force add slug column as last resort
+        try {
+            db.exec('ALTER TABLE saved_datasets ADD COLUMN slug TEXT');
+            console.log('Forced slug column addition');
+        } catch (e) { /* column already exists or other error */ }
+    }
+
+    // Step 2c: Migration - fix custom_section_items visibility (some may have NULL or 0)
+    try {
+        db.exec('UPDATE custom_section_items SET visible = 1 WHERE visible IS NULL OR visible = 0');
+        console.log('Migration: Fixed custom_section_items visibility');
+    } catch (err) { console.log('Migration check (custom_section_items):', err.message); }
+
+    // Step 2c1: Migration - add metadata column to custom_sections if missing
+    try {
+        const csInfo = db.prepare("PRAGMA table_info(custom_sections)").all();
+        if (!csInfo.some(col => col.name === 'metadata')) {
+            console.log('Migrating custom_sections table: adding metadata column');
+            db.exec('ALTER TABLE custom_sections ADD COLUMN metadata TEXT');
+        }
+    } catch (err) { console.log('Migration check (custom_sections metadata):', err.message); }
+
+    // Step 2c2: Migration - add is_public column to saved_datasets if missing
+    try {
+        const dsInfo = db.prepare("PRAGMA table_info(saved_datasets)").all();
+        if (!dsInfo.some(col => col.name === 'is_public')) {
+            console.log('Migrating saved_datasets table: adding is_public column');
+            db.exec('ALTER TABLE saved_datasets ADD COLUMN is_public INTEGER DEFAULT 0');
+        }
+    } catch (err) { console.log('Migration check (is_public):', err.message); }
+
+    // Step 2d: Migration - add print_visible column to section_visibility if missing
+    try {
+        const sectionVisInfo = db.prepare("PRAGMA table_info(section_visibility)").all();
+        const hasPrintVisible = sectionVisInfo.some(col => col.name === 'print_visible');
+        if (!hasPrintVisible) {
+            console.log('Migrating section_visibility table: adding print_visible column');
+            db.exec('ALTER TABLE section_visibility ADD COLUMN print_visible INTEGER DEFAULT 1');
+        }
+    } catch (err) { console.log('Migration check (print_visible):', err.message); }
+
+    // Step 2e: Migration - add display_name column to section_visibility if missing
+    try {
+        const sectionVisInfo2 = db.prepare("PRAGMA table_info(section_visibility)").all();
+        const hasDisplayName = sectionVisInfo2.some(col => col.name === 'display_name');
+        if (!hasDisplayName) {
+            console.log('Migrating section_visibility table: adding display_name column');
+            db.exec('ALTER TABLE section_visibility ADD COLUMN display_name TEXT');
+        }
+    } catch (err) { console.log('Migration check (display_name):', err.message); }
+
+    // Step 2f: Migration - add profile_picture_enabled column to profile if missing
+    try {
+        const profilePicEnabledInfo = db.prepare("PRAGMA table_info(profile)").all();
+        const hasProfilePicEnabled = profilePicEnabledInfo.some(col => col.name === 'profile_picture_enabled');
+        if (!hasProfilePicEnabled) {
+            console.log('Migrating profile table: adding profile_picture_enabled');
+            db.exec('ALTER TABLE profile ADD COLUMN profile_picture_enabled INTEGER DEFAULT 1');
+        }
+    } catch (err) { console.log('Migration check (profile_picture_enabled):', err.message); }
+
+    // Step 2f2: Migration - add open_to_work column to profile if missing
+    try {
+        const profileOpenInfo = db.prepare("PRAGMA table_info(profile)").all();
+        if (!profileOpenInfo.some(col => col.name === 'open_to_work')) {
+            console.log('Migrating profile table: adding open_to_work');
+            db.exec('ALTER TABLE profile ADD COLUMN open_to_work INTEGER DEFAULT 0');
+        }
+    } catch (err) { console.log('Migration check (open_to_work):', err.message); }
+
+    // Step 2g: Migration - add is_default column to saved_datasets if missing
+    try {
+        const dsDefaultInfo = db.prepare("PRAGMA table_info(saved_datasets)").all();
+        if (!dsDefaultInfo.some(col => col.name === 'is_default')) {
+            console.log('Migrating saved_datasets table: adding is_default column');
+            db.exec('ALTER TABLE saved_datasets ADD COLUMN is_default INTEGER DEFAULT 0');
+        }
+    } catch (err) { console.log('Migration check (is_default):', err.message); }
+
+    // Step 2i: Migration - add logo_filename column to experiences if missing
+    try {
+        const expLogoInfo = db.prepare("PRAGMA table_info(experiences)").all();
+        if (!expLogoInfo.some(col => col.name === 'logo_filename')) {
+            console.log('Migrating experiences table: adding logo_filename column');
+            db.exec('ALTER TABLE experiences ADD COLUMN logo_filename TEXT DEFAULT NULL');
+        }
+    } catch (err) { console.log('Migration check (logo_filename):', err.message); }
+
+    // Step 2j: Migration - add logo_propagate column to experiences if missing
+    try {
+        const expPropInfo = db.prepare("PRAGMA table_info(experiences)").all();
+        if (!expPropInfo.some(col => col.name === 'logo_propagate')) {
+            console.log('Migrating experiences table: adding logo_propagate column');
+            db.exec('ALTER TABLE experiences ADD COLUMN logo_propagate INTEGER DEFAULT 0');
+        }
+    } catch (err) { console.log('Migration check (logo_propagate):', err.message); }
+
+    // Step 2k: Migration - add logo_filename column to education if missing
+    try {
+        const eduLogoInfo = db.prepare("PRAGMA table_info(education)").all();
+        if (!eduLogoInfo.some(col => col.name === 'logo_filename')) {
+            console.log('Migrating education table: adding logo_filename column');
+            db.exec('ALTER TABLE education ADD COLUMN logo_filename TEXT DEFAULT NULL');
+        }
+    } catch (err) { console.log('Migration check (education logo_filename):', err.message); }
+
+    // Step 2l: Migration - add logo_propagate column to education if missing
+    try {
+        const eduPropInfo = db.prepare("PRAGMA table_info(education)").all();
+        if (!eduPropInfo.some(col => col.name === 'logo_propagate')) {
+            console.log('Migrating education table: adding logo_propagate column');
+            db.exec('ALTER TABLE education ADD COLUMN logo_propagate INTEGER DEFAULT 0');
+        }
+    } catch (err) { console.log('Migration check (education logo_propagate):', err.message); }
+
+    // Step 2h: Migration - normalize legacy date formats (e.g., "Jan 2020" → "2020-01")
+    // Runs once; creates a flag in settings to avoid re-running on every startup
+    try {
+        const migrated = db.prepare("SELECT value FROM settings WHERE key = 'dates_normalized'").get();
+        if (!migrated) {
+            console.log('Normalizing legacy date formats...');
+            const monthsShort = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+            function normalizeDateValue(d) {
+                if (!d || typeof d !== 'string') return d;
+                const s = d.trim();
+                if (!s) return s;
+                // Already ISO
+                if (/^\d{4}(-\d{2})?$/.test(s)) return s;
+                // "Jan 2020", "January 2020"
+                const wordMonth = s.match(/^([A-Za-z]+)\s+(\d{4})$/);
+                if (wordMonth) {
+                    const idx = monthsShort.indexOf(wordMonth[1].toLowerCase().substring(0, 3));
+                    if (idx >= 0) return `${wordMonth[2]}-${String(idx + 1).padStart(2, '0')}`;
+                }
+                // "01/2020", "01.2020", "01-2020"
+                const numMonth = s.match(/^(\d{1,2})[\/.\-](\d{4})$/);
+                if (numMonth) {
+                    const m = parseInt(numMonth[1]);
+                    if (m >= 1 && m <= 12) return `${numMonth[2]}-${String(m).padStart(2, '0')}`;
+                }
+                // "2020/01", "2020.01"
+                const reverseNum = s.match(/^(\d{4})[\/.](\d{1,2})$/);
+                if (reverseNum) {
+                    const m = parseInt(reverseNum[2]);
+                    if (m >= 1 && m <= 12) return `${reverseNum[1]}-${String(m).padStart(2, '0')}`;
+                }
+                return s; // leave unrecognized formats untouched
+            }
+
+            // Normalize experiences table
+            let expCount = 0;
+            const exps = db.prepare('SELECT id, start_date, end_date FROM experiences').all();
+            exps.forEach(e => {
+                const ns = normalizeDateValue(e.start_date);
+                const ne = normalizeDateValue(e.end_date);
+                if (ns !== e.start_date || ne !== e.end_date) {
+                    db.prepare('UPDATE experiences SET start_date = ?, end_date = ? WHERE id = ?').run(ns, ne, e.id);
+                    expCount++;
+                }
+            });
+
+            // Normalize education table
+            let eduCount = 0;
+            const edus = db.prepare('SELECT id, start_date, end_date FROM education').all();
+            edus.forEach(e => {
+                const ns = normalizeDateValue(e.start_date);
+                const ne = normalizeDateValue(e.end_date);
+                if (ns !== e.start_date || ne !== e.end_date) {
+                    db.prepare('UPDATE education SET start_date = ?, end_date = ? WHERE id = ?').run(ns, ne, e.id);
+                    eduCount++;
+                }
+            });
+
+            // Normalize certifications table
+            let certCount = 0;
+            const certs = db.prepare('SELECT id, issue_date FROM certifications').all();
+            certs.forEach(c => {
+                const nd = normalizeDateValue(c.issue_date);
+                if (nd !== c.issue_date) {
+                    db.prepare('UPDATE certifications SET issue_date = ? WHERE id = ?').run(nd, c.id);
+                    certCount++;
+                }
+            });
+
+            // Normalize dates inside saved dataset JSON blobs
+            let dsCount = 0;
+            try {
+                const datasets = db.prepare('SELECT id, data FROM saved_datasets').all();
+                datasets.forEach(ds => {
+                    try {
+                        const data = JSON.parse(ds.data);
+                        let changed = false;
+                        if (data.experiences) {
+                            data.experiences.forEach(e => {
+                                const ns = normalizeDateValue(e.start_date);
+                                const ne = normalizeDateValue(e.end_date);
+                                if (ns !== e.start_date || ne !== e.end_date) { e.start_date = ns; e.end_date = ne; changed = true; }
+                            });
+                        }
+                        if (data.education) {
+                            data.education.forEach(e => {
+                                const ns = normalizeDateValue(e.start_date);
+                                const ne = normalizeDateValue(e.end_date);
+                                if (ns !== e.start_date || ne !== e.end_date) { e.start_date = ns; e.end_date = ne; changed = true; }
+                            });
+                        }
+                        if (data.certifications) {
+                            data.certifications.forEach(c => {
+                                const nd = normalizeDateValue(c.issue_date);
+                                if (nd !== c.issue_date) { c.issue_date = nd; changed = true; }
+                            });
+                        }
+                        if (changed) {
+                            db.prepare('UPDATE saved_datasets SET data = ? WHERE id = ?').run(JSON.stringify(data), ds.id);
+                            dsCount++;
+                        }
+                    } catch (parseErr) { /* skip unparseable datasets */ }
+                });
+            } catch (dsErr) { /* saved_datasets table may not exist yet */ }
+
+            db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('dates_normalized', '1')").run();
+            console.log(`Date normalization complete: ${expCount} experiences, ${eduCount} education, ${certCount} certifications, ${dsCount} datasets updated`);
+        }
+    } catch (err) { console.log('Migration check (date normalization):', err.message); }
+
+    // Step 3: Insert default data (after migration ensures sort_order exists)
+    db.exec(`INSERT OR IGNORE INTO profile (id) VALUES (1)`);
+    DEFAULT_SECTION_ORDER.forEach((section, index) => {
+        db.prepare('INSERT OR IGNORE INTO section_visibility (section_name, visible, sort_order) VALUES (?, 1, ?)').run(section, index);
+    });
+
+    // Step 4: Auto-create "Default" dataset from live DB if no default exists
+    // Runs AFTER Step 3 so that profile and section_visibility rows are guaranteed to exist.
+    // Creates a Default dataset on every install (fresh or existing) so the Open modal is never empty.
+    try {
+        const hasDefault = db.prepare('SELECT id FROM saved_datasets WHERE is_default = 1').get();
+        if (!hasDefault) {
+            console.log('Auto-creating default dataset from live CV data');
+            const cvData = gatherCvData();
+            const existingDefault = db.prepare('SELECT id FROM saved_datasets WHERE name = ?').get('Default');
+            if (existingDefault) {
+                // A dataset named "Default" already exists — update it and mark as default
+                db.prepare('UPDATE saved_datasets SET data = ?, is_default = 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(cvData), existingDefault.id);
+                console.log(`Updated existing "Default" dataset (id: ${existingDefault.id}) and set as default`);
+            } else {
+                const result = db.prepare('INSERT INTO saved_datasets (name, data, is_default, is_public) VALUES (?, ?, 1, 0)').run('Default', JSON.stringify(cvData));
+                const newId = result.lastInsertRowid;
+                try {
+                    const slug = generateSlug('Default', newId);
+                    db.prepare('UPDATE saved_datasets SET slug = ? WHERE id = ?').run(slug, newId);
+                } catch (slugErr) { console.log('Slug update skipped for auto-created default:', slugErr.message); }
+                console.log(`Auto-created default dataset (id: ${newId})`);
+            }
+        }
+    } catch (err) { console.log('Auto-create default dataset:', err.message); }
+}
+
+function formatPeriod(startDate, endDate) {
+    const start = startDate ? formatDateShort(startDate) : '';
+    const end = endDate ? formatDateShort(endDate) : 'Present';
+    return `${start} - ${end}`;
+}
+
+function formatDateShort(dateStr) {
+    if (!dateStr) return '';
+    if (dateStr.match(/^\d{4}$/)) return dateStr;
+    if (dateStr.match(/^\d{4}-\d{2}$/)) {
+        const [y, m] = dateStr.split('-');
+        const monthIdx = parseInt(m) - 1;
+        const monthsShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const monthsFull = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        
+        // Read date format setting from DB, default to MMM YYYY
+        let fmt = 'MMM YYYY';
+        try {
+            const setting = db.prepare('SELECT value FROM settings WHERE key = ?').get('dateFormat');
+            if (setting?.value) fmt = setting.value;
+        } catch { /* use default */ }
+        
+        switch (fmt) {
+            case 'MMMM YYYY': return `${monthsFull[monthIdx]} ${y}`;
+            case 'MMM YY': return `${monthsShort[monthIdx]} ${y.slice(-2)}`;
+            case 'MM/YYYY': return `${m}/${y}`;
+            case 'MM.YYYY': return `${m}.${y}`;
+            case 'MM-YYYY': return `${m}-${y}`;
+            case 'YYYY-MM': return `${y}-${m}`;
+            case 'YYYY': return y;
+            case 'MMM YYYY':
+            default: return `${monthsShort[monthIdx]} ${y}`;
+        }
+    }
+    const yearMatch = dateStr.match(/(\d{4})/);
+    return yearMatch ? yearMatch[1] : dateStr;
+}
+
+// Gather current CV data from live DB into a JSON-serializable snapshot
+function gatherCvData() {
+    const profile = db.prepare('SELECT * FROM profile WHERE id = 1').get();
+    const experiences = db.prepare('SELECT * FROM experiences ORDER BY sort_order ASC, start_date DESC').all();
+    const certifications = db.prepare('SELECT * FROM certifications ORDER BY sort_order ASC, issue_date DESC').all();
+    const education = db.prepare('SELECT * FROM education ORDER BY sort_order ASC, end_date DESC').all();
+    const skillCategories = db.prepare('SELECT * FROM skill_categories ORDER BY sort_order ASC').all();
+    const skills = db.prepare('SELECT * FROM skills ORDER BY sort_order ASC').all();
+    const projects = db.prepare('SELECT * FROM projects ORDER BY sort_order ASC').all();
+    const sections = db.prepare('SELECT * FROM section_visibility ORDER BY sort_order ASC').all();
+    const customNameMap = {};
+    try {
+        db.prepare('SELECT section_key, name FROM custom_sections').all().forEach(cs => { customNameMap[cs.section_key] = cs.name; });
+    } catch (err) { /* custom_sections table may not exist yet */ }
+    const sectionVisibility = {};
+    const sectionOrderData = [];
+    sections.forEach(s => {
+        sectionVisibility[s.section_name] = !!s.visible;
+        const defaultName = SECTION_DISPLAY_NAMES[s.section_name] || customNameMap[s.section_name] || s.section_name;
+        sectionOrderData.push({ key: s.section_name, sort_order: s.sort_order || 0, visible: !!s.visible, display_name: s.display_name || null, name: s.display_name || defaultName, default_name: defaultName });
+    });
+    // Custom sections with items
+    let customSections = [];
+    try {
+        const csRows = db.prepare('SELECT * FROM custom_sections ORDER BY sort_order ASC').all();
+        const csItems = db.prepare('SELECT * FROM custom_section_items ORDER BY sort_order ASC').all();
+        customSections = csRows.map(s => ({
+            ...s,
+            visible: !!s.visible,
+            metadata: s.metadata ? JSON.parse(s.metadata) : null,
+            items: csItems.filter(i => i.section_id === s.id).map(i => ({
+                ...i,
+                visible: !!i.visible,
+                metadata: i.metadata ? JSON.parse(i.metadata) : null
+            }))
+        }));
+    } catch (err) { /* custom_sections table may not exist yet */ }
+    return {
+        profile,
+        experiences: experiences.map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [], visible: !!e.visible })),
+        certifications: certifications.map(c => ({ ...c, visible: !!c.visible })),
+        education: education.map(e => ({ ...e, visible: !!e.visible })),
+        skills: skillCategories.map(cat => ({ ...cat, visible: !!cat.visible, skills: skills.filter(s => s.category_id === cat.id).map(s => s.name) })),
+        projects: projects.map(p => ({ ...p, technologies: p.technologies ? JSON.parse(p.technologies) : [], visible: !!p.visible })),
+        sectionVisibility,
+        sectionOrder: sectionOrderData,
+        customSections
+    };
+}
+
+// Generate URL-safe slug from dataset name
+function generateSlug(name, id) {
+    const base = name.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .substring(0, 50);
+    return base ? `${base}-${id}` : `dataset-${id}`;
+}
+
+// Known analytics providers and their required companion domains
+// These domains are used internally by the provider scripts for data collection,
+// beacons, and API calls but don't appear in the user-pasted snippet
+const ANALYTICS_COMPANION_DOMAINS = {
+    'www.googletagmanager.com': [
+        'https://www.google-analytics.com',
+        'https://analytics.google.com',
+        'https://region1.google-analytics.com',
+        'https://stats.g.doubleclick.net'
+    ],
+    'www.google-analytics.com': [
+        'https://www.googletagmanager.com',
+        'https://analytics.google.com',
+        'https://region1.google-analytics.com',
+        'https://stats.g.doubleclick.net'
+    ],
+    'plausible.io': [
+        'https://plausible.io'
+    ],
+    'cdn.matomo.cloud': [
+        'https://*.matomo.cloud'
+    ]
+};
+
+// Extract domains from tracking code and add known companion domains
+function getTrackingDomains() {
+    try {
+        const setting = db.prepare('SELECT value FROM settings WHERE key = ?').get('trackingCode');
+        if (!setting || !setting.value) return [];
+
+        const domains = new Set();
+        const srcMatches = setting.value.match(/src\s*=\s*["'](https?:\/\/[^"'\/]+)/gi);
+        if (srcMatches) {
+            srcMatches.forEach(m => {
+                const urlMatch = m.match(/["'](https?:\/\/[^"'\/]+)/i);
+                if (urlMatch) domains.add(urlMatch[1]);
+            });
+        }
+        const urlMatches = setting.value.match(/https?:\/\/[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z]{2,}/g);
+        if (urlMatches) {
+            urlMatches.forEach(url => {
+                try { domains.add(new URL(url).origin); } catch (e) { /* skip */ }
+            });
+        }
+
+        // Add companion domains for known analytics providers
+        domains.forEach(d => {
+            try {
+                const hostname = new URL(d).hostname;
+                if (ANALYTICS_COMPANION_DOMAINS[hostname]) {
+                    ANALYTICS_COMPANION_DOMAINS[hostname].forEach(cd => domains.add(cd));
+                }
+            } catch (e) { /* skip */ }
+        });
+
+        return Array.from(domains);
+    } catch (err) {
+        console.error('Error reading tracking domains:', err.message);
+        return [];
+    }
+}
+
+if (PUBLIC_ONLY) {
+    const publicApp = express();
+    publicApp.use(cors({ methods: ['GET'], credentials: false }));
+    publicApp.use((req, res, next) => { if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' }); next(); });
+    
+    const rateLimit = {};
+    publicApp.use((req, res, next) => {
+        const ip = req.ip || req.connection.remoteAddress;
+        const now = Date.now();
+        if (!rateLimit[ip]) rateLimit[ip] = { count: 1, start: now };
+        else if (now - rateLimit[ip].start > 60000) rateLimit[ip] = { count: 1, start: now };
+        else { rateLimit[ip].count++; if (rateLimit[ip].count > 200) return res.status(429).json({ error: 'Too many requests' }); }
+        next();
+    });
+
+    console.log(`[CSP] Tracking domains detected: ${getTrackingDomains().length > 0 ? getTrackingDomains().join(', ') : '(none)'}`);
+
+    publicApp.use((req, res, next) => {
+        const trackingDomains = getTrackingDomains();
+        const trackingStr = trackingDomains.length > 0 ? ' ' + trackingDomains.join(' ') : '';
+        const cfStr = ' https://static.cloudflareinsights.com';
+
+        const csp = [
+            `default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://flagcdn.com`,
+            `script-src 'self' 'unsafe-inline'${cfStr}${trackingStr}`,
+            `script-src-elem 'self' 'unsafe-inline'${cfStr}${trackingStr}`,
+            `worker-src 'self' blob:${trackingStr}`,
+            `connect-src 'self'${cfStr}${trackingStr}`,
+            `img-src 'self' https://flagcdn.com data:${trackingStr}`
+        ].join('; ');
+
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('Referrer-Policy', 'no-referrer');
+        res.setHeader('Content-Security-Policy', csp);
+        next();
+    });
+
+    publicApp.get('/sitemap.xml', (req, res) => {
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost';
+        res.setHeader('Content-Type', 'application/xml');
+        res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${protocol}://${host}/</loc><lastmod>${new Date().toISOString().split('T')[0]}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url></urlset>`);
+    });
+
+    publicApp.get('/robots.txt', (req, res) => {
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost';
+        const robotsMeta = db.prepare('SELECT value FROM settings WHERE key = ?').get('robotsMeta');
+        const metaValue = robotsMeta?.value || 'index, follow';
+        const isNoIndex = metaValue.includes('noindex');
+        res.setHeader('Content-Type', 'text/plain');
+        if (isNoIndex) {
+            res.send(`User-agent: *\nDisallow: /`);
+        } else {
+            res.send(`User-agent: *\nAllow: /\nSitemap: ${protocol}://${host}/sitemap.xml\nDisallow: /api/`);
+        }
+    });
+
+    publicApp.use('/shared', express.static(path.join(__dirname, '../public/shared')));
+    // Favicon and icons (public uses icon-public.png with eye badge)
+    const publicIconPathA = path.join(__dirname, '../icon-public.png');
+    publicApp.get('/favicon.ico', (req, res) => res.sendFile(publicIconPathA));
+    publicApp.get('/favicon.png', (req, res) => res.sendFile(publicIconPathA));
+    publicApp.get('/apple-touch-icon.png', (req, res) => res.sendFile(publicIconPathA));
+    publicApp.get('/', (req, res) => { servePublicIndex(req, res); });
+    publicApp.use(express.static(path.join(__dirname, '../public-readonly'), { index: false }));
+    publicApp.use('/uploads', express.static(uploadsPath));
+
+    publicApp.get('/api/profile', (req, res) => { res.json(db.prepare('SELECT name, initials, title, subtitle, bio, location, linkedin, languages, profile_picture_enabled, open_to_work FROM profile WHERE id = 1').get() || {}); });
+    publicApp.get('/api/sections', (req, res) => { const sections = db.prepare('SELECT * FROM section_visibility').all(); const result = {}; sections.forEach(s => { result[s.section_name] = !!s.visible; }); res.json(result); });
+    publicApp.get('/api/sections/order', (req, res) => {
+        const sections = db.prepare('SELECT * FROM section_visibility ORDER BY sort_order ASC').all();
+        const customSections = db.prepare('SELECT * FROM custom_sections ORDER BY sort_order ASC').all();
+        const customNameMap = {};
+        customSections.forEach(cs => { customNameMap[cs.section_key] = cs.name; });
+        const sectionKeys = new Set(sections.map(s => s.section_name));
+        customSections.forEach(cs => {
+            if (!sectionKeys.has(cs.section_key)) {
+                db.prepare('INSERT OR IGNORE INTO section_visibility (section_name, visible, sort_order) VALUES (?, ?, ?)').run(cs.section_key, cs.visible ? 1 : 0, cs.sort_order || 0);
+                sections.push({ section_name: cs.section_key, visible: cs.visible ? 1 : 0, sort_order: cs.sort_order || 0, print_visible: 1, display_name: null });
+            }
+        });
+        sections.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+        const defaultName = (s) => SECTION_DISPLAY_NAMES[s.section_name] || customNameMap[s.section_name] || s.section_name;
+        res.json(sections.map(s => ({
+            key: s.section_name,
+            name: s.display_name || defaultName(s),
+            default_name: defaultName(s),
+            visible: !!s.visible,
+            print_visible: s.print_visible !== 0,
+            sort_order: s.sort_order || 0,
+            is_custom: !DEFAULT_SECTION_ORDER.includes(s.section_name)
+        })));
+    });
+    publicApp.get('/api/settings', (req, res) => { const settings = db.prepare('SELECT * FROM settings').all(); const result = {}; settings.forEach(s => { result[s.key] = s.value; }); res.json(result); });
+    publicApp.get('/api/settings/:key', (req, res) => { const setting = db.prepare('SELECT value FROM settings WHERE key = ?').get(req.params.key); res.json({ value: setting?.value || null }); });
+    publicApp.get('/api/experiences', (req, res) => { const experiences = db.prepare('SELECT id, job_title, company_name, start_date, end_date, location, country_code, highlights, logo_filename FROM experiences WHERE visible = 1 ORDER BY sort_order ASC, start_date DESC').all(); res.json(experiences.map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [], visible: true }))); });
+    publicApp.get('/api/certifications', (req, res) => { res.json(db.prepare('SELECT name, provider, issue_date, expiry_date FROM certifications WHERE visible = 1 ORDER BY sort_order ASC, issue_date DESC').all().map(c => ({ ...c, visible: true }))); });
+    publicApp.get('/api/education', (req, res) => { res.json(db.prepare('SELECT degree_title, institution_name, start_date, end_date, description FROM education WHERE visible = 1 ORDER BY sort_order ASC, end_date DESC').all().map(e => ({ ...e, visible: true }))); });
+    publicApp.get('/api/skills', (req, res) => { const categories = db.prepare('SELECT id, name, icon FROM skill_categories WHERE visible = 1 ORDER BY sort_order ASC').all(); const skills = db.prepare('SELECT * FROM skills ORDER BY sort_order ASC').all(); res.json(categories.map(cat => ({ ...cat, visible: true, skills: skills.filter(s => s.category_id === cat.id).map(s => s.name) }))); });
+    publicApp.get('/api/projects', (req, res) => { res.json(db.prepare('SELECT title, description, technologies, link FROM projects WHERE visible = 1 ORDER BY sort_order ASC').all().map(p => ({ ...p, technologies: p.technologies ? JSON.parse(p.technologies) : [], visible: true }))); });
+    publicApp.get('/api/timeline', (req, res) => {
+        const experiences = db.prepare('SELECT id, company_name, job_title, start_date, end_date, country_code, logo_filename FROM experiences WHERE visible = 1 ORDER BY start_date ASC').all().map(exp => ({ id: exp.id, company: exp.company_name, role: exp.job_title, period: formatPeriod(exp.start_date, exp.end_date), start_date: exp.start_date, end_date: exp.end_date, countryCode: exp.country_code || '', visible: true, logo: exp.logo_filename || null }));
+        const timelineSections = db.prepare(`SELECT id, metadata FROM custom_sections WHERE layout_type = 'timeline' AND visible = 1`).all().filter(s => { const meta = s.metadata ? JSON.parse(s.metadata) : {}; return meta.show_on_timeline; });
+        const customItems = [];
+        for (const section of timelineSections) {
+            const items = db.prepare(`SELECT * FROM custom_section_items WHERE section_id = ? AND visible = 1 ORDER BY sort_order ASC`).all(section.id);
+            for (const item of items) {
+                const meta = item.metadata ? JSON.parse(item.metadata) : {};
+                customItems.push({ id: `cs_${item.id}`, company: item.subtitle || '', role: item.title || '', period: formatPeriod(meta.start_date, meta.end_date), start_date: meta.start_date || '', end_date: meta.end_date || '', countryCode: meta.country_code || '', visible: true, logo: item.image || null });
+            }
+        }
+        res.json([...experiences, ...customItems]);
+    });
+    publicApp.get('/api/custom-sections', (req, res) => {
+        const sections = db.prepare('SELECT id, name, section_key, layout_type, icon, sort_order, metadata FROM custom_sections WHERE visible = 1 ORDER BY sort_order ASC').all();
+        const items = db.prepare('SELECT * FROM custom_section_items WHERE visible = 1 ORDER BY sort_order ASC').all();
+        res.json(sections.map(s => ({ ...s, visible: true, metadata: s.metadata ? JSON.parse(s.metadata) : null, items: items.filter(i => i.section_id === s.id).map(i => ({ ...i, visible: true, metadata: i.metadata ? JSON.parse(i.metadata) : null })) })));
+    });
+    publicApp.get('/api/layout-types', (req, res) => { res.json(LAYOUT_TYPES); });
+    publicApp.get('/api/social-platforms', (req, res) => { res.json(SOCIAL_PLATFORMS); });
+    publicApp.get('/api/cv', (req, res) => {
+        const profile = db.prepare('SELECT name, initials, title, subtitle, bio, location, linkedin, languages, open_to_work FROM profile WHERE id = 1').get();
+        const experiences = db.prepare('SELECT job_title, company_name, start_date, end_date, location, country_code, highlights, logo_filename FROM experiences WHERE visible = 1 ORDER BY sort_order ASC, start_date DESC').all();
+        const certifications = db.prepare('SELECT name, provider, issue_date, expiry_date FROM certifications WHERE visible = 1 ORDER BY sort_order ASC, issue_date DESC').all();
+        const education = db.prepare('SELECT degree_title, institution_name, start_date, end_date, description, logo_filename FROM education WHERE visible = 1 ORDER BY sort_order ASC, end_date DESC').all();
+        const skillCategories = db.prepare('SELECT id, name, icon FROM skill_categories WHERE visible = 1 ORDER BY sort_order ASC').all();
+        const skills = db.prepare('SELECT * FROM skills ORDER BY sort_order ASC').all();
+        const projects = db.prepare('SELECT title, description, technologies, link FROM projects WHERE visible = 1 ORDER BY sort_order ASC').all();
+        const sectionOrder = db.prepare('SELECT section_name, sort_order FROM section_visibility WHERE visible = 1 ORDER BY sort_order ASC').all();
+        res.json({ profile, experiences: experiences.map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [] })), certifications, education, skills: skillCategories.map(cat => ({ ...cat, skills: skills.filter(s => s.category_id === cat.id).map(s => s.name) })), projects: projects.map(p => ({ ...p, technologies: p.technologies ? JSON.parse(p.technologies) : [] })), sectionOrder: sectionOrder.map(s => s.section_name) });
+    });
+
+    // Public versioned CV routes
+    publicApp.get('/v/:slug', (req, res) => { serveDatasetPage(req, res); });
+    publicApp.get('/api/datasets/slug/:slug', (req, res) => { serveDatasetData(req, res); });
+
+    publicApp.get('*', (req, res) => { servePublicIndex(req, res); });
+    publicApp.listen(PUBLIC_PORT, '0.0.0.0', () => { console.log(`CV Manager (Public Read-Only) running at http://localhost:${PUBLIC_PORT}`); });
+
+} else {
+    // ADMIN Mode
+    app.get('/api/profile', (req, res) => { res.json(db.prepare('SELECT * FROM profile WHERE id = 1').get()); });
+    app.put('/api/profile', (req, res) => { const { name, initials, title, subtitle, bio, location, linkedin, email, phone, languages, visible, profile_picture_enabled, open_to_work } = req.body; db.prepare(`UPDATE profile SET name = ?, initials = ?, title = ?, subtitle = ?, bio = ?, location = ?, linkedin = ?, email = ?, phone = ?, languages = ?, visible = ?, profile_picture_enabled = ?, open_to_work = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1`).run(name, initials, title, subtitle, bio, location, linkedin, email, phone, languages, visible ? 1 : 0, profile_picture_enabled ? 1 : 0, open_to_work ? 1 : 0); res.json({ success: true }); });
+
+    const storage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => cb(null, 'picture.jpeg') });
+    const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => { const allowed = ['image/jpeg', 'image/png', 'image/webp']; cb(null, allowed.includes(file.mimetype)); } });
+    app.post('/api/profile/picture', upload.single('picture'), (req, res) => { if (!req.file) return res.status(400).json({ error: 'No file uploaded' }); res.json({ success: true, filename: req.file.filename }); });
+    app.delete('/api/profile/picture', (req, res) => { const picturePath = path.join(uploadsPath, 'picture.jpeg'); try { if (fs.existsSync(picturePath)) fs.unlinkSync(picturePath); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); } });
+
+    // Company logo upload
+    const logoStorage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => { const ext = path.extname(file.originalname).toLowerCase() || '.jpg'; cb(null, `logo_${req.params.id}_${Date.now()}${ext}`); } });
+    const logoUpload = multer({ storage: logoStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => { const allowed = ['image/jpeg', 'image/png', 'image/webp']; cb(null, allowed.includes(file.mimetype)); } });
+    app.post('/api/experiences/:id/logo', logoUpload.single('logo'), (req, res) => {
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+        const exp = db.prepare('SELECT logo_filename FROM experiences WHERE id = ?').get(req.params.id);
+        if (!exp) return res.status(404).json({ error: 'Experience not found' });
+        // Keep old file on disk for reuse via the logo picker
+        db.prepare('UPDATE experiences SET logo_filename = ? WHERE id = ?').run(req.file.filename, req.params.id);
+        res.json({ success: true, filename: req.file.filename });
+    });
+    app.delete('/api/experiences/:id/logo', (req, res) => {
+        const exp = db.prepare('SELECT logo_filename FROM experiences WHERE id = ?').get(req.params.id);
+        if (!exp) return res.status(404).json({ error: 'Experience not found' });
+        // Unlink from experience only — file stays on disk for reuse via the logo picker
+        db.prepare('UPDATE experiences SET logo_filename = NULL WHERE id = ?').run(req.params.id);
+        res.json({ success: true });
+    });
+
+    // Reuse an existing logo file for a different experience
+    app.put('/api/experiences/:id/logo', express.json(), (req, res) => {
+        const { filename } = req.body;
+        if (!filename) return res.status(400).json({ error: 'Filename is required' });
+        const exp = db.prepare('SELECT logo_filename FROM experiences WHERE id = ?').get(req.params.id);
+        if (!exp) return res.status(404).json({ error: 'Experience not found' });
+        // Verify the file actually exists in uploads
+        if (!fs.existsSync(path.join(uploadsPath, filename))) return res.status(404).json({ error: 'Logo file not found' });
+        db.prepare('UPDATE experiences SET logo_filename = ? WHERE id = ?').run(filename, req.params.id);
+        res.json({ success: true, filename });
+    });
+
+    // List all logos available for reuse (scans filesystem + resolves company names)
+    app.get('/api/logos', (req, res) => {
+        // Scan uploads dir for all logo files
+        let files = [];
+        try { files = fs.readdirSync(uploadsPath).filter(f => f.startsWith('logo_')); } catch (e) {}
+        if (!files.length) return res.json([]);
+        // Build filename → company map and in-use set from current experiences AND saved datasets
+        const companyMap = {};
+        const inUseSet = new Set();
+        db.prepare('SELECT logo_filename, company_name FROM experiences WHERE logo_filename IS NOT NULL').all()
+            .forEach(r => { if (r.logo_filename) { inUseSet.add(r.logo_filename); if (r.company_name) companyMap[r.logo_filename] = r.company_name; } });
+        db.prepare('SELECT logo_filename, institution_name FROM education WHERE logo_filename IS NOT NULL').all()
+            .forEach(r => { if (r.logo_filename) { inUseSet.add(r.logo_filename); if (r.institution_name && !companyMap[r.logo_filename]) companyMap[r.logo_filename] = r.institution_name; } });
+        // Also check saved datasets for both usage and company/institution names
+        try {
+            const datasets = db.prepare('SELECT data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.experiences) {
+                        for (const exp of data.experiences) {
+                            if (exp.logo_filename) {
+                                inUseSet.add(exp.logo_filename);
+                                if (exp.company_name && !companyMap[exp.logo_filename]) {
+                                    companyMap[exp.logo_filename] = exp.company_name;
+                                }
+                            }
+                        }
+                    }
+                    if (data.education) {
+                        for (const edu of data.education) {
+                            if (edu.logo_filename) {
+                                inUseSet.add(edu.logo_filename);
+                                if (edu.institution_name && !companyMap[edu.logo_filename]) {
+                                    companyMap[edu.logo_filename] = edu.institution_name;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json(files.map(f => ({ filename: f, company: companyMap[f] || null, in_use: inUseSet.has(f) })));
+    });
+
+    // Delete an unused logo file
+    app.delete('/api/logos/:filename', (req, res) => {
+        const filename = req.params.filename;
+        if (!filename || !filename.startsWith('logo_')) return res.status(400).json({ error: 'Invalid filename' });
+        const filePath = path.join(uploadsPath, filename);
+        if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });
+        // Check if in use by current experiences/education or any saved dataset
+        const expRef = db.prepare('SELECT COUNT(*) as cnt FROM experiences WHERE logo_filename = ?').get(filename).cnt;
+        if (expRef > 0) return res.status(409).json({ error: 'Logo is in use by current experiences' });
+        const eduRef = db.prepare('SELECT COUNT(*) as cnt FROM education WHERE logo_filename = ?').get(filename).cnt;
+        if (eduRef > 0) return res.status(409).json({ error: 'Logo is in use by current education entries' });
+        try {
+            const datasets = db.prepare('SELECT data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.experiences && data.experiences.some(e => e.logo_filename === filename)) {
+                        return res.status(409).json({ error: 'Logo is in use by a saved dataset' });
+                    }
+                    if (data.education && data.education.some(e => e.logo_filename === filename)) {
+                        return res.status(409).json({ error: 'Logo is in use by a saved dataset' });
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        try { fs.unlinkSync(filePath); } catch (e) { return res.status(500).json({ error: 'Failed to delete file' }); }
+        res.json({ success: true });
+    });
+
+    // Apply a logo globally to all experiences with the same company name (current + datasets)
+    // Also sets logo_propagate=1 on all matching experiences
+    app.post('/api/logos/apply-global', express.json(), (req, res) => {
+        const { company_name, logo_filename } = req.body;
+        if (!company_name || !logo_filename) return res.status(400).json({ error: 'company_name and logo_filename are required' });
+        if (!fs.existsSync(path.join(uploadsPath, logo_filename))) return res.status(404).json({ error: 'Logo file not found' });
+        let updatedCurrent = 0;
+        let updatedDatasets = 0;
+        // Update current experiences — set both logo and propagate flag
+        const result = db.prepare('UPDATE experiences SET logo_filename = ?, logo_propagate = 1 WHERE company_name = ?').run(logo_filename, company_name);
+        updatedCurrent = result.changes;
+        // Update saved datasets — sync both logo_filename and logo_propagate
+        try {
+            const datasets = db.prepare('SELECT id, data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.experiences) {
+                        let changed = false;
+                        for (const exp of data.experiences) {
+                            if (exp.company_name === company_name) {
+                                if (exp.logo_filename !== logo_filename) {
+                                    exp.logo_filename = logo_filename;
+                                    changed = true;
+                                    updatedDatasets++;
+                                }
+                                if (!exp.logo_propagate) {
+                                    exp.logo_propagate = 1;
+                                    changed = true;
+                                }
+                            }
+                        }
+                        if (changed) {
+                            db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(data), ds.id);
+                        }
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json({ success: true, updated_current: updatedCurrent, updated_datasets: updatedDatasets });
+    });
+
+    // Remove a logo globally from all experiences with the same company name (current + datasets)
+    // Keeps logo_propagate=1 so future additions will still propagate if re-enabled
+    app.post('/api/logos/remove-global', express.json(), (req, res) => {
+        const { company_name } = req.body;
+        if (!company_name) return res.status(400).json({ error: 'company_name is required' });
+        let updatedCurrent = 0;
+        let updatedDatasets = 0;
+        // Remove logo from current experiences (keep propagate flag)
+        const result = db.prepare('UPDATE experiences SET logo_filename = NULL WHERE company_name = ?').run(company_name);
+        updatedCurrent = result.changes;
+        // Update saved datasets
+        try {
+            const datasets = db.prepare('SELECT id, data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.experiences) {
+                        let changed = false;
+                        for (const exp of data.experiences) {
+                            if (exp.company_name === company_name && exp.logo_filename) {
+                                exp.logo_filename = null;
+                                changed = true;
+                                updatedDatasets++;
+                            }
+                        }
+                        if (changed) {
+                            db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(data), ds.id);
+                        }
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json({ success: true, updated_current: updatedCurrent, updated_datasets: updatedDatasets });
+    });
+
+    // Update logo_propagate flag for all experiences with the same company name (current + datasets)
+    app.post('/api/logos/set-propagate', express.json(), (req, res) => {
+        const { company_name, propagate } = req.body;
+        if (!company_name) return res.status(400).json({ error: 'company_name is required' });
+        const flag = propagate ? 1 : 0;
+        const result = db.prepare('UPDATE experiences SET logo_propagate = ? WHERE company_name = ?').run(flag, company_name);
+        // Sync to saved datasets
+        try {
+            const datasets = db.prepare('SELECT id, data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.experiences) {
+                        let changed = false;
+                        for (const exp of data.experiences) {
+                            if (exp.company_name === company_name && (exp.logo_propagate ? 1 : 0) !== flag) {
+                                exp.logo_propagate = flag;
+                                changed = true;
+                            }
+                        }
+                        if (changed) {
+                            db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(data), ds.id);
+                        }
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json({ success: true, updated: result.changes });
+    });
+
+    // Look up which logo is used for a given company name (current experiences + datasets)
+    app.get('/api/logos/by-company', (req, res) => {
+        const name = (req.query.name || '').trim();
+        if (!name) return res.json({ logo_filename: null });
+        // Check current experiences first
+        const exp = db.prepare('SELECT logo_filename, logo_propagate FROM experiences WHERE company_name = ? AND logo_filename IS NOT NULL LIMIT 1').get(name);
+        if (exp && exp.logo_filename && fs.existsSync(path.join(uploadsPath, exp.logo_filename))) {
+            return res.json({ logo_filename: exp.logo_filename, logo_propagate: !!exp.logo_propagate });
+        }
+        // Fall back to saved datasets
+        try {
+            const datasets = db.prepare('SELECT data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.experiences) {
+                        const match = data.experiences.find(e => e.company_name === name && e.logo_filename);
+                        if (match && fs.existsSync(path.join(uploadsPath, match.logo_filename))) {
+                            return res.json({ logo_filename: match.logo_filename });
+                        }
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json({ logo_filename: null });
+    });
+
+    app.get('/api/settings', (req, res) => { const settings = db.prepare('SELECT * FROM settings').all(); const result = {}; settings.forEach(s => { result[s.key] = s.value; }); res.json(result); });
+    app.get('/api/settings/:key', (req, res) => { const setting = db.prepare('SELECT value FROM settings WHERE key = ?').get(req.params.key); res.json({ value: setting?.value || null }); });
+    app.put('/api/settings/:key', (req, res) => { db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(req.params.key, req.body.value); res.json({ success: true }); });
+
+    // Version check endpoint (admin only)
+    app.get('/api/version', async (req, res) => {
+        const cache = await checkLatestVersion();
+        const updateAvailable = cache.latest ? compareVersions(CURRENT_VERSION, cache.latest) < 0 : false;
+        res.json({ current: CURRENT_VERSION, latest: cache.latest, updateAvailable, changelog: cache.changelog });
+    });
+
+    app.get('/api/sections', (req, res) => { const sections = db.prepare('SELECT * FROM section_visibility').all(); const result = {}; sections.forEach(s => { result[s.section_name] = !!s.visible; }); res.json(result); });
+    app.get('/api/sections/order', (req, res) => {
+        const sections = db.prepare('SELECT * FROM section_visibility ORDER BY sort_order ASC').all();
+        const customSections = db.prepare('SELECT * FROM custom_sections ORDER BY sort_order ASC').all();
+        const customNameMap = {};
+        customSections.forEach(cs => { customNameMap[cs.section_key] = cs.name; });
+        // Auto-repair: ensure all custom sections have section_visibility entries
+        const sectionKeys = new Set(sections.map(s => s.section_name));
+        customSections.forEach(cs => {
+            if (!sectionKeys.has(cs.section_key)) {
+                db.prepare('INSERT OR IGNORE INTO section_visibility (section_name, visible, sort_order) VALUES (?, ?, ?)').run(cs.section_key, cs.visible ? 1 : 0, cs.sort_order || 0);
+                sections.push({ section_name: cs.section_key, visible: cs.visible ? 1 : 0, sort_order: cs.sort_order || 0, print_visible: 1, display_name: null });
+            }
+        });
+        sections.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+        const defaultName = (s) => SECTION_DISPLAY_NAMES[s.section_name] || customNameMap[s.section_name] || s.section_name;
+        res.json(sections.map(s => ({
+            key: s.section_name,
+            name: s.display_name || defaultName(s),
+            default_name: defaultName(s),
+            visible: !!s.visible,
+            print_visible: s.print_visible !== 0,
+            sort_order: s.sort_order || 0,
+            is_custom: !DEFAULT_SECTION_ORDER.includes(s.section_name)
+        })));
+    });
+    app.put('/api/sections/order', (req, res) => { const { sections } = req.body; if (!sections || !Array.isArray(sections)) return res.status(400).json({ error: 'Invalid sections data' }); const updateOrder = db.transaction(() => { sections.forEach(section => { const displayName = section.display_name || null; db.prepare('UPDATE section_visibility SET visible = ?, print_visible = ?, sort_order = ?, display_name = ? WHERE section_name = ?').run(section.visible ? 1 : 0, section.print_visible != false ? 1 : 0, section.sort_order, displayName, section.key); if (section.key.startsWith('custom_')) { db.prepare('UPDATE custom_sections SET visible = ?, sort_order = ? WHERE section_key = ?').run(section.visible ? 1 : 0, section.sort_order, section.key); } }); }); try { updateOrder(); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); } });
+    app.put('/api/sections/:name', (req, res) => { const sectionName = req.params.name; const visible = req.body.visible ? 1 : 0; db.prepare('UPDATE section_visibility SET visible = ? WHERE section_name = ?').run(visible, sectionName); if (sectionName.startsWith('custom_')) { db.prepare('UPDATE custom_sections SET visible = ? WHERE section_key = ?').run(visible, sectionName); } res.json({ success: true }); });
+
+    app.get('/api/experiences', (req, res) => { const experiences = db.prepare('SELECT * FROM experiences ORDER BY sort_order ASC, start_date DESC').all(); res.json(experiences.map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [], visible: !!e.visible }))); });
+    app.get('/api/experiences/:id', (req, res) => { const exp = db.prepare('SELECT * FROM experiences WHERE id = ?').get(req.params.id); if (!exp) return res.status(404).json({ error: 'Not found' }); res.json({ ...exp, highlights: exp.highlights ? JSON.parse(exp.highlights) : [], visible: !!exp.visible }); });
+    app.post('/api/experiences', (req, res) => { const { job_title, company_name, start_date, end_date, location, country_code, highlights } = req.body; const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM experiences').get(); const result = db.prepare(`INSERT INTO experiences (job_title, company_name, start_date, end_date, location, country_code, highlights, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(job_title, company_name, start_date, end_date, location, country_code || '', JSON.stringify(highlights || []), (maxOrder.max || 0) + 1); res.json({ id: result.lastInsertRowid }); });
+    app.put('/api/experiences/:id', (req, res) => { const { job_title, company_name, start_date, end_date, location, country_code, highlights, visible, sort_order } = req.body; const existing = db.prepare('SELECT sort_order, visible FROM experiences WHERE id = ?').get(req.params.id); const newSortOrder = sort_order !== undefined ? sort_order : (existing?.sort_order || 0); const newVisible = visible !== undefined ? (visible ? 1 : 0) : (existing?.visible ?? 1); db.prepare(`UPDATE experiences SET job_title = ?, company_name = ?, start_date = ?, end_date = ?, location = ?, country_code = ?, highlights = ?, visible = ?, sort_order = ? WHERE id = ?`).run(job_title, company_name, start_date, end_date, location, country_code || '', JSON.stringify(highlights || []), newVisible, newSortOrder, req.params.id); res.json({ success: true }); });
+    app.delete('/api/experiences/:id', (req, res) => { const exp = db.prepare('SELECT logo_filename FROM experiences WHERE id = ?').get(req.params.id); if (exp && exp.logo_filename) { const refCount = db.prepare('SELECT COUNT(*) as cnt FROM experiences WHERE logo_filename = ?').get(exp.logo_filename).cnt; if (refCount <= 1) { const logoPath = path.join(uploadsPath, exp.logo_filename); try { if (fs.existsSync(logoPath)) fs.unlinkSync(logoPath); } catch (e) {} } } db.prepare('DELETE FROM experiences WHERE id = ?').run(req.params.id); res.json({ success: true }); });
+
+    app.get('/api/certifications', (req, res) => { res.json(db.prepare('SELECT * FROM certifications ORDER BY sort_order ASC, issue_date DESC').all().map(c => ({ ...c, visible: !!c.visible }))); });
+    app.get('/api/certifications/:id', (req, res) => { const cert = db.prepare('SELECT * FROM certifications WHERE id = ?').get(req.params.id); if (!cert) return res.status(404).json({ error: 'Not found' }); res.json({ ...cert, visible: !!cert.visible }); });
+    app.post('/api/certifications', (req, res) => { const { name, provider, issue_date, expiry_date, credential_id } = req.body; const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM certifications').get(); const result = db.prepare(`INSERT INTO certifications (name, provider, issue_date, expiry_date, credential_id, sort_order) VALUES (?, ?, ?, ?, ?, ?)`).run(name, provider, issue_date, expiry_date, credential_id, (maxOrder.max || 0) + 1); res.json({ id: result.lastInsertRowid }); });
+    app.put('/api/certifications/:id', (req, res) => { const { name, provider, issue_date, expiry_date, credential_id, visible, sort_order } = req.body; const existing = db.prepare('SELECT sort_order, visible FROM certifications WHERE id = ?').get(req.params.id); const newSortOrder = sort_order !== undefined ? sort_order : (existing?.sort_order || 0); const newVisible = visible !== undefined ? (visible ? 1 : 0) : (existing?.visible ?? 1); db.prepare(`UPDATE certifications SET name = ?, provider = ?, issue_date = ?, expiry_date = ?, credential_id = ?, visible = ?, sort_order = ? WHERE id = ?`).run(name, provider, issue_date, expiry_date, credential_id, newVisible, newSortOrder, req.params.id); res.json({ success: true }); });
+    app.delete('/api/certifications/:id', (req, res) => { db.prepare('DELETE FROM certifications WHERE id = ?').run(req.params.id); res.json({ success: true }); });
+
+    app.get('/api/education', (req, res) => { res.json(db.prepare('SELECT * FROM education ORDER BY sort_order ASC, end_date DESC').all().map(e => ({ ...e, visible: !!e.visible }))); });
+    app.get('/api/education/:id', (req, res) => { const edu = db.prepare('SELECT * FROM education WHERE id = ?').get(req.params.id); if (!edu) return res.status(404).json({ error: 'Not found' }); res.json({ ...edu, visible: !!edu.visible }); });
+    app.post('/api/education', (req, res) => { const { degree_title, institution_name, start_date, end_date, description } = req.body; const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM education').get(); const result = db.prepare(`INSERT INTO education (degree_title, institution_name, start_date, end_date, description, sort_order) VALUES (?, ?, ?, ?, ?, ?)`).run(degree_title, institution_name, start_date, end_date, description, (maxOrder.max || 0) + 1); res.json({ id: result.lastInsertRowid }); });
+    app.put('/api/education/:id', (req, res) => { const { degree_title, institution_name, start_date, end_date, description, visible, sort_order } = req.body; const existing = db.prepare('SELECT sort_order, visible FROM education WHERE id = ?').get(req.params.id); const newSortOrder = sort_order !== undefined ? sort_order : (existing?.sort_order || 0); const newVisible = visible !== undefined ? (visible ? 1 : 0) : (existing?.visible ?? 1); db.prepare(`UPDATE education SET degree_title = ?, institution_name = ?, start_date = ?, end_date = ?, description = ?, visible = ?, sort_order = ? WHERE id = ?`).run(degree_title, institution_name, start_date, end_date, description, newVisible, newSortOrder, req.params.id); res.json({ success: true }); });
+    app.delete('/api/education/:id', (req, res) => { const edu = db.prepare('SELECT logo_filename FROM education WHERE id = ?').get(req.params.id); if (edu && edu.logo_filename) { const refCountExp = db.prepare('SELECT COUNT(*) as cnt FROM experiences WHERE logo_filename = ?').get(edu.logo_filename).cnt; const refCountEdu = db.prepare('SELECT COUNT(*) as cnt FROM education WHERE logo_filename = ?').get(edu.logo_filename).cnt; if (refCountExp + refCountEdu <= 1) { const logoPath = path.join(uploadsPath, edu.logo_filename); try { if (fs.existsSync(logoPath)) fs.unlinkSync(logoPath); } catch (e) {} } } db.prepare('DELETE FROM education WHERE id = ?').run(req.params.id); res.json({ success: true }); });
+
+    // Education logo upload
+    const eduLogoStorage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => { const ext = path.extname(file.originalname).toLowerCase() || '.jpg'; cb(null, `logo_edu_${req.params.id}_${Date.now()}${ext}`); } });
+    const eduLogoUpload = multer({ storage: eduLogoStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => { const allowed = ['image/jpeg', 'image/png', 'image/webp']; cb(null, allowed.includes(file.mimetype)); } });
+    app.post('/api/education/:id/logo', eduLogoUpload.single('logo'), (req, res) => {
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+        const edu = db.prepare('SELECT logo_filename FROM education WHERE id = ?').get(req.params.id);
+        if (!edu) return res.status(404).json({ error: 'Education not found' });
+        db.prepare('UPDATE education SET logo_filename = ? WHERE id = ?').run(req.file.filename, req.params.id);
+        res.json({ success: true, filename: req.file.filename });
+    });
+    app.delete('/api/education/:id/logo', (req, res) => {
+        const edu = db.prepare('SELECT logo_filename FROM education WHERE id = ?').get(req.params.id);
+        if (!edu) return res.status(404).json({ error: 'Education not found' });
+        db.prepare('UPDATE education SET logo_filename = NULL WHERE id = ?').run(req.params.id);
+        res.json({ success: true });
+    });
+    app.put('/api/education/:id/logo', express.json(), (req, res) => {
+        const { filename } = req.body;
+        if (!filename) return res.status(400).json({ error: 'Filename is required' });
+        const edu = db.prepare('SELECT logo_filename FROM education WHERE id = ?').get(req.params.id);
+        if (!edu) return res.status(404).json({ error: 'Education not found' });
+        if (!fs.existsSync(path.join(uploadsPath, filename))) return res.status(404).json({ error: 'Logo file not found' });
+        db.prepare('UPDATE education SET logo_filename = ? WHERE id = ?').run(filename, req.params.id);
+        res.json({ success: true, filename });
+    });
+
+    // Education logo propagation endpoints
+    app.post('/api/edu-logos/apply-global', express.json(), (req, res) => {
+        const { institution_name, logo_filename } = req.body;
+        if (!institution_name || !logo_filename) return res.status(400).json({ error: 'institution_name and logo_filename are required' });
+        if (!fs.existsSync(path.join(uploadsPath, logo_filename))) return res.status(404).json({ error: 'Logo file not found' });
+        let updatedCurrent = 0; let updatedDatasets = 0;
+        const result = db.prepare('UPDATE education SET logo_filename = ?, logo_propagate = 1 WHERE institution_name = ?').run(logo_filename, institution_name);
+        updatedCurrent = result.changes;
+        try {
+            const datasets = db.prepare('SELECT id, data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.education) {
+                        let changed = false;
+                        for (const edu of data.education) {
+                            if (edu.institution_name === institution_name) {
+                                if (edu.logo_filename !== logo_filename) { edu.logo_filename = logo_filename; changed = true; updatedDatasets++; }
+                                if (!edu.logo_propagate) { edu.logo_propagate = 1; changed = true; }
+                            }
+                        }
+                        if (changed) db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(data), ds.id);
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json({ success: true, updated_current: updatedCurrent, updated_datasets: updatedDatasets });
+    });
+    app.post('/api/edu-logos/remove-global', express.json(), (req, res) => {
+        const { institution_name } = req.body;
+        if (!institution_name) return res.status(400).json({ error: 'institution_name is required' });
+        let updatedCurrent = 0; let updatedDatasets = 0;
+        const result = db.prepare('UPDATE education SET logo_filename = NULL WHERE institution_name = ?').run(institution_name);
+        updatedCurrent = result.changes;
+        try {
+            const datasets = db.prepare('SELECT id, data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.education) {
+                        let changed = false;
+                        for (const edu of data.education) {
+                            if (edu.institution_name === institution_name && edu.logo_filename) { edu.logo_filename = null; changed = true; updatedDatasets++; }
+                        }
+                        if (changed) db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(data), ds.id);
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json({ success: true, updated_current: updatedCurrent, updated_datasets: updatedDatasets });
+    });
+    app.post('/api/edu-logos/set-propagate', express.json(), (req, res) => {
+        const { institution_name, propagate } = req.body;
+        if (!institution_name) return res.status(400).json({ error: 'institution_name is required' });
+        const flag = propagate ? 1 : 0;
+        const result = db.prepare('UPDATE education SET logo_propagate = ? WHERE institution_name = ?').run(flag, institution_name);
+        try {
+            const datasets = db.prepare('SELECT id, data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.education) {
+                        let changed = false;
+                        for (const edu of data.education) {
+                            if (edu.institution_name === institution_name && (edu.logo_propagate ? 1 : 0) !== flag) { edu.logo_propagate = flag; changed = true; }
+                        }
+                        if (changed) db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(data), ds.id);
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json({ success: true, updated: result.changes });
+    });
+    app.get('/api/logos/by-institution', (req, res) => {
+        const name = (req.query.name || '').trim();
+        if (!name) return res.json({ logo_filename: null });
+        const edu = db.prepare('SELECT logo_filename, logo_propagate FROM education WHERE institution_name = ? AND logo_filename IS NOT NULL LIMIT 1').get(name);
+        if (edu && edu.logo_filename && fs.existsSync(path.join(uploadsPath, edu.logo_filename))) {
+            return res.json({ logo_filename: edu.logo_filename, logo_propagate: !!edu.logo_propagate });
+        }
+        try {
+            const datasets = db.prepare('SELECT data FROM saved_datasets').all();
+            for (const ds of datasets) {
+                try {
+                    const data = JSON.parse(ds.data);
+                    if (data.education) {
+                        const match = data.education.find(e => e.institution_name === name && e.logo_filename);
+                        if (match && fs.existsSync(path.join(uploadsPath, match.logo_filename))) {
+                            return res.json({ logo_filename: match.logo_filename });
+                        }
+                    }
+                } catch (e) {}
+            }
+        } catch (e) {}
+        res.json({ logo_filename: null });
+    });
+
+    app.get('/api/skills', (req, res) => { const categories = db.prepare('SELECT * FROM skill_categories ORDER BY sort_order ASC').all(); const skills = db.prepare('SELECT * FROM skills ORDER BY sort_order ASC').all(); res.json(categories.map(cat => ({ ...cat, visible: !!cat.visible, skills: skills.filter(s => s.category_id === cat.id).map(s => s.name) }))); });
+    app.get('/api/skills/:id', (req, res) => { const cat = db.prepare('SELECT * FROM skill_categories WHERE id = ?').get(req.params.id); if (!cat) return res.status(404).json({ error: 'Not found' }); const skills = db.prepare('SELECT name FROM skills WHERE category_id = ? ORDER BY sort_order ASC').all(req.params.id); res.json({ ...cat, visible: !!cat.visible, skills: skills.map(s => s.name) }); });
+    app.post('/api/skills', (req, res) => { const { name, icon, skills } = req.body; const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM skill_categories').get(); const result = db.prepare('INSERT INTO skill_categories (name, icon, sort_order) VALUES (?, ?, ?)').run(name, icon || 'default', (maxOrder.max || 0) + 1); const categoryId = result.lastInsertRowid; if (skills && skills.length > 0) { const skillStmt = db.prepare('INSERT INTO skills (category_id, name, sort_order) VALUES (?, ?, ?)'); skills.forEach((skill, idx) => { skillStmt.run(categoryId, skill, idx); }); } res.json({ id: categoryId }); });
+    app.put('/api/skills/:id', (req, res) => { const { name, icon, skills, visible, sort_order } = req.body; const categoryId = req.params.id; const existing = db.prepare('SELECT sort_order, visible FROM skill_categories WHERE id = ?').get(categoryId); const newSortOrder = sort_order !== undefined ? sort_order : (existing?.sort_order || 0); const newVisible = visible !== undefined ? (visible ? 1 : 0) : (existing?.visible ?? 1); db.prepare('UPDATE skill_categories SET name = ?, icon = ?, visible = ?, sort_order = ? WHERE id = ?').run(name, icon || 'default', newVisible, newSortOrder, categoryId); db.prepare('DELETE FROM skills WHERE category_id = ?').run(categoryId); if (skills && skills.length > 0) { const skillStmt = db.prepare('INSERT INTO skills (category_id, name, sort_order) VALUES (?, ?, ?)'); skills.forEach((skill, idx) => { skillStmt.run(categoryId, skill, idx); }); } res.json({ success: true }); });
+    app.delete('/api/skills/:id', (req, res) => { db.prepare('DELETE FROM skills WHERE category_id = ?').run(req.params.id); db.prepare('DELETE FROM skill_categories WHERE id = ?').run(req.params.id); res.json({ success: true }); });
+
+    app.get('/api/projects', (req, res) => { res.json(db.prepare('SELECT * FROM projects ORDER BY sort_order ASC').all().map(p => ({ ...p, technologies: p.technologies ? JSON.parse(p.technologies) : [], visible: !!p.visible }))); });
+    app.get('/api/projects/:id', (req, res) => { const proj = db.prepare('SELECT * FROM projects WHERE id = ?').get(req.params.id); if (!proj) return res.status(404).json({ error: 'Not found' }); res.json({ ...proj, technologies: proj.technologies ? JSON.parse(proj.technologies) : [], visible: !!proj.visible }); });
+    app.post('/api/projects', (req, res) => { const { title, description, technologies, link } = req.body; const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM projects').get(); const result = db.prepare(`INSERT INTO projects (title, description, technologies, link, sort_order) VALUES (?, ?, ?, ?, ?)`).run(title, description, JSON.stringify(technologies || []), link, (maxOrder.max || 0) + 1); res.json({ id: result.lastInsertRowid }); });
+    app.put('/api/projects/:id', (req, res) => { const { title, description, technologies, link, visible, sort_order } = req.body; const existing = db.prepare('SELECT sort_order, visible FROM projects WHERE id = ?').get(req.params.id); const newSortOrder = sort_order !== undefined ? sort_order : (existing?.sort_order || 0); const newVisible = visible !== undefined ? (visible ? 1 : 0) : (existing?.visible ?? 1); db.prepare(`UPDATE projects SET title = ?, description = ?, technologies = ?, link = ?, visible = ?, sort_order = ? WHERE id = ?`).run(title, description, JSON.stringify(technologies || []), link, newVisible, newSortOrder, req.params.id); res.json({ success: true }); });
+    app.delete('/api/projects/:id', (req, res) => { db.prepare('DELETE FROM projects WHERE id = ?').run(req.params.id); res.json({ success: true }); });
+
+    // Generic reorder endpoint for items within sections
+    app.put('/api/reorder/:type', (req, res) => {
+        const { type } = req.params;
+        const { items } = req.body;
+        if (!items || !Array.isArray(items)) return res.status(400).json({ error: 'Invalid items data' });
+        
+        const tableMap = {
+            'experiences': 'experiences',
+            'certifications': 'certifications',
+            'education': 'education',
+            'skills': 'skill_categories',
+            'projects': 'projects',
+            'custom-items': 'custom_section_items'
+        };
+        
+        const table = tableMap[type];
+        if (!table) return res.status(400).json({ error: 'Invalid type' });
+        
+        try {
+            const updateOrder = db.transaction(() => {
+                items.forEach(item => {
+                    db.prepare(`UPDATE ${table} SET sort_order = ? WHERE id = ?`).run(item.sort_order, item.id);
+                });
+            });
+            updateOrder();
+            res.json({ success: true });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
+    app.get('/api/datasets', (req, res) => { 
+        try {
+            // Use SELECT * to avoid errors if slug column doesn't exist
+            const datasets = db.prepare('SELECT * FROM saved_datasets ORDER BY updated_at DESC').all();
+            res.json(datasets.map(d => ({ id: d.id, name: d.name, slug: d.slug || null, is_public: !!d.is_public, is_default: !!d.is_default, created_at: d.created_at, updated_at: d.updated_at })));
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+    app.post('/api/datasets', (req, res) => { const { name } = req.body; if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' }); const cvData = gatherCvData(); try { const existing = db.prepare('SELECT id FROM saved_datasets WHERE name = ?').get(name.trim()); if (existing) { db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(cvData), existing.id); const ds = db.prepare('SELECT * FROM saved_datasets WHERE id = ?').get(existing.id); res.json({ success: true, id: existing.id, slug: ds.slug || null, is_default: !!ds.is_default, updated: true }); } else { const result = db.prepare('INSERT INTO saved_datasets (name, data) VALUES (?, ?)').run(name.trim(), JSON.stringify(cvData)); const newId = result.lastInsertRowid; let slug = null; try { slug = generateSlug(name.trim(), newId); db.prepare('UPDATE saved_datasets SET slug = ? WHERE id = ?').run(slug, newId); } catch (slugErr) { console.log('Slug update skipped (column may not exist):', slugErr.message); } res.json({ success: true, id: newId, slug, is_default: false, created: true }); } } catch (err) { res.status(500).json({ error: err.message }); } });
+
+    // Set a dataset as the default (public at /)
+    app.put('/api/datasets/:id/default', (req, res) => {
+        try {
+            const dataset = db.prepare('SELECT * FROM saved_datasets WHERE id = ?').get(req.params.id);
+            if (!dataset) return res.status(404).json({ error: 'Dataset not found' });
+            
+            // Clear any existing default, then set the new one (atomic)
+            const setDefault = db.transaction(() => {
+                db.prepare('UPDATE saved_datasets SET is_default = 0 WHERE is_default = 1').run();
+                db.prepare('UPDATE saved_datasets SET is_default = 1 WHERE id = ?').run(req.params.id);
+            });
+            setDefault();
+            
+            const updated = db.prepare('SELECT id, name, slug, is_public, is_default FROM saved_datasets WHERE id = ?').get(req.params.id);
+            res.json({ success: true, id: updated.id, name: updated.name, slug: updated.slug, is_default: !!updated.is_default });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Get the current default dataset info
+    app.get('/api/datasets/default', (req, res) => {
+        try {
+            const dataset = db.prepare('SELECT id, name, slug, is_public, is_default, updated_at FROM saved_datasets WHERE is_default = 1').get();
+            if (!dataset) return res.json({ exists: false });
+            res.json({ exists: true, id: dataset.id, name: dataset.name, slug: dataset.slug, is_public: !!dataset.is_public, updated_at: dataset.updated_at });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Save current live CV data back into an existing dataset (explicit save)
+    app.post('/api/datasets/:id/save', (req, res) => {
+        try {
+            const dataset = db.prepare('SELECT * FROM saved_datasets WHERE id = ?').get(req.params.id);
+            if (!dataset) return res.status(404).json({ error: 'Dataset not found' });
+            const cvData = gatherCvData();
+            db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(cvData), req.params.id);
+            res.json({ success: true, id: dataset.id, name: dataset.name, is_default: !!dataset.is_default });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+    app.post('/api/datasets/:id/load', (req, res) => { const dataset = db.prepare('SELECT * FROM saved_datasets WHERE id = ?').get(req.params.id); if (!dataset) return res.status(404).json({ error: 'Dataset not found' }); try { const data = JSON.parse(dataset.data); const importData = db.transaction(() => { if (data.profile) { const p = data.profile; db.prepare(`UPDATE profile SET name = ?, initials = ?, title = ?, subtitle = ?, bio = ?, location = ?, linkedin = ?, email = ?, phone = ?, languages = ? WHERE id = 1`).run(p.name, p.initials, p.title, p.subtitle, p.bio, p.location, p.linkedin, p.email, p.phone, p.languages); } if (data.experiences) { db.prepare('DELETE FROM experiences').run(); const stmt = db.prepare(`INSERT INTO experiences (job_title, company_name, start_date, end_date, location, country_code, highlights, sort_order, visible, logo_filename, logo_propagate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.experiences.forEach((e, idx) => { stmt.run(e.job_title, e.company_name, e.start_date, e.end_date, e.location, e.country_code || '', JSON.stringify(e.highlights || []), idx, e.visible != false ? 1 : 0, e.logo_filename || null, e.logo_propagate ? 1 : 0); }); } if (data.certifications) { db.prepare('DELETE FROM certifications').run(); const stmt = db.prepare(`INSERT INTO certifications (name, provider, issue_date, expiry_date, credential_id, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?)`); data.certifications.forEach((c, idx) => { stmt.run(c.name, c.provider, c.issue_date, c.expiry_date, c.credential_id, idx, c.visible != false ? 1 : 0); }); } if (data.education) { db.prepare('DELETE FROM education').run(); const stmt = db.prepare(`INSERT INTO education (degree_title, institution_name, start_date, end_date, description, sort_order, visible, logo_filename, logo_propagate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.education.forEach((e, idx) => { stmt.run(e.degree_title, e.institution_name, e.start_date, e.end_date, e.description, idx, e.visible != false ? 1 : 0, e.logo_filename || null, e.logo_propagate ? 1 : 0); }); } if (data.skills) { db.prepare('DELETE FROM skills').run(); db.prepare('DELETE FROM skill_categories').run(); const catStmt = db.prepare('INSERT INTO skill_categories (name, icon, sort_order, visible) VALUES (?, ?, ?, ?)'); const skillStmt = db.prepare('INSERT INTO skills (category_id, name, sort_order) VALUES (?, ?, ?)'); data.skills.forEach((cat, catIdx) => { const result = catStmt.run(cat.name, cat.icon || 'default', catIdx, cat.visible != false ? 1 : 0); const categoryId = result.lastInsertRowid; if (cat.skills) { cat.skills.forEach((skill, skillIdx) => { skillStmt.run(categoryId, skill, skillIdx); }); } }); } if (data.projects) { db.prepare('DELETE FROM projects').run(); const stmt = db.prepare(`INSERT INTO projects (title, description, technologies, link, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?)`); data.projects.forEach((p, idx) => { stmt.run(p.title, p.description, JSON.stringify(p.technologies || []), p.link, idx, p.visible != false ? 1 : 0); }); } if (data.customSections && Array.isArray(data.customSections)) { db.prepare('DELETE FROM custom_section_items').run(); db.prepare('DELETE FROM custom_sections').run(); db.prepare("DELETE FROM section_visibility WHERE section_name LIKE 'custom_%'").run(); const sectionStmt = db.prepare(`INSERT INTO custom_sections (name, section_key, layout_type, icon, sort_order, visible, metadata) VALUES (?, ?, ?, ?, ?, ?, ?)`); const itemStmt = db.prepare(`INSERT INTO custom_section_items (section_id, title, subtitle, description, link, icon, image, metadata, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.customSections.forEach((s, idx) => { const sectionKey = s.section_key || `custom_${Date.now()}_${idx}`; const sectionMetadata = s.metadata ? (typeof s.metadata === 'string' ? s.metadata : JSON.stringify(s.metadata)) : null; const result = sectionStmt.run(s.name, sectionKey, s.layout_type || 'grid-3', s.icon || 'layers', s.sort_order !== undefined ? s.sort_order : idx, s.visible != false ? 1 : 0, sectionMetadata); const sectionId = result.lastInsertRowid; db.prepare('INSERT OR REPLACE INTO section_visibility (section_name, visible, sort_order, display_name) VALUES (?, ?, ?, ?)').run(sectionKey, s.visible != false ? 1 : 0, s.sort_order !== undefined ? s.sort_order : idx, s.display_name || null); if (s.items && Array.isArray(s.items)) { s.items.forEach((item, itemIdx) => { itemStmt.run(sectionId, item.title || null, item.subtitle || null, item.description || null, item.link || null, item.icon || null, item.image || null, item.metadata ? (typeof item.metadata === 'string' ? item.metadata : JSON.stringify(item.metadata)) : null, item.sort_order !== undefined ? item.sort_order : itemIdx, item.visible != false ? 1 : 0); }); } }); } if (data.sectionOrder && Array.isArray(data.sectionOrder)) { data.sectionOrder.forEach(s => { db.prepare('UPDATE section_visibility SET visible = ?, sort_order = ?, display_name = ? WHERE section_name = ?').run(s.visible != false ? 1 : 0, s.sort_order || 0, s.display_name || null, s.key); }); } else if (data.sectionVisibility) { for (const [section, visible] of Object.entries(data.sectionVisibility)) { db.prepare('UPDATE section_visibility SET visible = ? WHERE section_name = ?').run(visible ? 1 : 0, section); } } }); importData(); res.json({ success: true, id: dataset.id, name: dataset.name, is_default: !!dataset.is_default }); } catch (err) { res.status(500).json({ error: err.message }); } });
+    app.delete('/api/datasets/:id', (req, res) => {
+        try {
+            const ds = db.prepare('SELECT * FROM saved_datasets WHERE id = ?').get(req.params.id);
+            if (!ds) return res.status(404).json({ error: 'Dataset not found' });
+            if (ds.is_default) return res.status(400).json({ error: 'Cannot delete the default dataset. Set another dataset as default first.' });
+            db.prepare('DELETE FROM saved_datasets WHERE id = ?').run(req.params.id);
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Toggle dataset public visibility
+    app.put('/api/datasets/:id/public', (req, res) => {
+        const { is_public } = req.body;
+        try {
+            db.prepare('UPDATE saved_datasets SET is_public = ? WHERE id = ?').run(is_public ? 1 : 0, req.params.id);
+            const ds = db.prepare('SELECT id, name, slug, is_public, is_default FROM saved_datasets WHERE id = ?').get(req.params.id);
+            if (!ds) return res.status(404).json({ error: 'Dataset not found' });
+            res.json({ success: true, id: ds.id, slug: ds.slug, is_public: !!ds.is_public, is_default: !!ds.is_default });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Dataset preview API - returns CV data for a specific dataset (admin only)
+    app.get('/api/datasets/slug/:slug', (req, res) => {
+        try {
+            const dataset = db.prepare('SELECT * FROM saved_datasets WHERE slug = ?').get(req.params.slug);
+            if (!dataset) return res.status(404).json({ error: 'Dataset not found' });
+            const data = JSON.parse(dataset.data);
+            res.json({ name: dataset.name, slug: dataset.slug, ...data });
+        } catch (err) { 
+            // If slug column doesn't exist, return 404
+            if (err.message.includes('no such column')) {
+                return res.status(404).json({ error: 'Versioned datasets not available' });
+            }
+            res.status(500).json({ error: err.message }); 
+        }
+    });
+
+    // Dataset preview page route (admin only) - serves the public-readonly template with dataset context
+    app.get('/v/:slug', (req, res) => {
+        try {
+            const dataset = db.prepare('SELECT * FROM saved_datasets WHERE slug = ?').get(req.params.slug);
+            if (!dataset) return res.status(404).send('Dataset not found');
+            
+            const data = JSON.parse(dataset.data);
+            const name = data.profile?.name || dataset.name;
+            const bio = data.profile?.bio || '';
+            const description = bio.substring(0, 160).replace(/\n/g, ' ');
+            
+            let html = fs.readFileSync(path.join(__dirname, '../public-readonly/index.html'), 'utf8');
+            html = html.replace(/<title>[^<]*<\/title>/, `<title>${name} - CV (${dataset.name})</title>`);
+            html = html.replace(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${description.replace(/"/g, '&quot;')}">`);
+            
+            // Inject script to load dataset data instead of live data (admin preview mode)
+            const datasetScript = `<script>window.DATASET_SLUG = "${dataset.slug}"; window.DATASET_PREVIEW = true;</script>`;
+            html = html.replace('</head>', `${datasetScript}</head>`);
+            
+            res.type('html').send(html);
+        } catch (err) { 
+            // If slug column doesn't exist, return 404
+            if (err.message.includes('no such column')) {
+                return res.status(404).send('Versioned datasets not available');
+            }
+            res.status(500).send('Error loading dataset'); 
+        }
+    });
+
+    // Custom Sections API
+    app.get('/api/custom-sections', (req, res) => {
+        const sections = db.prepare('SELECT * FROM custom_sections ORDER BY sort_order ASC').all();
+        const items = db.prepare('SELECT * FROM custom_section_items ORDER BY sort_order ASC').all();
+        res.json(sections.map(s => ({
+            ...s,
+            visible: !!s.visible,
+            metadata: s.metadata ? JSON.parse(s.metadata) : null,
+            items: items.filter(i => i.section_id === s.id).map(i => ({
+                ...i,
+                visible: !!i.visible,
+                metadata: i.metadata ? JSON.parse(i.metadata) : null
+            }))
+        })));
+    });
+
+    app.get('/api/custom-sections/:id', (req, res) => {
+        const section = db.prepare('SELECT * FROM custom_sections WHERE id = ?').get(req.params.id);
+        if (!section) return res.status(404).json({ error: 'Not found' });
+        const items = db.prepare('SELECT * FROM custom_section_items WHERE section_id = ? ORDER BY sort_order ASC').all(req.params.id);
+        res.json({
+            ...section,
+            visible: !!section.visible,
+            metadata: section.metadata ? JSON.parse(section.metadata) : null,
+            items: items.map(i => ({ ...i, visible: !!i.visible, metadata: i.metadata ? JSON.parse(i.metadata) : null }))
+        });
+    });
+
+    app.post('/api/custom-sections', (req, res) => {
+        const { name, layout_type, icon, metadata } = req.body;
+        if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
+
+        // Generate unique section_key
+        const existing = db.prepare('SELECT COUNT(*) as count FROM custom_sections').get();
+        const section_key = `custom_${Date.now()}`;
+
+        // Get max sort_order from both tables
+        const maxBuiltin = db.prepare('SELECT MAX(sort_order) as max FROM section_visibility').get();
+        const maxCustom = db.prepare('SELECT MAX(sort_order) as max FROM custom_sections').get();
+        const sort_order = Math.max(maxBuiltin.max || 0, maxCustom.max || 0) + 1;
+
+        try {
+            const result = db.prepare(`INSERT INTO custom_sections (name, section_key, layout_type, icon, sort_order, visible, metadata) VALUES (?, ?, ?, ?, ?, 1, ?)`).run(name.trim(), section_key, layout_type || 'grid-3', icon || 'layers', sort_order, metadata ? JSON.stringify(metadata) : null);
+            
+            // Also add to section_visibility for unified ordering
+            db.prepare('INSERT OR REPLACE INTO section_visibility (section_name, visible, sort_order) VALUES (?, 1, ?)').run(section_key, sort_order);
+            
+            res.json({ id: result.lastInsertRowid, section_key });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    });
+
+    app.put('/api/custom-sections/:id', (req, res) => {
+        const { name, layout_type, icon, visible, sort_order, metadata } = req.body;
+        const section = db.prepare('SELECT * FROM custom_sections WHERE id = ?').get(req.params.id);
+        if (!section) return res.status(404).json({ error: 'Not found' });
+
+        // Preserve existing values when not provided in request
+        const newVisible = visible !== undefined ? (visible ? 1 : 0) : section.visible;
+        const newSortOrder = sort_order !== undefined ? sort_order : section.sort_order;
+        const newMetadata = metadata !== undefined ? JSON.stringify(metadata) : section.metadata;
+
+        db.prepare(`UPDATE custom_sections SET name = ?, layout_type = ?, icon = ?, visible = ?, sort_order = ?, metadata = ? WHERE id = ?`).run(name || section.name, layout_type || section.layout_type, icon || section.icon, newVisible, newSortOrder, newMetadata, req.params.id);
+        
+        // Update section_visibility too
+        db.prepare('UPDATE section_visibility SET visible = ?, sort_order = ? WHERE section_name = ?').run(newVisible, newSortOrder, section.section_key);
+        
+        res.json({ success: true });
+    });
+
+    app.delete('/api/custom-sections/:id', (req, res) => {
+        const section = db.prepare('SELECT section_key FROM custom_sections WHERE id = ?').get(req.params.id);
+        if (section) {
+            db.prepare('DELETE FROM section_visibility WHERE section_name = ?').run(section.section_key);
+        }
+        // Clean up picture files for all items in this section
+        const items = db.prepare('SELECT image FROM custom_section_items WHERE section_id = ? AND image IS NOT NULL').all(req.params.id);
+        items.forEach(item => {
+            if (item.image) {
+                const imgPath = path.join(uploadsPath, item.image);
+                try { if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath); } catch (e) {}
+            }
+        });
+        db.prepare('DELETE FROM custom_section_items WHERE section_id = ?').run(req.params.id);
+        db.prepare('DELETE FROM custom_sections WHERE id = ?').run(req.params.id);
+        res.json({ success: true });
+    });
+
+    // Custom Section Items API
+    app.get('/api/custom-sections/:id/items', (req, res) => {
+        const items = db.prepare('SELECT * FROM custom_section_items WHERE section_id = ? ORDER BY sort_order ASC').all(req.params.id);
+        res.json(items.map(i => ({ ...i, visible: !!i.visible, metadata: i.metadata ? JSON.parse(i.metadata) : null })));
+    });
+
+    app.post('/api/custom-sections/:id/items', (req, res) => {
+        const { title, subtitle, description, link, icon, image, metadata } = req.body;
+        const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM custom_section_items WHERE section_id = ?').get(req.params.id);
+        const result = db.prepare(`INSERT INTO custom_section_items (section_id, title, subtitle, description, link, icon, image, metadata, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`).run(req.params.id, title, subtitle, description, link, icon, image, metadata ? JSON.stringify(metadata) : null, (maxOrder.max || 0) + 1);
+        res.json({ id: result.lastInsertRowid });
+    });
+
+    app.put('/api/custom-sections/:id/items/:itemId', (req, res) => {
+        const { title, subtitle, description, link, icon, image, metadata, sort_order } = req.body;
+        // Preserve existing sort_order when not provided
+        let newSortOrder = sort_order;
+        if (newSortOrder === undefined) {
+            const existing = db.prepare('SELECT sort_order FROM custom_section_items WHERE id = ? AND section_id = ?').get(req.params.itemId, req.params.id);
+            newSortOrder = existing ? existing.sort_order : 0;
+        }
+        db.prepare(`UPDATE custom_section_items SET title = ?, subtitle = ?, description = ?, link = ?, icon = ?, image = ?, metadata = ?, visible = 1, sort_order = ? WHERE id = ? AND section_id = ?`).run(title, subtitle, description, link, icon, image, metadata ? JSON.stringify(metadata) : null, newSortOrder, req.params.itemId, req.params.id);
+        res.json({ success: true });
+    });
+
+    app.delete('/api/custom-sections/:id/items/:itemId', (req, res) => {
+        const item = db.prepare('SELECT image FROM custom_section_items WHERE id = ? AND section_id = ?').get(req.params.itemId, req.params.id);
+        if (item && item.image) {
+            const imgPath = path.join(uploadsPath, item.image);
+            try { if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath); } catch (e) {}
+        }
+        db.prepare('DELETE FROM custom_section_items WHERE id = ? AND section_id = ?').run(req.params.itemId, req.params.id);
+        res.json({ success: true });
+    });
+
+    // Custom section item: reuse existing logo
+    app.put('/api/custom-sections/:id/items/:itemId/picture', (req, res) => {
+        const { filename } = req.body;
+        if (!filename) return res.status(400).json({ error: 'No filename provided' });
+        db.prepare('UPDATE custom_section_items SET image = ? WHERE id = ? AND section_id = ?').run(filename, req.params.itemId, req.params.id);
+        res.json({ success: true });
+    });
+
+    // Custom section item: remove picture
+    app.delete('/api/custom-sections/:id/items/:itemId/picture', (req, res) => {
+        db.prepare('UPDATE custom_section_items SET image = NULL WHERE id = ? AND section_id = ?').run(req.params.itemId, req.params.id);
+        res.json({ success: true });
+    });
+
+    // Custom section item picture upload
+    const csItemPicStorage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => { const ext = path.extname(file.originalname).toLowerCase() || '.jpg'; cb(null, `cs_${req.params.id}_${req.params.itemId}_${Date.now()}${ext}`); } });
+    const csItemPicUpload = multer({ storage: csItemPicStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => { const allowed = ['image/jpeg', 'image/png', 'image/webp']; cb(null, allowed.includes(file.mimetype)); } });
+    app.post('/api/custom-sections/:id/items/:itemId/picture', csItemPicUpload.single('picture'), (req, res) => {
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+        // Delete old picture if exists
+        const item = db.prepare('SELECT image FROM custom_section_items WHERE id = ? AND section_id = ?').get(req.params.itemId, req.params.id);
+        if (item && item.image) {
+            const oldPath = path.join(uploadsPath, item.image);
+            try { if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath); } catch (e) {}
+        }
+        db.prepare('UPDATE custom_section_items SET image = ? WHERE id = ? AND section_id = ?').run(req.file.filename, req.params.itemId, req.params.id);
+        res.json({ success: true, filename: req.file.filename });
+    });
+
+    // Layout types and social platforms metadata
+    app.get('/api/layout-types', (req, res) => { res.json(LAYOUT_TYPES); });
+    app.get('/api/social-platforms', (req, res) => { res.json(SOCIAL_PLATFORMS); });
+
+    app.get('/api/timeline', (req, res) => {
+        const experiences = db.prepare(`SELECT id, company_name, job_title, start_date, end_date, country_code, visible, logo_filename FROM experiences ORDER BY start_date ASC`).all().map(exp => ({ id: exp.id, company: exp.company_name, role: exp.job_title, period: formatPeriod(exp.start_date, exp.end_date), start_date: exp.start_date, end_date: exp.end_date, countryCode: exp.country_code || '', visible: !!exp.visible, logo: exp.logo_filename || null }));
+        const timelineSections = db.prepare(`SELECT id, metadata FROM custom_sections WHERE layout_type = 'timeline' AND visible = 1`).all().filter(s => { const meta = s.metadata ? JSON.parse(s.metadata) : {}; return meta.show_on_timeline; });
+        const customItems = [];
+        for (const section of timelineSections) {
+            const items = db.prepare(`SELECT * FROM custom_section_items WHERE section_id = ? ORDER BY sort_order ASC`).all(section.id);
+            for (const item of items) {
+                const meta = item.metadata ? JSON.parse(item.metadata) : {};
+                customItems.push({ id: `cs_${item.id}`, company: item.subtitle || '', role: item.title || '', period: formatPeriod(meta.start_date, meta.end_date), start_date: meta.start_date || '', end_date: meta.end_date || '', countryCode: meta.country_code || '', visible: !!item.visible, logo: item.image || null });
+            }
+        }
+        res.json([...experiences, ...customItems]);
+    });
+
+    app.get('/api/cv', (req, res) => { const profile = db.prepare('SELECT * FROM profile WHERE id = 1').get(); const experiences = db.prepare('SELECT * FROM experiences ORDER BY sort_order ASC, start_date DESC').all(); const certifications = db.prepare('SELECT * FROM certifications ORDER BY sort_order ASC, issue_date DESC').all(); const education = db.prepare('SELECT * FROM education ORDER BY sort_order ASC, end_date DESC').all(); const skillCategories = db.prepare('SELECT * FROM skill_categories ORDER BY sort_order ASC').all(); const skills = db.prepare('SELECT * FROM skills ORDER BY sort_order ASC').all(); const projects = db.prepare('SELECT * FROM projects ORDER BY sort_order ASC').all(); const sections = db.prepare('SELECT * FROM section_visibility ORDER BY sort_order ASC').all(); const sectionVisibility = {}; const sectionOrderData = []; sections.forEach(s => { sectionVisibility[s.section_name] = !!s.visible; sectionOrderData.push({ key: s.section_name, sort_order: s.sort_order || 0, visible: !!s.visible, display_name: s.display_name || null }); }); const customSections = db.prepare('SELECT * FROM custom_sections ORDER BY sort_order ASC').all(); const customItems = db.prepare('SELECT * FROM custom_section_items ORDER BY sort_order ASC').all(); const customSectionsData = customSections.map(s => ({ ...s, visible: !!s.visible, metadata: s.metadata ? JSON.parse(s.metadata) : null, items: customItems.filter(i => i.section_id === s.id).map(i => ({ ...i, visible: !!i.visible, metadata: i.metadata ? JSON.parse(i.metadata) : null })) })); res.json({ profile, experiences: experiences.map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [] })), certifications, education, skills: skillCategories.map(cat => ({ ...cat, skills: skills.filter(s => s.category_id === cat.id).map(s => s.name) })), projects: projects.map(p => ({ ...p, technologies: p.technologies ? JSON.parse(p.technologies) : [] })), sectionVisibility, sectionOrder: sectionOrderData, customSections: customSectionsData }); });
+
+    app.post('/api/import', (req, res) => { const data = req.body; const importData = db.transaction(() => { if (data.profile) { const p = data.profile; db.prepare(`UPDATE profile SET name = ?, initials = ?, title = ?, subtitle = ?, bio = ?, location = ?, linkedin = ?, email = ?, phone = ?, languages = ? WHERE id = 1`).run(p.name, p.initials, p.title, p.subtitle, p.bio, p.location, p.linkedin, p.email, p.phone, p.languages); } if (data.experiences) { db.prepare('DELETE FROM experiences').run(); const stmt = db.prepare(`INSERT INTO experiences (job_title, company_name, start_date, end_date, location, country_code, highlights, sort_order, visible, logo_filename, logo_propagate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.experiences.forEach((e, idx) => { stmt.run(e.job_title, e.company_name, e.start_date, e.end_date, e.location, e.country_code || '', JSON.stringify(e.highlights || []), idx, e.visible != false ? 1 : 0, e.logo_filename || null, e.logo_propagate ? 1 : 0); }); } if (data.certifications) { db.prepare('DELETE FROM certifications').run(); const stmt = db.prepare(`INSERT INTO certifications (name, provider, issue_date, expiry_date, credential_id, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?)`); data.certifications.forEach((c, idx) => { stmt.run(c.name, c.provider, c.issue_date, c.expiry_date, c.credential_id, idx, c.visible != false ? 1 : 0); }); } if (data.education) { db.prepare('DELETE FROM education').run(); const stmt = db.prepare(`INSERT INTO education (degree_title, institution_name, start_date, end_date, description, sort_order, visible, logo_filename, logo_propagate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.education.forEach((e, idx) => { stmt.run(e.degree_title, e.institution_name, e.start_date, e.end_date, e.description, idx, e.visible != false ? 1 : 0, e.logo_filename || null, e.logo_propagate ? 1 : 0); }); } if (data.skills) { db.prepare('DELETE FROM skills').run(); db.prepare('DELETE FROM skill_categories').run(); const catStmt = db.prepare('INSERT INTO skill_categories (name, icon, sort_order, visible) VALUES (?, ?, ?, ?)'); const skillStmt = db.prepare('INSERT INTO skills (category_id, name, sort_order) VALUES (?, ?, ?)'); data.skills.forEach((cat, catIdx) => { const result = catStmt.run(cat.name, cat.icon || 'default', catIdx, cat.visible != false ? 1 : 0); const categoryId = result.lastInsertRowid; if (cat.skills) { cat.skills.forEach((skill, skillIdx) => { skillStmt.run(categoryId, skill, skillIdx); }); } }); } if (data.projects) { db.prepare('DELETE FROM projects').run(); const stmt = db.prepare(`INSERT INTO projects (title, description, technologies, link, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?)`); data.projects.forEach((p, idx) => { stmt.run(p.title, p.description, JSON.stringify(p.technologies || []), p.link, idx, p.visible != false ? 1 : 0); }); } if (data.customSections && Array.isArray(data.customSections)) { db.prepare('DELETE FROM custom_section_items').run(); db.prepare('DELETE FROM custom_sections').run(); db.prepare("DELETE FROM section_visibility WHERE section_name LIKE 'custom_%'").run(); const sectionStmt = db.prepare(`INSERT INTO custom_sections (name, section_key, layout_type, icon, sort_order, visible, metadata) VALUES (?, ?, ?, ?, ?, ?, ?)`); const itemStmt = db.prepare(`INSERT INTO custom_section_items (section_id, title, subtitle, description, link, icon, image, metadata, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.customSections.forEach((s, idx) => { const sectionKey = s.section_key || `custom_${Date.now()}_${idx}`; const sectionMetadata = s.metadata ? (typeof s.metadata === 'string' ? s.metadata : JSON.stringify(s.metadata)) : null; const result = sectionStmt.run(s.name, sectionKey, s.layout_type || 'grid-3', s.icon || 'layers', s.sort_order !== undefined ? s.sort_order : idx, s.visible != false ? 1 : 0, sectionMetadata); const sectionId = result.lastInsertRowid; db.prepare('INSERT OR REPLACE INTO section_visibility (section_name, visible, sort_order, display_name) VALUES (?, ?, ?, ?)').run(sectionKey, s.visible != false ? 1 : 0, s.sort_order !== undefined ? s.sort_order : idx, s.display_name || null); if (s.items && Array.isArray(s.items)) { s.items.forEach((item, itemIdx) => { itemStmt.run(sectionId, item.title || null, item.subtitle || null, item.description || null, item.link || null, item.icon || null, item.image || null, item.metadata ? (typeof item.metadata === 'string' ? item.metadata : JSON.stringify(item.metadata)) : null, item.sort_order !== undefined ? item.sort_order : itemIdx, item.visible != false ? 1 : 0); }); } }); } if (data.sectionOrder && Array.isArray(data.sectionOrder)) { data.sectionOrder.forEach(s => { db.prepare('UPDATE section_visibility SET visible = ?, sort_order = ?, display_name = ? WHERE section_name = ?').run(s.visible != false ? 1 : 0, s.sort_order || 0, s.display_name || null, s.key); }); } }); try { importData(); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); } });
+
+    app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../public/index.html')); });
+
+    // Public Read-Only Server (Port 3001)
+    const publicApp = express();
+    publicApp.use(cors({ methods: ['GET'], credentials: false }));
+    publicApp.use((req, res, next) => { if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' }); next(); });
+    const rateLimit = {};
+    publicApp.use((req, res, next) => { const ip = req.ip || req.connection.remoteAddress; const now = Date.now(); if (!rateLimit[ip]) rateLimit[ip] = { count: 1, start: now }; else if (now - rateLimit[ip].start > 60000) rateLimit[ip] = { count: 1, start: now }; else { rateLimit[ip].count++; if (rateLimit[ip].count > 200) return res.status(429).json({ error: 'Too many requests' }); } next(); });
+
+    publicApp.use((req, res, next) => {
+        const trackingDomains = getTrackingDomains();
+        const trackingStr = trackingDomains.length > 0 ? ' ' + trackingDomains.join(' ') : '';
+        const cfStr = ' https://static.cloudflareinsights.com';
+        const csp = [
+            `default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://flagcdn.com`,
+            `script-src 'self' 'unsafe-inline'${cfStr}${trackingStr}`,
+            `script-src-elem 'self' 'unsafe-inline'${cfStr}${trackingStr}`,
+            `worker-src 'self' blob:${trackingStr}`,
+            `connect-src 'self'${cfStr}${trackingStr}`,
+            `img-src 'self' https://flagcdn.com data:${trackingStr}`
+        ].join('; ');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('Referrer-Policy', 'no-referrer');
+        res.setHeader('Content-Security-Policy', csp);
+        next();
+    });
+    publicApp.get('/sitemap.xml', (req, res) => { const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https'; const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost'; res.setHeader('Content-Type', 'application/xml'); res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${protocol}://${host}/</loc><lastmod>${new Date().toISOString().split('T')[0]}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url></urlset>`); });
+    publicApp.get('/robots.txt', (req, res) => { const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https'; const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost'; const robotsMeta = db.prepare('SELECT value FROM settings WHERE key = ?').get('robotsMeta'); const metaValue = robotsMeta?.value || 'index, follow'; const isNoIndex = metaValue.includes('noindex'); res.setHeader('Content-Type', 'text/plain'); if (isNoIndex) { res.send(`User-agent: *\nDisallow: /`); } else { res.send(`User-agent: *\nAllow: /\nSitemap: ${protocol}://${host}/sitemap.xml\nDisallow: /api/`); } });
+    publicApp.use('/shared', express.static(path.join(__dirname, '../public/shared')));
+    // Favicon and icons (public uses icon-public.png with eye badge)
+    const publicIconPathB = path.join(__dirname, '../icon-public.png');
+    publicApp.get('/favicon.ico', (req, res) => res.sendFile(publicIconPathB));
+    publicApp.get('/favicon.png', (req, res) => res.sendFile(publicIconPathB));
+    publicApp.get('/apple-touch-icon.png', (req, res) => res.sendFile(publicIconPathB));
+    publicApp.get('/', (req, res) => { servePublicIndex(req, res); });
+    publicApp.use(express.static(path.join(__dirname, '../public-readonly'), { index: false }));
+    publicApp.use('/uploads', express.static(uploadsPath));
+    publicApp.get('/api/profile', (req, res) => { res.json(db.prepare('SELECT name, initials, title, subtitle, bio, location, linkedin, languages, profile_picture_enabled, open_to_work FROM profile WHERE id = 1').get() || {}); });
+    publicApp.get('/api/sections', (req, res) => { const sections = db.prepare('SELECT * FROM section_visibility').all(); const result = {}; sections.forEach(s => { result[s.section_name] = !!s.visible; }); res.json(result); });
+    publicApp.get('/api/sections/order', (req, res) => {
+        const sections = db.prepare('SELECT * FROM section_visibility ORDER BY sort_order ASC').all();
+        const customSections = db.prepare('SELECT * FROM custom_sections ORDER BY sort_order ASC').all();
+        const customNameMap = {};
+        customSections.forEach(cs => { customNameMap[cs.section_key] = cs.name; });
+        const sectionKeys = new Set(sections.map(s => s.section_name));
+        customSections.forEach(cs => {
+            if (!sectionKeys.has(cs.section_key)) {
+                db.prepare('INSERT OR IGNORE INTO section_visibility (section_name, visible, sort_order) VALUES (?, ?, ?)').run(cs.section_key, cs.visible ? 1 : 0, cs.sort_order || 0);
+                sections.push({ section_name: cs.section_key, visible: cs.visible ? 1 : 0, sort_order: cs.sort_order || 0, print_visible: 1, display_name: null });
+            }
+        });
+        sections.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+        const defaultName = (s) => SECTION_DISPLAY_NAMES[s.section_name] || customNameMap[s.section_name] || s.section_name;
+        res.json(sections.map(s => ({
+            key: s.section_name,
+            name: s.display_name || defaultName(s),
+            default_name: defaultName(s),
+            visible: !!s.visible,
+            print_visible: s.print_visible !== 0,
+            sort_order: s.sort_order || 0,
+            is_custom: !DEFAULT_SECTION_ORDER.includes(s.section_name)
+        })));
+    });
+    publicApp.get('/api/settings', (req, res) => { const settings = db.prepare('SELECT * FROM settings').all(); const result = {}; settings.forEach(s => { result[s.key] = s.value; }); res.json(result); });
+    publicApp.get('/api/settings/:key', (req, res) => { const setting = db.prepare('SELECT value FROM settings WHERE key = ?').get(req.params.key); res.json({ value: setting?.value || null }); });
+    publicApp.get('/api/experiences', (req, res) => { res.json(db.prepare('SELECT job_title, company_name, start_date, end_date, location, country_code, highlights, logo_filename FROM experiences WHERE visible = 1 ORDER BY sort_order ASC, start_date DESC').all().map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [], visible: true }))); });
+    publicApp.get('/api/certifications', (req, res) => { res.json(db.prepare('SELECT name, provider, issue_date, expiry_date FROM certifications WHERE visible = 1 ORDER BY sort_order ASC, issue_date DESC').all().map(c => ({ ...c, visible: true }))); });
+    publicApp.get('/api/education', (req, res) => { res.json(db.prepare('SELECT degree_title, institution_name, start_date, end_date, description FROM education WHERE visible = 1 ORDER BY sort_order ASC, end_date DESC').all().map(e => ({ ...e, visible: true }))); });
+    publicApp.get('/api/skills', (req, res) => { const categories = db.prepare('SELECT id, name, icon FROM skill_categories WHERE visible = 1 ORDER BY sort_order ASC').all(); const skills = db.prepare('SELECT * FROM skills ORDER BY sort_order ASC').all(); res.json(categories.map(cat => ({ ...cat, visible: true, skills: skills.filter(s => s.category_id === cat.id).map(s => s.name) }))); });
+    publicApp.get('/api/projects', (req, res) => { res.json(db.prepare('SELECT title, description, technologies, link FROM projects WHERE visible = 1 ORDER BY sort_order ASC').all().map(p => ({ ...p, technologies: p.technologies ? JSON.parse(p.technologies) : [], visible: true }))); });
+    publicApp.get('/api/timeline', (req, res) => {
+        const experiences = db.prepare('SELECT id, company_name, job_title, start_date, end_date, country_code, logo_filename FROM experiences WHERE visible = 1 ORDER BY start_date ASC').all().map(exp => ({ id: exp.id, company: exp.company_name, role: exp.job_title, period: formatPeriod(exp.start_date, exp.end_date), start_date: exp.start_date, end_date: exp.end_date, countryCode: exp.country_code || '', visible: true, logo: exp.logo_filename || null }));
+        const timelineSections = db.prepare(`SELECT id, metadata FROM custom_sections WHERE layout_type = 'timeline' AND visible = 1`).all().filter(s => { const meta = s.metadata ? JSON.parse(s.metadata) : {}; return meta.show_on_timeline; });
+        const customItems = [];
+        for (const section of timelineSections) {
+            const items = db.prepare(`SELECT * FROM custom_section_items WHERE section_id = ? AND visible = 1 ORDER BY sort_order ASC`).all(section.id);
+            for (const item of items) {
+                const meta = item.metadata ? JSON.parse(item.metadata) : {};
+                customItems.push({ id: `cs_${item.id}`, company: item.subtitle || '', role: item.title || '', period: formatPeriod(meta.start_date, meta.end_date), start_date: meta.start_date || '', end_date: meta.end_date || '', countryCode: meta.country_code || '', visible: true, logo: item.image || null });
+            }
+        }
+        res.json([...experiences, ...customItems]);
+    });
+    publicApp.get('/api/custom-sections', (req, res) => {
+        const sections = db.prepare('SELECT id, name, section_key, layout_type, icon, sort_order, metadata FROM custom_sections WHERE visible = 1 ORDER BY sort_order ASC').all();
+        const items = db.prepare('SELECT * FROM custom_section_items WHERE visible = 1 ORDER BY sort_order ASC').all();
+        res.json(sections.map(s => ({ ...s, visible: true, metadata: s.metadata ? JSON.parse(s.metadata) : null, items: items.filter(i => i.section_id === s.id).map(i => ({ ...i, visible: true, metadata: i.metadata ? JSON.parse(i.metadata) : null })) })));
+    });
+    publicApp.get('/api/layout-types', (req, res) => { res.json(LAYOUT_TYPES); });
+    publicApp.get('/api/social-platforms', (req, res) => { res.json(SOCIAL_PLATFORMS); });
+    publicApp.get('/api/cv', (req, res) => { const profile = db.prepare('SELECT name, initials, title, subtitle, bio, location, linkedin, languages, open_to_work FROM profile WHERE id = 1').get(); const experiences = db.prepare('SELECT job_title, company_name, start_date, end_date, location, country_code, highlights, logo_filename FROM experiences WHERE visible = 1 ORDER BY sort_order ASC, start_date DESC').all(); const certifications = db.prepare('SELECT name, provider, issue_date, expiry_date FROM certifications WHERE visible = 1 ORDER BY sort_order ASC, issue_date DESC').all(); const education = db.prepare('SELECT degree_title, institution_name, start_date, end_date, description, logo_filename FROM education WHERE visible = 1 ORDER BY sort_order ASC, end_date DESC').all(); const skillCategories = db.prepare('SELECT id, name, icon FROM skill_categories WHERE visible = 1 ORDER BY sort_order ASC').all(); const skills = db.prepare('SELECT * FROM skills ORDER BY sort_order ASC').all(); const projects = db.prepare('SELECT title, description, technologies, link FROM projects WHERE visible = 1 ORDER BY sort_order ASC').all(); const sectionOrder = db.prepare('SELECT section_name, sort_order FROM section_visibility WHERE visible = 1 ORDER BY sort_order ASC').all(); res.json({ profile, experiences: experiences.map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [] })), certifications, education, skills: skillCategories.map(cat => ({ ...cat, skills: skills.filter(s => s.category_id === cat.id).map(s => s.name) })), projects: projects.map(p => ({ ...p, technologies: p.technologies ? JSON.parse(p.technologies) : [] })), sectionOrder: sectionOrder.map(s => s.section_name) }); });
+    // Public versioned CV routes
+    publicApp.get('/v/:slug', (req, res) => { serveDatasetPage(req, res); });
+    publicApp.get('/api/datasets/slug/:slug', (req, res) => { serveDatasetData(req, res); });
+    publicApp.get('*', (req, res) => { servePublicIndex(req, res); });
+
+    app.listen(PORT, '0.0.0.0', () => { console.log(`CV Manager v${CURRENT_VERSION} (Admin) running at http://localhost:${PORT}`); });
+    publicApp.listen(PUBLIC_PORT, '0.0.0.0', () => { console.log(`CV Manager (Public Read-Only) running at http://localhost:${PUBLIC_PORT}`); });
+}
+
+process.on('SIGINT', () => { db.close(); process.exit(0); });
+process.on('SIGTERM', () => { db.close(); process.exit(0); });
