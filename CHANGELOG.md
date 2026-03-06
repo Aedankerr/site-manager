@@ -4,6 +4,15 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.14.1] - 2026-03-06
+
+### Changed
+- All uploaded image files now use UUID-based filenames (e.g. `550e8400-e29b-41d4-a716-446655440000.jpg`) instead of timestamp or fixed names, preventing filename collisions and guessable URLs
+- File extension is now derived strictly from the validated MIME type (`image/jpeg` → `.jpg`, `image/png` → `.png`, `image/webp` → `.webp`), not from the original filename supplied by the client
+- Profile picture upload now stores the UUID filename in the `profile.picture_filename` column and deletes the previous file on replacement; the old hard-coded `picture.jpeg` path is no longer used
+- Added `picture_filename` field to the public `/api/profile` response so the public site can resolve the profile picture URL
+- Consolidated all four multer `fileFilter` callbacks into a single shared `imageOnlyFilter` function
+
 ## [1.14.0] - 2026-03-06
 
 ### Added

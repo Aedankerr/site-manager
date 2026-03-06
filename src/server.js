@@ -533,6 +533,19 @@ if (!PUBLIC_ONLY) {
         }
     } catch (err) { console.log('Migration check (profile_picture_enabled):', err.message); }
 
+    // Step 2m: Migration - add picture_filename column to profile if missing
+    try {
+        const profileInfo = db.prepare("PRAGMA table_info(profile)").all();
+        if (!profileInfo.some(col => col.name === 'picture_filename')) {
+            console.log('Migrating profile table: adding picture_filename column');
+            db.exec('ALTER TABLE profile ADD COLUMN picture_filename TEXT DEFAULT NULL');
+            // Preserve any existing picture.jpeg file by recording it in the new column
+            if (fs.existsSync(path.join(dataDir, 'uploads', 'picture.jpeg'))) {
+                db.prepare('UPDATE profile SET picture_filename = ? WHERE id = 1').run('picture.jpeg');
+            }
+        }
+    } catch (err) { console.log('Migration check (picture_filename):', err.message); }
+
     // Step 2f2: Migration - add open_to_work column to profile if missing
     try {
         const profileOpenInfo = db.prepare("PRAGMA table_info(profile)").all();
@@ -959,7 +972,7 @@ if (PUBLIC_ONLY) {
     publicApp.use(express.static(path.join(__dirname, '../public-readonly'), { index: false }));
     publicApp.use('/uploads', express.static(uploadsPath));
 
-    publicApp.get('/api/profile', (req, res) => { res.json(db.prepare('SELECT name, initials, title, subtitle, bio, location, linkedin, languages, profile_picture_enabled, open_to_work FROM profile WHERE id = 1').get() || {}); });
+    publicApp.get('/api/profile', (req, res) => { res.json(db.prepare('SELECT name, initials, title, subtitle, bio, location, linkedin, languages, profile_picture_enabled, picture_filename, open_to_work FROM profile WHERE id = 1').get() || {}); });
     publicApp.get('/api/sections', (req, res) => { const sections = db.prepare('SELECT * FROM section_visibility').all(); const result = {}; sections.forEach(s => { result[s.section_name] = !!s.visible; }); res.json(result); });
     publicApp.get('/api/sections/order', (req, res) => {
         const sections = db.prepare('SELECT * FROM section_visibility ORDER BY sort_order ASC').all();
@@ -1033,17 +1046,67 @@ if (PUBLIC_ONLY) {
 
 } else {
     // ADMIN Mode
+
+    // Returns the canonical file extension for an allowed image mimetype.
+    // Only jpeg/png/webp are accepted; anything else returns null (rejected by fileFilter before we get here).
+    function imageExtFromMime(mimetype) {
+        if (mimetype === 'image/jpeg') return '.jpg';
+        if (mimetype === 'image/png') return '.png';
+        if (mimetype === 'image/webp') return '.webp';
+        return '.jpg'; // fallback (fileFilter already blocks anything else)
+    }
+
+    // Shared fileFilter — only jpeg / png / webp are accepted
+    function imageOnlyFilter(req, file, cb) {
+        const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        cb(null, allowed.includes(file.mimetype));
+    }
+
+    // Rate limiter for admin upload endpoints (30 uploads/min per IP)
+    const adminUploadRateLimit = {};
+    function uploadRateLimiter(req, res, next) {
+        const ip = req.ip || req.connection.remoteAddress;
+        const now = Date.now();
+        if (!adminUploadRateLimit[ip]) adminUploadRateLimit[ip] = { count: 1, start: now };
+        else if (now - adminUploadRateLimit[ip].start > 60000) adminUploadRateLimit[ip] = { count: 1, start: now };
+        else { adminUploadRateLimit[ip].count++; if (adminUploadRateLimit[ip].count > 30) return res.status(429).json({ error: 'Too many requests' }); }
+        next();
+    }
+
     app.get('/api/profile', (req, res) => { res.json(db.prepare('SELECT * FROM profile WHERE id = 1').get()); });
     app.put('/api/profile', (req, res) => { const { name, initials, title, subtitle, bio, location, linkedin, email, phone, languages, visible, profile_picture_enabled, open_to_work } = req.body; db.prepare(`UPDATE profile SET name = ?, initials = ?, title = ?, subtitle = ?, bio = ?, location = ?, linkedin = ?, email = ?, phone = ?, languages = ?, visible = ?, profile_picture_enabled = ?, open_to_work = ?, updated_at = CURRENT_TIMESTAMP WHERE id = 1`).run(name, initials, title, subtitle, bio, location, linkedin, email, phone, languages, visible ? 1 : 0, profile_picture_enabled ? 1 : 0, open_to_work ? 1 : 0); res.json({ success: true }); });
 
-    const storage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => cb(null, 'picture.jpeg') });
-    const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => { const allowed = ['image/jpeg', 'image/png', 'image/webp']; cb(null, allowed.includes(file.mimetype)); } });
-    app.post('/api/profile/picture', upload.single('picture'), (req, res) => { if (!req.file) return res.status(400).json({ error: 'No file uploaded' }); res.json({ success: true, filename: req.file.filename }); });
-    app.delete('/api/profile/picture', (req, res) => { const picturePath = path.join(uploadsPath, 'picture.jpeg'); try { if (fs.existsSync(picturePath)) fs.unlinkSync(picturePath); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); } });
+    // Profile picture upload — UUID filename derived from mimetype
+    const storage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${imageExtFromMime(file.mimetype)}`) });
+    const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageOnlyFilter });
+    app.post('/api/profile/picture', uploadRateLimiter, upload.single('picture'), (req, res) => {
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded or unsupported format' });
+        // Delete the old picture file if one was previously stored
+        try {
+            const current = db.prepare('SELECT picture_filename FROM profile WHERE id = 1').get();
+            if (current && current.picture_filename) {
+                const oldPath = path.join(uploadsPath, current.picture_filename);
+                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            }
+        } catch (e) {}
+        db.prepare('UPDATE profile SET picture_filename = ? WHERE id = 1').run(req.file.filename);
+        res.json({ success: true, filename: req.file.filename });
+    });
+    app.delete('/api/profile/picture', uploadRateLimiter, (req, res) => {
+        try {
+            const current = db.prepare('SELECT picture_filename FROM profile WHERE id = 1').get();
+            if (current && current.picture_filename) {
+                const picturePath = path.join(uploadsPath, current.picture_filename);
+                if (fs.existsSync(picturePath)) fs.unlinkSync(picturePath);
+            }
+            db.prepare('UPDATE profile SET picture_filename = NULL WHERE id = 1').run();
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
 
-    // Company logo upload
-    const logoStorage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => { const ext = path.extname(file.originalname).toLowerCase() || '.jpg'; cb(null, `logo_${req.params.id}_${Date.now()}${ext}`); } });
-    const logoUpload = multer({ storage: logoStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => { const allowed = ['image/jpeg', 'image/png', 'image/webp']; cb(null, allowed.includes(file.mimetype)); } });
+    // Company logo upload — UUID filename
+    const logoStorage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${imageExtFromMime(file.mimetype)}`) });
+    const logoUpload = multer({ storage: logoStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageOnlyFilter });
     app.post('/api/experiences/:id/logo', logoUpload.single('logo'), (req, res) => {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
         const exp = db.prepare('SELECT logo_filename FROM experiences WHERE id = ?').get(req.params.id);
@@ -1338,9 +1401,9 @@ if (PUBLIC_ONLY) {
     app.put('/api/education/:id', (req, res) => { const { degree_title, institution_name, start_date, end_date, description, visible, sort_order } = req.body; const existing = db.prepare('SELECT sort_order, visible FROM education WHERE id = ?').get(req.params.id); const newSortOrder = sort_order !== undefined ? sort_order : (existing?.sort_order || 0); const newVisible = visible !== undefined ? (visible ? 1 : 0) : (existing?.visible ?? 1); db.prepare(`UPDATE education SET degree_title = ?, institution_name = ?, start_date = ?, end_date = ?, description = ?, visible = ?, sort_order = ? WHERE id = ?`).run(degree_title, institution_name, start_date, end_date, description, newVisible, newSortOrder, req.params.id); res.json({ success: true }); });
     app.delete('/api/education/:id', (req, res) => { const edu = db.prepare('SELECT logo_filename FROM education WHERE id = ?').get(req.params.id); if (edu && edu.logo_filename) { const refCountExp = db.prepare('SELECT COUNT(*) as cnt FROM experiences WHERE logo_filename = ?').get(edu.logo_filename).cnt; const refCountEdu = db.prepare('SELECT COUNT(*) as cnt FROM education WHERE logo_filename = ?').get(edu.logo_filename).cnt; if (refCountExp + refCountEdu <= 1) { const logoPath = path.join(uploadsPath, edu.logo_filename); try { if (fs.existsSync(logoPath)) fs.unlinkSync(logoPath); } catch (e) {} } } db.prepare('DELETE FROM education WHERE id = ?').run(req.params.id); res.json({ success: true }); });
 
-    // Education logo upload
-    const eduLogoStorage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => { const ext = path.extname(file.originalname).toLowerCase() || '.jpg'; cb(null, `logo_edu_${req.params.id}_${Date.now()}${ext}`); } });
-    const eduLogoUpload = multer({ storage: eduLogoStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => { const allowed = ['image/jpeg', 'image/png', 'image/webp']; cb(null, allowed.includes(file.mimetype)); } });
+    // Education logo upload — UUID filename
+    const eduLogoStorage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${imageExtFromMime(file.mimetype)}`) });
+    const eduLogoUpload = multer({ storage: eduLogoStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageOnlyFilter });
     app.post('/api/education/:id/logo', eduLogoUpload.single('logo'), (req, res) => {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
         const edu = db.prepare('SELECT logo_filename FROM education WHERE id = ?').get(req.params.id);
@@ -1757,9 +1820,9 @@ if (PUBLIC_ONLY) {
         res.json({ success: true });
     });
 
-    // Custom section item picture upload
-    const csItemPicStorage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => { const ext = path.extname(file.originalname).toLowerCase() || '.jpg'; cb(null, `cs_${req.params.id}_${req.params.itemId}_${Date.now()}${ext}`); } });
-    const csItemPicUpload = multer({ storage: csItemPicStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: (req, file, cb) => { const allowed = ['image/jpeg', 'image/png', 'image/webp']; cb(null, allowed.includes(file.mimetype)); } });
+    // Custom section item picture upload — UUID filename
+    const csItemPicStorage = multer.diskStorage({ destination: (req, file, cb) => cb(null, uploadsPath), filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${imageExtFromMime(file.mimetype)}`) });
+    const csItemPicUpload = multer({ storage: csItemPicStorage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: imageOnlyFilter });
     app.post('/api/custom-sections/:id/items/:itemId/picture', csItemPicUpload.single('picture'), (req, res) => {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
         // Delete old picture if exists
@@ -1833,7 +1896,7 @@ if (PUBLIC_ONLY) {
     publicApp.get('/', (req, res) => { servePublicIndex(req, res); });
     publicApp.use(express.static(path.join(__dirname, '../public-readonly'), { index: false }));
     publicApp.use('/uploads', express.static(uploadsPath));
-    publicApp.get('/api/profile', (req, res) => { res.json(db.prepare('SELECT name, initials, title, subtitle, bio, location, linkedin, languages, profile_picture_enabled, open_to_work FROM profile WHERE id = 1').get() || {}); });
+    publicApp.get('/api/profile', (req, res) => { res.json(db.prepare('SELECT name, initials, title, subtitle, bio, location, linkedin, languages, profile_picture_enabled, picture_filename, open_to_work FROM profile WHERE id = 1').get() || {}); });
     publicApp.get('/api/sections', (req, res) => { const sections = db.prepare('SELECT * FROM section_visibility').all(); const result = {}; sections.forEach(s => { result[s.section_name] = !!s.visible; }); res.json(result); });
     publicApp.get('/api/sections/order', (req, res) => {
         const sections = db.prepare('SELECT * FROM section_visibility ORDER BY sort_order ASC').all();
