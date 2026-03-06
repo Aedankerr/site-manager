@@ -5,3 +5,5 @@ docker-compose.unraid.yml
 docker-compose.yml
 /node_modules
 /site
+# Manager build input (source for tailwind build, output is committed)
+public/manager/input.css

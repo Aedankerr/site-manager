@@ -434,6 +434,44 @@ if (!PUBLIC_ONLY) {
             visible INTEGER DEFAULT 1,
             FOREIGN KEY (section_id) REFERENCES custom_sections(id) ON DELETE CASCADE
         );
+
+        -- Website Manager tables
+        CREATE TABLE IF NOT EXISTS site_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS pages (
+            slug TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            description TEXT,
+            visible INTEGER DEFAULT 1,
+            sort_order INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS blocks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            page_slug TEXT NOT NULL,
+            type TEXT NOT NULL,
+            content TEXT NOT NULL DEFAULT '{}',
+            sort_order INTEGER DEFAULT 0,
+            enabled INTEGER DEFAULT 1,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS uptime_monitors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            url TEXT NOT NULL,
+            status TEXT DEFAULT 'unknown',
+            status_code INTEGER,
+            response_time INTEGER,
+            last_checked DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     `);
 
     // Step 2: Migration - add sort_order column if missing
@@ -715,6 +753,17 @@ if (!PUBLIC_ONLY) {
     db.exec(`INSERT OR IGNORE INTO profile (id) VALUES (1)`);
     DEFAULT_SECTION_ORDER.forEach((section, index) => {
         db.prepare('INSERT OR IGNORE INTO section_visibility (section_name, visible, sort_order) VALUES (?, 1, ?)').run(section, index);
+    });
+
+    // Seed website manager default pages
+    const defaultPages = [
+        { slug: 'home', title: 'Home', sort_order: 0 },
+        { slug: 'projects', title: 'Projects', sort_order: 1 },
+        { slug: 'cv', title: 'CV', sort_order: 2 },
+        { slug: 'contacts', title: 'Contacts', sort_order: 3 },
+    ];
+    defaultPages.forEach(p => {
+        db.prepare('INSERT OR IGNORE INTO pages (slug, title, sort_order) VALUES (?, ?, ?)').run(p.slug, p.title, p.sort_order);
     });
 
     // Step 4: Auto-create "Default" dataset from live DB if no default exists
@@ -1857,6 +1906,284 @@ if (PUBLIC_ONLY) {
 
     app.post('/api/import', (req, res) => { const data = req.body; const importData = db.transaction(() => { if (data.profile) { const p = data.profile; db.prepare(`UPDATE profile SET name = ?, initials = ?, title = ?, subtitle = ?, bio = ?, location = ?, linkedin = ?, email = ?, phone = ?, languages = ? WHERE id = 1`).run(p.name, p.initials, p.title, p.subtitle, p.bio, p.location, p.linkedin, p.email, p.phone, p.languages); } if (data.experiences) { db.prepare('DELETE FROM experiences').run(); const stmt = db.prepare(`INSERT INTO experiences (job_title, company_name, start_date, end_date, location, country_code, highlights, sort_order, visible, logo_filename, logo_propagate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.experiences.forEach((e, idx) => { stmt.run(e.job_title, e.company_name, e.start_date, e.end_date, e.location, e.country_code || '', JSON.stringify(e.highlights || []), idx, e.visible != false ? 1 : 0, e.logo_filename || null, e.logo_propagate ? 1 : 0); }); } if (data.certifications) { db.prepare('DELETE FROM certifications').run(); const stmt = db.prepare(`INSERT INTO certifications (name, provider, issue_date, expiry_date, credential_id, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?)`); data.certifications.forEach((c, idx) => { stmt.run(c.name, c.provider, c.issue_date, c.expiry_date, c.credential_id, idx, c.visible != false ? 1 : 0); }); } if (data.education) { db.prepare('DELETE FROM education').run(); const stmt = db.prepare(`INSERT INTO education (degree_title, institution_name, start_date, end_date, description, sort_order, visible, logo_filename, logo_propagate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.education.forEach((e, idx) => { stmt.run(e.degree_title, e.institution_name, e.start_date, e.end_date, e.description, idx, e.visible != false ? 1 : 0, e.logo_filename || null, e.logo_propagate ? 1 : 0); }); } if (data.skills) { db.prepare('DELETE FROM skills').run(); db.prepare('DELETE FROM skill_categories').run(); const catStmt = db.prepare('INSERT INTO skill_categories (name, icon, sort_order, visible) VALUES (?, ?, ?, ?)'); const skillStmt = db.prepare('INSERT INTO skills (category_id, name, sort_order) VALUES (?, ?, ?)'); data.skills.forEach((cat, catIdx) => { const result = catStmt.run(cat.name, cat.icon || 'default', catIdx, cat.visible != false ? 1 : 0); const categoryId = result.lastInsertRowid; if (cat.skills) { cat.skills.forEach((skill, skillIdx) => { skillStmt.run(categoryId, skill, skillIdx); }); } }); } if (data.projects) { db.prepare('DELETE FROM projects').run(); const stmt = db.prepare(`INSERT INTO projects (title, description, technologies, link, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?)`); data.projects.forEach((p, idx) => { stmt.run(p.title, p.description, JSON.stringify(p.technologies || []), p.link, idx, p.visible != false ? 1 : 0); }); } if (data.customSections && Array.isArray(data.customSections)) { db.prepare('DELETE FROM custom_section_items').run(); db.prepare('DELETE FROM custom_sections').run(); db.prepare("DELETE FROM section_visibility WHERE section_name LIKE 'custom_%'").run(); const sectionStmt = db.prepare(`INSERT INTO custom_sections (name, section_key, layout_type, icon, sort_order, visible, metadata) VALUES (?, ?, ?, ?, ?, ?, ?)`); const itemStmt = db.prepare(`INSERT INTO custom_section_items (section_id, title, subtitle, description, link, icon, image, metadata, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.customSections.forEach((s, idx) => { const sectionKey = s.section_key || `custom_${Date.now()}_${idx}`; const sectionMetadata = s.metadata ? (typeof s.metadata === 'string' ? s.metadata : JSON.stringify(s.metadata)) : null; const result = sectionStmt.run(s.name, sectionKey, s.layout_type || 'grid-3', s.icon || 'layers', s.sort_order !== undefined ? s.sort_order : idx, s.visible != false ? 1 : 0, sectionMetadata); const sectionId = result.lastInsertRowid; db.prepare('INSERT OR REPLACE INTO section_visibility (section_name, visible, sort_order, display_name) VALUES (?, ?, ?, ?)').run(sectionKey, s.visible != false ? 1 : 0, s.sort_order !== undefined ? s.sort_order : idx, s.display_name || null); if (s.items && Array.isArray(s.items)) { s.items.forEach((item, itemIdx) => { itemStmt.run(sectionId, item.title || null, item.subtitle || null, item.description || null, item.link || null, item.icon || null, item.image || null, item.metadata ? (typeof item.metadata === 'string' ? item.metadata : JSON.stringify(item.metadata)) : null, item.sort_order !== undefined ? item.sort_order : itemIdx, item.visible != false ? 1 : 0); }); } }); } if (data.sectionOrder && Array.isArray(data.sectionOrder)) { data.sectionOrder.forEach(s => { db.prepare('UPDATE section_visibility SET visible = ?, sort_order = ?, display_name = ? WHERE section_name = ?').run(s.visible != false ? 1 : 0, s.sort_order || 0, s.display_name || null, s.key); }); } }); try { importData(); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); } });
 
+    // ── Website Manager API routes ──────────────────────────────────────────
+
+    // Rate limiter for all website manager API routes (300 req/min per IP)
+    const managerApiRateLimit = {};
+    function managerApiRateLimiter(req, res, next) {
+        const ip = req.ip || req.connection.remoteAddress;
+        const now = Date.now();
+        if (!managerApiRateLimit[ip]) managerApiRateLimit[ip] = { count: 1, start: now };
+        else if (now - managerApiRateLimit[ip].start > 60000) managerApiRateLimit[ip] = { count: 1, start: now };
+        else { managerApiRateLimit[ip].count++; if (managerApiRateLimit[ip].count > 300) return res.status(429).json({ error: 'Too many requests' }); }
+        next();
+    }
+    app.use(['/auth/me', '/auth/login', '/auth/logout', '/api/site', '/api/pages', '/api/blocks', '/api/uploads', '/api/media', '/api/uptime', '/manager'], managerApiRateLimiter);
+
+    // Auth JSON endpoints (used by manager UI)
+    app.get('/auth/me', (req, res) => {
+        if (!AUTH_ENABLED) return res.json({ authenticated: true, user: 'admin' });
+        if (TRUST_CF_ACCESS) {
+            const cfEmail = req.headers['cf-access-authenticated-user-email'];
+            if (cfEmail && (ALLOWED_EMAILS.length === 0 || ALLOWED_EMAILS.includes(cfEmail))) {
+                return res.json({ authenticated: true, user: cfEmail });
+            }
+        }
+        if (req.session && req.session.authenticated) return res.json({ authenticated: true, user: 'admin' });
+        res.status(401).json({ authenticated: false });
+    });
+
+    app.post('/auth/login', express.json(), async (req, res) => {
+        const { password } = req.body || {};
+        if (ADMIN_PASSWORD_HASH && password && await bcrypt.compare(password, ADMIN_PASSWORD_HASH)) {
+            req.session.authenticated = true;
+            return res.json({ success: true });
+        }
+        if (!ADMIN_PASSWORD_HASH && !TRUST_CF_ACCESS && ALLOWED_EMAILS.length === 0) {
+            req.session.authenticated = true;
+            return res.json({ success: true });
+        }
+        res.status(401).json({ error: 'Invalid password' });
+    });
+
+    app.post('/auth/logout', (req, res) => {
+        req.session.destroy(() => res.json({ success: true }));
+    });
+
+    // Site settings
+    app.get('/api/site', requireAuth, (req, res) => {
+        try {
+            const rows = db.prepare('SELECT key, value FROM site_settings').all();
+            const result = {};
+            rows.forEach(r => { result[r.key] = r.value; });
+            res.json(result);
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.put('/api/site', requireAuth, (req, res) => {
+        try {
+            const stmt = db.prepare('INSERT OR REPLACE INTO site_settings (key, value) VALUES (?, ?)');
+            const update = db.transaction(() => {
+                for (const [key, value] of Object.entries(req.body)) {
+                    stmt.run(key, value == null ? null : String(value));
+                }
+            });
+            update();
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Pages
+    app.get('/api/pages', requireAuth, (req, res) => {
+        try {
+            res.json(db.prepare('SELECT * FROM pages ORDER BY sort_order ASC').all().map(p => ({ ...p, visible: !!p.visible })));
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.post('/api/pages', requireAuth, (req, res) => {
+        try {
+            const { slug, title, description } = req.body;
+            if (!slug || !title) return res.status(400).json({ error: 'slug and title are required' });
+            const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM pages').get();
+            db.prepare('INSERT INTO pages (slug, title, description, sort_order) VALUES (?, ?, ?, ?)').run(slug, title, description || null, (maxOrder.max || 0) + 1);
+            res.json({ slug });
+        } catch (err) {
+            if (err.message.includes('UNIQUE')) return res.status(409).json({ error: 'Page with that slug already exists' });
+            res.status(500).json({ error: err.message });
+        }
+    });
+
+    app.put('/api/pages/:slug', requireAuth, (req, res) => {
+        try {
+            const { title, description, visible } = req.body;
+            const existing = db.prepare('SELECT slug FROM pages WHERE slug = ?').get(req.params.slug);
+            if (!existing) return res.status(404).json({ error: 'Page not found' });
+            db.prepare('UPDATE pages SET title = ?, description = ?, visible = ?, updated_at = CURRENT_TIMESTAMP WHERE slug = ?')
+                .run(title, description || null, visible !== false ? 1 : 0, req.params.slug);
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.delete('/api/pages/:slug', requireAuth, (req, res) => {
+        try {
+            const existing = db.prepare('SELECT slug FROM pages WHERE slug = ?').get(req.params.slug);
+            if (!existing) return res.status(404).json({ error: 'Page not found' });
+            db.prepare('DELETE FROM blocks WHERE page_slug = ?').run(req.params.slug);
+            db.prepare('DELETE FROM pages WHERE slug = ?').run(req.params.slug);
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Blocks
+    app.get('/api/pages/:slug/blocks', requireAuth, (req, res) => {
+        try {
+            const page = db.prepare('SELECT slug FROM pages WHERE slug = ?').get(req.params.slug);
+            if (!page) return res.status(404).json({ error: 'Page not found' });
+            const blocks = db.prepare('SELECT * FROM blocks WHERE page_slug = ? ORDER BY sort_order ASC').all(req.params.slug);
+            res.json(blocks.map(b => ({ ...b, enabled: !!b.enabled, content: b.content ? JSON.parse(b.content) : {} })));
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.post('/api/pages/:slug/blocks', requireAuth, (req, res) => {
+        try {
+            const page = db.prepare('SELECT slug FROM pages WHERE slug = ?').get(req.params.slug);
+            if (!page) return res.status(404).json({ error: 'Page not found' });
+            const { type, content } = req.body;
+            if (!type) return res.status(400).json({ error: 'type is required' });
+            const maxOrder = db.prepare('SELECT MAX(sort_order) as max FROM blocks WHERE page_slug = ?').get(req.params.slug);
+            const result = db.prepare('INSERT INTO blocks (page_slug, type, content, sort_order) VALUES (?, ?, ?, ?)')
+                .run(req.params.slug, type, JSON.stringify(content || {}), (maxOrder.max || 0) + 1);
+            res.json({ id: result.lastInsertRowid });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.post('/api/pages/:slug/blocks/reorder', requireAuth, (req, res) => {
+        try {
+            const { ids } = req.body;
+            if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids must be an array' });
+            const reorder = db.transaction(() => {
+                ids.forEach((id, index) => {
+                    db.prepare('UPDATE blocks SET sort_order = ? WHERE id = ? AND page_slug = ?').run(index, id, req.params.slug);
+                });
+            });
+            reorder();
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.put('/api/blocks/:id', requireAuth, (req, res) => {
+        try {
+            const existing = db.prepare('SELECT id FROM blocks WHERE id = ?').get(req.params.id);
+            if (!existing) return res.status(404).json({ error: 'Block not found' });
+            const { type, content, enabled } = req.body;
+            db.prepare('UPDATE blocks SET type = COALESCE(?, type), content = COALESCE(?, content), enabled = COALESCE(?, enabled), updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+                .run(type || null, content !== undefined ? JSON.stringify(content) : null, enabled !== undefined ? (enabled ? 1 : 0) : null, req.params.id);
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.delete('/api/blocks/:id', requireAuth, (req, res) => {
+        try {
+            const existing = db.prepare('SELECT id FROM blocks WHERE id = ?').get(req.params.id);
+            if (!existing) return res.status(404).json({ error: 'Block not found' });
+            db.prepare('DELETE FROM blocks WHERE id = ?').run(req.params.id);
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Media upload & listing
+    const mediaStorage = multer.diskStorage({
+        destination: (req, file, cb) => cb(null, uploadsPath),
+        filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${imageExtFromMime(file.mimetype)}`),
+    });
+    const mediaUpload = multer({ storage: mediaStorage, limits: { fileSize: 10 * 1024 * 1024 }, fileFilter: imageOnlyFilter });
+
+    app.post('/api/uploads', requireAuth, uploadRateLimiter, mediaUpload.single('file'), (req, res) => {
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded or unsupported format' });
+        res.json({ url: `/uploads/${req.file.filename}`, filename: req.file.filename });
+    });
+
+    app.get('/api/media', requireAuth, (req, res) => {
+        try {
+            const files = fs.existsSync(uploadsPath)
+                ? fs.readdirSync(uploadsPath).filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f))
+                : [];
+            res.json(files.map(f => ({ filename: f, url: `/uploads/${f}` })));
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Uptime monitors
+    app.get('/api/uptime', requireAuth, (req, res) => {
+        try {
+            res.json(db.prepare('SELECT * FROM uptime_monitors ORDER BY created_at ASC').all());
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    function validateMonitorUrl(url) {
+        let parsed;
+        try { parsed = new URL(url); } catch { return 'Invalid URL'; }
+        if (!['http:', 'https:'].includes(parsed.protocol)) return 'Only http/https URLs are allowed';
+        const h = parsed.hostname.toLowerCase();
+        if (h === 'localhost' || h.endsWith('.local') || h === '::1' || h === '0.0.0.0'
+            || h === '169.254.169.254'
+            || /^127\./.test(h) || /^10\./.test(h)
+            || /^192\.168\./.test(h)
+            || /^172\.(1[6-9]|2\d|3[01])\./.test(h)) {
+            return 'Private/local URLs are not allowed';
+        }
+        return null;
+    }
+
+    app.post('/api/uptime', requireAuth, (req, res) => {
+        try {
+            const { name, url } = req.body;
+            if (!name || !url) return res.status(400).json({ error: 'name and url are required' });
+            const urlErr = validateMonitorUrl(url);
+            if (urlErr) return res.status(400).json({ error: urlErr });
+            const result = db.prepare('INSERT INTO uptime_monitors (name, url) VALUES (?, ?)').run(name, url);
+            res.json({ id: result.lastInsertRowid });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.put('/api/uptime/:id', requireAuth, (req, res) => {
+        try {
+            const { name, url } = req.body;
+            const existing = db.prepare('SELECT id FROM uptime_monitors WHERE id = ?').get(req.params.id);
+            if (!existing) return res.status(404).json({ error: 'Monitor not found' });
+            if (url) {
+                const urlErr = validateMonitorUrl(url);
+                if (urlErr) return res.status(400).json({ error: urlErr });
+            }
+            db.prepare('UPDATE uptime_monitors SET name = COALESCE(?, name), url = COALESCE(?, url) WHERE id = ?').run(name || null, url || null, req.params.id);
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.delete('/api/uptime/:id', requireAuth, (req, res) => {
+        try {
+            const existing = db.prepare('SELECT id FROM uptime_monitors WHERE id = ?').get(req.params.id);
+            if (!existing) return res.status(404).json({ error: 'Monitor not found' });
+            db.prepare('DELETE FROM uptime_monitors WHERE id = ?').run(req.params.id);
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.post('/api/uptime/:id/check', requireAuth, async (req, res) => {
+        try {
+            const monitor = db.prepare('SELECT * FROM uptime_monitors WHERE id = ?').get(req.params.id);
+            if (!monitor) return res.status(404).json({ error: 'Monitor not found' });
+
+            // SSRF protection (defense-in-depth, also validated on create/update)
+            const urlErr = validateMonitorUrl(monitor.url);
+            if (urlErr) return res.status(400).json({ error: urlErr });
+
+            const start = Date.now();
+            let status = 'down';
+            let statusCode = null;
+            let responseTime = null;
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+                const r = await fetch(monitor.url, { signal: controller.signal, method: 'HEAD' });
+                clearTimeout(timeout);
+                statusCode = r.status;
+                responseTime = Date.now() - start;
+                status = r.ok ? 'up' : 'down';
+            } catch (fetchErr) {
+                responseTime = Date.now() - start;
+                status = 'down';
+            }
+            db.prepare('UPDATE uptime_monitors SET status = ?, status_code = ?, response_time = ?, last_checked = CURRENT_TIMESTAMP WHERE id = ?')
+                .run(status, statusCode, responseTime, req.params.id);
+            const updated = db.prepare('SELECT * FROM uptime_monitors WHERE id = ?').get(req.params.id);
+            res.json(updated);
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Serve manager UI (must be before catch-all)
+    app.get('/manager', (req, res) => res.sendFile(path.join(__dirname, '../public/manager/index.html')));
+    app.get('/manager/', (req, res) => res.sendFile(path.join(__dirname, '../public/manager/index.html')));
+
     app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../public/index.html')); });
 
     // Public Read-Only Server (Port 3001)
@@ -1924,6 +2251,8 @@ if (PUBLIC_ONLY) {
     });
     publicApp.get('/api/settings', (req, res) => { const settings = db.prepare('SELECT * FROM settings').all(); const result = {}; settings.forEach(s => { result[s.key] = s.value; }); res.json(result); });
     publicApp.get('/api/settings/:key', (req, res) => { const setting = db.prepare('SELECT value FROM settings WHERE key = ?').get(req.params.key); res.json({ value: setting?.value || null }); });
+    // Public read-only website manager site settings (site_name, site_description, public_url)
+    publicApp.get('/api/site', (req, res) => { try { const rows = db.prepare('SELECT key, value FROM site_settings').all(); const result = {}; rows.forEach(r => { result[r.key] = r.value; }); res.json(result); } catch (err) { res.status(500).json({ error: err.message }); } });
     publicApp.get('/api/experiences', (req, res) => { res.json(db.prepare('SELECT job_title, company_name, start_date, end_date, location, country_code, highlights, logo_filename FROM experiences WHERE visible = 1 ORDER BY sort_order ASC, start_date DESC').all().map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [], visible: true }))); });
     publicApp.get('/api/certifications', (req, res) => { res.json(db.prepare('SELECT name, provider, issue_date, expiry_date FROM certifications WHERE visible = 1 ORDER BY sort_order ASC, issue_date DESC').all().map(c => ({ ...c, visible: true }))); });
     publicApp.get('/api/education', (req, res) => { res.json(db.prepare('SELECT degree_title, institution_name, start_date, end_date, description FROM education WHERE visible = 1 ORDER BY sort_order ASC, end_date DESC').all().map(e => ({ ...e, visible: true }))); });
@@ -1950,9 +2279,33 @@ if (PUBLIC_ONLY) {
     publicApp.get('/api/layout-types', (req, res) => { res.json(LAYOUT_TYPES); });
     publicApp.get('/api/social-platforms', (req, res) => { res.json(SOCIAL_PLATFORMS); });
     publicApp.get('/api/cv', (req, res) => { const profile = db.prepare('SELECT name, initials, title, subtitle, bio, location, linkedin, languages, open_to_work FROM profile WHERE id = 1').get(); const experiences = db.prepare('SELECT job_title, company_name, start_date, end_date, location, country_code, highlights, logo_filename FROM experiences WHERE visible = 1 ORDER BY sort_order ASC, start_date DESC').all(); const certifications = db.prepare('SELECT name, provider, issue_date, expiry_date FROM certifications WHERE visible = 1 ORDER BY sort_order ASC, issue_date DESC').all(); const education = db.prepare('SELECT degree_title, institution_name, start_date, end_date, description, logo_filename FROM education WHERE visible = 1 ORDER BY sort_order ASC, end_date DESC').all(); const skillCategories = db.prepare('SELECT id, name, icon FROM skill_categories WHERE visible = 1 ORDER BY sort_order ASC').all(); const skills = db.prepare('SELECT * FROM skills ORDER BY sort_order ASC').all(); const projects = db.prepare('SELECT title, description, technologies, link FROM projects WHERE visible = 1 ORDER BY sort_order ASC').all(); const sectionOrder = db.prepare('SELECT section_name, sort_order FROM section_visibility WHERE visible = 1 ORDER BY sort_order ASC').all(); res.json({ profile, experiences: experiences.map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [] })), certifications, education, skills: skillCategories.map(cat => ({ ...cat, skills: skills.filter(s => s.category_id === cat.id).map(s => s.name) })), projects: projects.map(p => ({ ...p, technologies: p.technologies ? JSON.parse(p.technologies) : [] })), sectionOrder: sectionOrder.map(s => s.section_name) }); });
+
+    // Public read-only pages & blocks routes (used by public site)
+    publicApp.get('/api/pages', (req, res) => {
+        try {
+            res.json(db.prepare('SELECT slug, title, description, sort_order FROM pages WHERE visible = 1 ORDER BY sort_order ASC').all());
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    publicApp.get('/api/pages/:slug/blocks', (req, res) => {
+        try {
+            const page = db.prepare('SELECT slug FROM pages WHERE slug = ? AND visible = 1').get(req.params.slug);
+            if (!page) return res.status(404).json({ error: 'Page not found' });
+            const blocks = db.prepare('SELECT id, type, content, sort_order FROM blocks WHERE page_slug = ? AND enabled = 1 ORDER BY sort_order ASC').all(req.params.slug);
+            res.json(blocks.map(b => ({ ...b, content: b.content ? JSON.parse(b.content) : {} })));
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
     // Public versioned CV routes
     publicApp.get('/v/:slug', (req, res) => { serveDatasetPage(req, res); });
     publicApp.get('/api/datasets/slug/:slug', (req, res) => { serveDatasetData(req, res); });
+
+    // Public website pages (site.html SPA handles routing client-side)
+    const sitePagesPath = path.join(__dirname, '../public-readonly/site.html');
+    ['/site', '/site/', '/site/projects', '/site/cv', '/site/contacts'].forEach(route => {
+        publicApp.get(route, (req, res) => res.sendFile(sitePagesPath));
+    });
+
     publicApp.get('*', (req, res) => { servePublicIndex(req, res); });
 
     app.listen(PORT, '0.0.0.0', () => { console.log(`CV Manager v${CURRENT_VERSION} (Admin) running at http://localhost:${PORT}`); });
