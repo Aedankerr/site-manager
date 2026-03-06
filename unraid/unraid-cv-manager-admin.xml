@@ -25,7 +25,7 @@ ADMIN VERSION - Full CRUD access. Keep this behind authentication or on internal
 TIP: Also install "CV Manager Public" for a read-only shareable version on port 3001 that uses the SAME appdata path.</Overview>
   <Category>Productivity: Tools: Status:Stable</Category>
   <WebUI>http://[IP]:[PORT:3000]</WebUI>
-  <TemplateURL>https://raw.githubusercontent.com/vincentmakes/cv-manager/main/unraid/cv-manager.xml</TemplateURL>
+  <TemplateURL>https://raw.githubusercontent.com/Aedankerr/site-manager/main/unraid/unraid-cv-manager-admin.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/vincentmakes/cv-manager/main/icon.png</Icon>
   <ExtraParams/>
   <PostArgs/>

@@ -27,7 +27,7 @@ The app auto-detects read-only mode from the volume mount.&#xD;
 Default ports: Admin (3000) + Public (3001)</Overview>
   <Category>Productivity: Tools: Status:Stable</Category>
   <WebUI>http://[IP]:[PORT:3001]</WebUI>
-  <TemplateURL>https://raw.githubusercontent.com/vincentmakes/cv-manager/main/unraid/cv-manager-public.xml</TemplateURL>
+  <TemplateURL>https://raw.githubusercontent.com/Aedankerr/site-manager/main/unraid/unraid-cv-manager-public.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/vincentmakes/cv-manager/main/icon-public.png</Icon>
   <ExtraParams/>
   <PostArgs/>
