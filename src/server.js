@@ -1951,7 +1951,7 @@ if (PUBLIC_ONLY) {
     });
 
     // Site settings
-    app.get('/api/site', requireAuth, (req, res) => {
+    app.get('/api/site', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const rows = db.prepare('SELECT key, value FROM site_settings').all();
             const result = {};
@@ -1960,7 +1960,7 @@ if (PUBLIC_ONLY) {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    app.put('/api/site', requireAuth, (req, res) => {
+    app.put('/api/site', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const stmt = db.prepare('INSERT OR REPLACE INTO site_settings (key, value) VALUES (?, ?)');
             const update = db.transaction(() => {
@@ -1974,13 +1974,13 @@ if (PUBLIC_ONLY) {
     });
 
     // Pages
-    app.get('/api/pages', requireAuth, (req, res) => {
+    app.get('/api/pages', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             res.json(db.prepare('SELECT * FROM pages ORDER BY sort_order ASC').all().map(p => ({ ...p, visible: !!p.visible })));
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    app.post('/api/pages', requireAuth, (req, res) => {
+    app.post('/api/pages', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const { slug, title, description } = req.body;
             if (!slug || !title) return res.status(400).json({ error: 'slug and title are required' });
@@ -1993,7 +1993,7 @@ if (PUBLIC_ONLY) {
         }
     });
 
-    app.put('/api/pages/:slug', requireAuth, (req, res) => {
+    app.put('/api/pages/:slug', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const { title, description, visible } = req.body;
             const existing = db.prepare('SELECT slug FROM pages WHERE slug = ?').get(req.params.slug);
@@ -2004,7 +2004,7 @@ if (PUBLIC_ONLY) {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    app.delete('/api/pages/:slug', requireAuth, (req, res) => {
+    app.delete('/api/pages/:slug', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const existing = db.prepare('SELECT slug FROM pages WHERE slug = ?').get(req.params.slug);
             if (!existing) return res.status(404).json({ error: 'Page not found' });
@@ -2015,7 +2015,7 @@ if (PUBLIC_ONLY) {
     });
 
     // Blocks
-    app.get('/api/pages/:slug/blocks', requireAuth, (req, res) => {
+    app.get('/api/pages/:slug/blocks', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const page = db.prepare('SELECT slug FROM pages WHERE slug = ?').get(req.params.slug);
             if (!page) return res.status(404).json({ error: 'Page not found' });
@@ -2024,7 +2024,7 @@ if (PUBLIC_ONLY) {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    app.post('/api/pages/:slug/blocks', requireAuth, (req, res) => {
+    app.post('/api/pages/:slug/blocks', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const page = db.prepare('SELECT slug FROM pages WHERE slug = ?').get(req.params.slug);
             if (!page) return res.status(404).json({ error: 'Page not found' });
@@ -2037,7 +2037,7 @@ if (PUBLIC_ONLY) {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    app.post('/api/pages/:slug/blocks/reorder', requireAuth, (req, res) => {
+    app.post('/api/pages/:slug/blocks/reorder', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const { ids } = req.body;
             if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids must be an array' });
@@ -2051,7 +2051,7 @@ if (PUBLIC_ONLY) {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    app.put('/api/blocks/:id', requireAuth, (req, res) => {
+    app.put('/api/blocks/:id', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const existing = db.prepare('SELECT id FROM blocks WHERE id = ?').get(req.params.id);
             if (!existing) return res.status(404).json({ error: 'Block not found' });
@@ -2062,7 +2062,7 @@ if (PUBLIC_ONLY) {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    app.delete('/api/blocks/:id', requireAuth, (req, res) => {
+    app.delete('/api/blocks/:id', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const existing = db.prepare('SELECT id FROM blocks WHERE id = ?').get(req.params.id);
             if (!existing) return res.status(404).json({ error: 'Block not found' });
@@ -2078,12 +2078,12 @@ if (PUBLIC_ONLY) {
     });
     const mediaUpload = multer({ storage: mediaStorage, limits: { fileSize: 10 * 1024 * 1024 }, fileFilter: imageOnlyFilter });
 
-    app.post('/api/uploads', requireAuth, uploadRateLimiter, mediaUpload.single('file'), (req, res) => {
+    app.post('/api/uploads', managerApiRateLimiter, requireAuth, uploadRateLimiter, mediaUpload.single('file'), (req, res) => {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded or unsupported format' });
         res.json({ url: `/uploads/${req.file.filename}`, filename: req.file.filename });
     });
 
-    app.get('/api/media', requireAuth, (req, res) => {
+    app.get('/api/media', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const files = fs.existsSync(uploadsPath)
                 ? fs.readdirSync(uploadsPath).filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f))
@@ -2093,7 +2093,7 @@ if (PUBLIC_ONLY) {
     });
 
     // Uptime monitors
-    app.get('/api/uptime', requireAuth, (req, res) => {
+    app.get('/api/uptime', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             res.json(db.prepare('SELECT * FROM uptime_monitors ORDER BY created_at ASC').all());
         } catch (err) { res.status(500).json({ error: err.message }); }
@@ -2114,7 +2114,7 @@ if (PUBLIC_ONLY) {
         return null;
     }
 
-    app.post('/api/uptime', requireAuth, (req, res) => {
+    app.post('/api/uptime', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const { name, url } = req.body;
             if (!name || !url) return res.status(400).json({ error: 'name and url are required' });
@@ -2125,7 +2125,7 @@ if (PUBLIC_ONLY) {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    app.put('/api/uptime/:id', requireAuth, (req, res) => {
+    app.put('/api/uptime/:id', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const { name, url } = req.body;
             const existing = db.prepare('SELECT id FROM uptime_monitors WHERE id = ?').get(req.params.id);
@@ -2139,7 +2139,7 @@ if (PUBLIC_ONLY) {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    app.delete('/api/uptime/:id', requireAuth, (req, res) => {
+    app.delete('/api/uptime/:id', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
             const existing = db.prepare('SELECT id FROM uptime_monitors WHERE id = ?').get(req.params.id);
             if (!existing) return res.status(404).json({ error: 'Monitor not found' });
@@ -2148,7 +2148,7 @@ if (PUBLIC_ONLY) {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
-    app.post('/api/uptime/:id/check', requireAuth, async (req, res) => {
+    app.post('/api/uptime/:id/check', managerApiRateLimiter, requireAuth, async (req, res) => {
         try {
             const monitor = db.prepare('SELECT * FROM uptime_monitors WHERE id = ?').get(req.params.id);
             if (!monitor) return res.status(404).json({ error: 'Monitor not found' });
