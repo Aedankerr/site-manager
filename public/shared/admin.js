@@ -156,7 +156,7 @@ function populateVersionDisplay() {
     const el = document.getElementById('settingsVersionInfo');
     if (!el || !versionData) return;
     if (versionData.updateAvailable && versionData.latest) {
-        const linkHref = versionData.changelog || 'https://github.com/vincentmakes/cv-manager/releases';
+        const linkHref = versionData.changelog || 'https://github.com/Aedankerr/site-manager/releases';
         el.innerHTML = `v${escapeHtml(versionData.current)} &middot; <a href="${escapeHtml(linkHref)}" target="_blank" rel="noopener noreferrer">${t('settings.version.update_available', { version: versionData.latest })}</a>`;
     } else {
         el.textContent = versionData.current ? `v${versionData.current}` : '';

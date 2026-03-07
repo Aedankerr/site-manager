@@ -59,7 +59,7 @@ const CURRENT_VERSION = require(path.join(__dirname, '..', 'package.json')).vers
 // Cached version check (in-memory only, never persisted)
 let versionCache = { latest: null, checkedAt: null, changelog: null };
 const VERSION_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
-const VERSION_URL = 'https://raw.githubusercontent.com/vincentmakes/cv-manager/main/version.json';
+const VERSION_URL = 'https://raw.githubusercontent.com/Aedankerr/site-manager/main/version.json';
 
 async function checkLatestVersion() {
     // Return cached if fresh enough

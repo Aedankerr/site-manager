@@ -39,6 +39,6 @@ Sus datos se almacenan localmente en una base de datos SQLite. No se envía nada
 
 ## Soporte
 
-- **GitHub**: [github.com/vincentmakes/cv-manager](https://github.com/vincentmakes/cv-manager)
-- **Problemas**: [github.com/vincentmakes/cv-manager/issues](https://github.com/vincentmakes/cv-manager/issues)
-- **Apoyar el proyecto**: [ko-fi.com/vincentmakes](https://ko-fi.com/vincentmakes)
+- **GitHub**: [github.com/Aedankerr/site-manager](https://github.com/Aedankerr/site-manager)
+- **Problemas**: [github.com/Aedankerr/site-manager/issues](https://github.com/Aedankerr/site-manager/issues)
+- **Apoyar el proyecto**: [github.com/Aedankerr/site-manager](https://github.com/Aedankerr/site-manager)

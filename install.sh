@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # CV Manager - One-Click Installer
-# https://github.com/vincentmakes/cv-manager
+# https://github.com/Aedankerr/site-manager
 
 set -e
 
@@ -52,9 +52,9 @@ case $choice in
 version: '3.8'
 
 services:
-  cv-manager-admin:
-    image: vincentmakes/cv-manager:latest
-    container_name: cv-manager-admin
+  site-manager-admin:
+    image: aedankerr/site-manager:latest
+    container_name: site-manager-admin
     ports:
       - "3000:3000"
     volumes:
@@ -63,9 +63,9 @@ services:
       - NODE_ENV=production
     restart: unless-stopped
 
-  cv-manager-public:
-    image: vincentmakes/cv-manager:latest
-    container_name: cv-manager-public
+  site-manager-public:
+    image: aedankerr/site-manager:latest
+    container_name: site-manager-public
     ports:
       - "3001:3001"
     volumes:
@@ -86,9 +86,9 @@ EOF
 version: '3.8'
 
 services:
-  cv-manager:
-    image: vincentmakes/cv-manager:latest
-    container_name: cv-manager
+  site-manager:
+    image: aedankerr/site-manager:latest
+    container_name: site-manager
     ports:
       - "3000:3000"
     volumes:
@@ -141,5 +141,5 @@ echo "   View logs:  $COMPOSE_CMD logs -f"
 echo "   Stop:       $COMPOSE_CMD down"
 echo "   Update:     $COMPOSE_CMD pull && $COMPOSE_CMD up -d"
 echo ""
-echo "💖 Support development: https://ko-fi.com/vincentvt"
+echo "💖 Support development: https://github.com/Aedankerr/site-manager"
 echo ""

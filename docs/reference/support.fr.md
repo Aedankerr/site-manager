@@ -1,4 +1,4 @@
 # Support
 
-- **GitHub Issues** : [github.com/vincentmakes/cv-manager/issues](https://github.com/vincentmakes/cv-manager/issues)
-- **Soutenir le projet** : [ko-fi.com/vincentmakes](https://ko-fi.com/vincentmakes)
+- **GitHub Issues** : [github.com/Aedankerr/site-manager/issues](https://github.com/Aedankerr/site-manager/issues)
+- **Soutenir le projet** : [github.com/Aedankerr/site-manager](https://github.com/Aedankerr/site-manager)

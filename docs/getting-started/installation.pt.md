@@ -11,14 +11,14 @@ Isso inicia os servidores admin (porta 3000) e público (porta 3001).
 ## Instalação em Uma Linha
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/vincentmakes/cv-manager/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Aedankerr/site-manager/main/install.sh | bash
 ```
 
 ## Docker Hub
 
 ```bash
-docker pull vincentmakes/cv-manager:latest
-docker run -d -p 3000:3000 -p 3001:3001 -v cv-data:/app/data vincentmakes/cv-manager:latest
+docker pull aedankerr/site-manager:latest
+docker run -d -p 3000:3000 -p 3001:3001 -v cv-data:/app/data aedankerr/site-manager:latest
 ```
 
 ## Unraid

@@ -459,24 +459,24 @@ This starts both the admin (port 3000) and public (port 3001) servers.
 ### One-Line Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/vincentmakes/cv-manager/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Aedankerr/site-manager/main/install.sh | bash
 ```
 
 ### Docker Hub
 
 ```bash
-docker pull vincentmakes/cv-manager:latest
-docker run -d -p 3000:3000 -p 3001:3001 -v cv-data:/app/data vincentmakes/cv-manager:latest
+docker pull aedankerr/site-manager:latest
+docker run -d -p 3000:3000 -p 3001:3001 -v cv-data:/app/data aedankerr/site-manager:latest
 ```
 
 ### Unraid
 
-Install via **Community Applications** — search for "cv-manager". Two templates are available:
+Install via **Community Applications** — search for "site-manager". Two templates are available:
 
-- **cv-manager** (Admin) — mapped to port 3000
-- **cv-manager-public** (Public) — mapped to port 3001, read-only
+- **site-manager** (Admin) — mapped to port 3000
+- **site-manager-public** (Public) — mapped to port 3001, read-only
 
-Both containers share the same data directory (typically `/mnt/user/appdata/cv-manager`).
+Both containers share the same data directory (typically `/mnt/user/appdata/site-manager`).
 
 ### Making Your CV Public with Cloudflare Tunnel
 
@@ -635,5 +635,5 @@ Make sure the image was uploaded through the admin interface. The file is stored
 
 ## Support
 
-- **GitHub Issues**: [github.com/vincentmakes/cv-manager/issues](https://github.com/vincentmakes/cv-manager/issues)
-- **Support the project**: [ko-fi.com/vincentmakes](https://ko-fi.com/vincentmakes)
+- **GitHub Issues**: [github.com/Aedankerr/site-manager/issues](https://github.com/Aedankerr/site-manager/issues)
+- **Support the project**: [github.com/Aedankerr/site-manager](https://github.com/Aedankerr/site-manager)
