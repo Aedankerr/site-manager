@@ -197,6 +197,9 @@ app.get('/logout', (req, res) => {
 // Apply auth middleware to all admin API routes
 app.use('/api', requireAuth);
 
+// Serve the redesigned manager UI at root
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, '../public/manager/index.html')));
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Favicon and icons (admin uses icon.png with pencil badge)
@@ -2184,7 +2187,7 @@ if (PUBLIC_ONLY) {
     app.get('/manager', (req, res) => res.sendFile(path.join(__dirname, '../public/manager/index.html')));
     app.get('/manager/', (req, res) => res.sendFile(path.join(__dirname, '../public/manager/index.html')));
 
-    app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../public/index.html')); });
+    app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../public/manager/index.html')); });
 
     // Public Read-Only Server (Port 3001)
     const publicApp = express();
