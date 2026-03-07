@@ -38,9 +38,9 @@ If you spot a typo, an awkward phrasing, or a wrong translation in a language th
 
 ### Step 1: Get Your Own Copy of the Project
 
-1. Go to the [CV Manager repository](https://github.com/vincentmakes/cv-manager) on GitHub.
+1. Go to the [CV Manager repository](https://github.com/Aedankerr/site-manager) on GitHub.
 2. Click the **Fork** button in the top-right corner. This creates your own personal copy of the project under your GitHub account. Think of it as making a photocopy — you can write on your copy without affecting the original.
-3. GitHub will redirect you to your copy (it will say `your-username/cv-manager` at the top).
+3. GitHub will redirect you to your copy (it will say `your-username/site-manager` at the top).
 
 ### Step 2: Open the Translation File
 
@@ -73,7 +73,7 @@ If you spot a typo, an awkward phrasing, or a wrong translation in a language th
 Now you need to send your improvements back to the original project. This is done through a **Pull Request** (PR) — a request asking the project maintainer to review and accept your changes.
 
 1. Go back to the main page of your forked copy.
-2. You should see a banner saying "This branch is 1 commit ahead of vincentmakes/cv-manager". Click **"Contribute"** → **"Open pull request"**.
+2. You should see a banner saying "This branch is 1 commit ahead of Aedankerr/site-manager". Click **"Contribute"** → **"Open pull request"**.
 3. Give your pull request a descriptive title, e.g., "Fix French translations" or "Improve German wording".
 4. In the description, briefly explain what you changed and why.
 5. Click **"Create pull request"**.
@@ -148,4 +148,4 @@ Follow the same pull request process as described in Step 5 above. In your descr
 
 ## Questions?
 
-If you're unsure about anything, open a [GitHub Issue](https://github.com/vincentmakes/cv-manager/issues) and describe what you'd like to do. The maintainer will help you get started.
+If you're unsure about anything, open a [GitHub Issue](https://github.com/Aedankerr/site-manager/issues) and describe what you'd like to do. The maintainer will help you get started.

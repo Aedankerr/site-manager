@@ -39,6 +39,6 @@ Your data is stored locally in a SQLite database. Nothing is sent to external se
 
 ## Support
 
-- **GitHub**: [github.com/vincentmakes/cv-manager](https://github.com/vincentmakes/cv-manager)
-- **Issues**: [github.com/vincentmakes/cv-manager/issues](https://github.com/vincentmakes/cv-manager/issues)
-- **Support the project**: [ko-fi.com/vincentmakes](https://ko-fi.com/vincentmakes)
+- **GitHub**: [github.com/Aedankerr/site-manager](https://github.com/Aedankerr/site-manager)
+- **Issues**: [github.com/Aedankerr/site-manager/issues](https://github.com/Aedankerr/site-manager/issues)
+- **Support the project**: [github.com/Aedankerr/site-manager](https://github.com/Aedankerr/site-manager)

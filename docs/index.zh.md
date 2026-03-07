@@ -39,7 +39,7 @@ CV Manager 是一个通过 Docker 运行在您自己服务器上的 Web 应用�
 
 ## 支持
 
-- **GitHub**：[github.com/vincentmakes/cv-manager](https://github.com/vincentmakes/cv-manager)
-- **问题反馈**：[github.com/vincentmakes/cv-manager/issues](https://github.com/vincentmakes/cv-manager/issues)
-- **支持项目**：[ko-fi.com/vincentmakes](https://ko-fi.com/vincentmakes)
+- **GitHub**：[github.com/Aedankerr/site-manager](https://github.com/Aedankerr/site-manager)
+- **问题反馈**：[github.com/Aedankerr/site-manager/issues](https://github.com/Aedankerr/site-manager/issues)
+- **支持项目**：[github.com/Aedankerr/site-manager](https://github.com/Aedankerr/site-manager)
 

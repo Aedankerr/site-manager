@@ -4,6 +4,14 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.14.2] - 2026-03-07
+
+### Changed
+- Updated all repository references from `vincentmakes/cv-manager` to `Aedankerr/site-manager`
+- Updated Docker image references in `install.sh` and `docker-compose.unraid.yml` to use `aedankerr/site-manager:latest`
+- Updated version check and changelog URLs to point to the current repository
+- Updated package name from `cv-manager` to `site-manager`
+
 ## [1.14.1] - 2026-03-06
 
 ### Changed

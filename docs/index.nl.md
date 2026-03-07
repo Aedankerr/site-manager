@@ -39,6 +39,6 @@ Uw gegevens worden lokaal opgeslagen in een SQLite-database. Er wordt niets naar
 
 ## Ondersteuning
 
-- **GitHub**: [github.com/vincentmakes/cv-manager](https://github.com/vincentmakes/cv-manager)
-- **Problemen**: [github.com/vincentmakes/cv-manager/issues](https://github.com/vincentmakes/cv-manager/issues)
-- **Steun het project**: [ko-fi.com/vincentmakes](https://ko-fi.com/vincentmakes)
+- **GitHub**: [github.com/Aedankerr/site-manager](https://github.com/Aedankerr/site-manager)
+- **Problemen**: [github.com/Aedankerr/site-manager/issues](https://github.com/Aedankerr/site-manager/issues)
+- **Steun het project**: [github.com/Aedankerr/site-manager](https://github.com/Aedankerr/site-manager)

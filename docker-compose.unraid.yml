@@ -2,12 +2,12 @@ version: '3.8'
 
 # Use this version for Unraid with bind mount to appdata
 # Before starting, create the data directory:
-#   mkdir -p /mnt/user/appdata/cv-manager/data
+#   mkdir -p /mnt/user/appdata/site-manager/data
 
 services:
-  cv-manager:
+  site-manager:
     build: .
-    container_name: cv-manager
+    container_name: site-manager
     ports:
       - "3000:3000"   # Admin interface (keep internal/protected)
       - "3001:3001"   # Public read-only (expose via CF tunnel)
@@ -15,7 +15,7 @@ services:
       # Do NOT change PUBLIC_PORT below - it must match the right side of the port mapping
     volumes:
       # Bind mount - change path to your Unraid appdata location
-      - /mnt/user/appdata/cv-manager/data:/app/data
+      - /mnt/user/appdata/site-manager/data:/app/data
     environment:
       - NODE_ENV=production
       - PORT=3000

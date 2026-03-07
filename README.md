@@ -1,6 +1,5 @@
-# CV Manager / Resume Builder
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20this%20project-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/vincentmakes)
-[![CI](https://github.com/vincentmakes/cv-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/vincentmakes/cv-manager/actions/workflows/ci.yml)
+# Site Manager
+[![CI](https://github.com/Aedankerr/site-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Aedankerr/site-manager/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 This is a CV / Resume management system with an editable theme, persistent database storage, and Docker deployment ready for Unraid.  
@@ -35,12 +34,12 @@ This is a CV / Resume management system with an editable theme, persistent datab
 
 ### One-Line Install
 ``` bash
-curl -fsSL https://raw.githubusercontent.com/vincentmakes/cv-manager/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Aedankerr/site-manager/main/install.sh | bash
 ```
 Or download and run:
 
 ```bash
-wget https://raw.githubusercontent.com/vincentmakes/cv-manager/main/install.sh
+wget https://raw.githubusercontent.com/Aedankerr/site-manager/main/install.sh
 chmod +x install.sh
 ./install.sh
 ```
@@ -49,10 +48,10 @@ chmod +x install.sh
 
 ```bash
 # Clone or copy the files
-cd cv-manager
+cd site-manager
 
 # Create data directory
-mkdir -p /mnt/user/appdata/cv-manager/data/uploads
+mkdir -p /mnt/user/appdata/site-manager/data/uploads
 
 # Start the container
 docker-compose up -d --build
@@ -73,16 +72,16 @@ docker-compose -f docker-compose.volume.yml up -d --build
 
 ```bash
 # Build the image
-docker build -t cv-manager .
+docker build -t site-manager .
 
 # Run with persistent data
 docker run -d \
-  --name cv-manager \
+  --name site-manager \
   -p 3000:3000 \
   -p 3001:3001 \
-  -v /mnt/user/appdata/cv-manager/data:/app/data \
+  -v /mnt/user/appdata/site-manager/data:/app/data \
   --restart unless-stopped \
-  cv-manager
+  site-manager
 ```
 
 ## Two Server Modes
@@ -109,7 +108,7 @@ Point your CF tunnel to port 3001 for public access:
 # In your cloudflared config
 ingress:
   - hostname: cv.yourdomain.com
-    service: http://cv-manager:3001
+    service: http://site-manager:3001
 ```
 
 The sitemap.xml and robots.txt are automatically generated with the correct domain based on the incoming request headers.
@@ -119,7 +118,7 @@ The sitemap.xml and robots.txt are automatically generated with the correct doma
 ### Method 1: Install from Unraid Apps
 
 1. In the Apps tab, look for "cv manager". 
-2. Install cv-manager first then cv-manager-public
+2. Install site-manager first then site-manager-public
 
 <img width="800" height="357" alt="Screenshot 2026-02-01 at 06 14 29" src="https://github.com/user-attachments/assets/e6358881-86fb-4338-b4e9-367d3020cc7a" />
 
@@ -129,7 +128,7 @@ The sitemap.xml and robots.txt are automatically generated with the correct doma
 
 1. Install the "Docker Compose Manager" plugin from Community Apps
 2. Create a new stack with the `docker-compose.yml` content
-3. Set the path for data persistence (e.g., `/mnt/user/appdata/cv-manager/data`)
+3. Set the path for data persistence (e.g., `/mnt/user/appdata/site-manager/data`)
 4. Start the stack
 
 
@@ -148,8 +147,8 @@ To add your profile picture:
 1. Name your picture `picture.jpeg`
 2. Place it in the `data/uploads/` folder:
    - Docker: `/app/data/uploads/picture.jpeg` (inside container)
-   - Unraid bind mount: `/mnt/user/appdata/cv-manager/data/uploads/picture.jpeg`
-   - Docker volume: Use `docker cp picture.jpeg cv-manager:/app/data/uploads/`
+   - Unraid bind mount: `/mnt/user/appdata/site-manager/data/uploads/picture.jpeg`
+   - Docker volume: Use `docker cp picture.jpeg site-manager:/app/data/uploads/`
 
 The picture will automatically display instead of initials. If no picture is found, initials are shown as fallback.
 
