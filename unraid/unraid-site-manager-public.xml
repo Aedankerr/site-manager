@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>site-manager-public</Name>
+  <Repository>aedankerr/site-manager:latest</Repository>
+  <Registry>https://hub.docker.com/r/aedankerr/site-manager</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/Aedankerr/site-manager/issues</Support>
+  <Project>https://github.com/Aedankerr/site-manager</Project>
+  <Overview>Site Manager - Public Read-Only Interface&#xD;
+&#xD;
+Share your professional CV and personal site safely with this read-only version. Perfect for:&#xD;
+&#xD;
+• Public exposure via Cloudflare Tunnel&#xD;
+• Sharing with recruiters/employers&#xD;
+• Portfolio website integration&#xD;
+• Job application submissions&#xD;
+&#xD;
+PUBLIC VERSION - Read-only access. All write operations blocked. Safe to expose publicly.&#xD;
+&#xD;
+IMPORTANT: Install "Site Manager" (admin) first, then use the SAME appdata path here to share the data.&#xD;
+&#xD;
+The app auto-detects read-only mode from the volume mount.&#xD;
+&#xD;
+Default ports: Admin (3010) + Public (3011)</Overview>
+  <Category>Productivity: Tools: Status:Stable</Category>
+  <WebUI>http://[IP]:[PORT:3011]</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/Aedankerr/site-manager/main/unraid/unraid-site-manager-public.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/Aedankerr/site-manager/main/icon-public.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled></DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires>Site Manager (admin version) should be installed first</Requires>
+  <Config Name="Public WebUI Port" Target="3011" Default="3011" Mode="tcp" Description="Host port for the public interface. Change this to use a different port (e.g. 8080). Do NOT change the PUBLIC_PORT variable below." Type="Port" Display="always" Required="true" Mask="false">3011</Config>
+  <Config Name="AppData" Target="/app/data" Default="/mnt/user/appdata/site-manager/data" Mode="ro" Description="Database storage (read-only). IMPORTANT: Use the SAME path as your Site Manager Admin container!" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/site-manager/data</Config>
+  <Config Name="Uploads" Target="/app/uploads" Default="/mnt/user/appdata/site-manager/uploads" Mode="ro" Description="Uploaded images (read-only). IMPORTANT: Use the SAME path as your Site Manager Admin container!" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/site-manager/uploads</Config>
+  <Config Name="DB Path" Target="DB_PATH" Default="/app/data/site.db" Mode="" Description="Path to the SQLite database inside the container (leave as default)" Type="Variable" Display="advanced" Required="false" Mask="false">/app/data/site.db</Config>
+  <Config Name="Public Port (internal)" Target="PUBLIC_PORT" Default="3011" Mode="" Description="Internal container port. DO NOT CHANGE this value. To use a different port, change the WebUI Port above instead." Type="Variable" Display="advanced" Required="true" Mask="false">3011</Config>
+  <Config Name="Node Environment" Target="NODE_ENV" Default="production" Mode="" Description="Node environment (leave as production)" Type="Variable" Display="advanced" Required="false" Mask="false">production</Config>
+</Container>

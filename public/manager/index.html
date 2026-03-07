@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Manager</title>
+<link rel="stylesheet" href="/manager/tailwind.css">
+<script src="/manager/sortable.min.js"></script>
+<style>
+  /* CSS custom properties for brand color (replaces Tailwind config) */
+  :root {
+    --color-brand: #6366f1;
+    --color-brand-dark: #4f46e5;
+    --color-brand-light: #818cf8;
+    --sidebar-w: 220px;
+  }
+
+  * { box-sizing: border-box; }
+
+  /* Drag ghost */
+  .sortable-ghost { opacity: .35; }
+  .sortable-drag  { opacity: 1; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+
+  /* Thin scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  .dark ::-webkit-scrollbar-thumb { background: #475569; }
+
+  /* Tag pill */
+  .tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:.7rem; font-weight:500; background:#e0e7ff; color:#4338ca; }
+  .dark .tag { background:#312e81; color:#a5b4fc; }
+  .tag.green { background:#dcfce7; color:#15803d; }
+  .dark .tag.green { background:#14532d; color:#86efac; }
+  .tag.red { background:#fee2e2; color:#b91c1c; }
+  .dark .tag.red { background:#450a0a; color:#fca5a5; }
+  .tag.gray { background:#f1f5f9; color:#475569; }
+  .dark .tag.gray { background:#1e293b; color:#94a3b8; }
+  .tag.yellow { background:#fef9c3; color:#a16207; }
+  .dark .tag.yellow { background:#422006; color:#fde68a; }
+
+  /* Media grid */
+  .media-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:8px; }
+  .media-thumb { aspect-ratio:1; object-fit:cover; border-radius:6px; cursor:pointer; border:2px solid transparent; transition:border-color .15s; }
+  .media-thumb:hover, .media-thumb.selected { border-color:#6366f1; }
+
+  /* Upload zone */
+  .drop-zone { border:2px dashed #cbd5e1; border-radius:10px; transition:border-color .2s, background .2s; }
+  .drop-zone.active { border-color:#6366f1; background:#eef2ff; }
+  .dark .drop-zone { border-color:#475569; }
+  .dark .drop-zone.active { border-color:#818cf8; background:#1e1b4b; }
+
+  /* Progress bar */
+  .progress-bar { height:4px; background:#e2e8f0; border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:#6366f1; transition:width .2s; }
+
+  /* Toggle switch */
+  .toggle { position:relative; display:inline-block; width:36px; height:20px; flex-shrink:0; }
+  .toggle input { opacity:0; width:0; height:0; }
+  .slider { position:absolute; cursor:pointer; inset:0; background:#cbd5e1; border-radius:20px; transition:.2s; }
+  .slider::before { content:''; position:absolute; height:14px; width:14px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s; }
+  input:checked + .slider { background:#6366f1; }
+  input:checked + .slider::before { transform:translateX(16px); }
+
+  /* Block card drag handle */
+  .drag-handle { cursor:grab; touch-action:none; }
+  .drag-handle:active { cursor:grabbing; }
+
+  /* Fade-in */
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+  .fade-in { animation:fadeIn .2s ease both; }
+
+  /* Sidebar nav item */
+  .nav-item { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:.875rem; font-weight:500; color:#64748b; transition:background .15s, color .15s; }
+  .nav-item:hover { background:#f1f5f9; color:#1e293b; }
+  .nav-item.active { background:#eef2ff; color:#4f46e5; }
+  .dark .nav-item { color:#94a3b8; }
+  .dark .nav-item:hover { background:#1e293b; color:#e2e8f0; }
+  .dark .nav-item.active { background:#1e1b4b; color:#a5b4fc; }
+
+  /* ── Mobile responsive layout ── */
+
+  /* Mobile top bar — hidden on desktop */
+  .mobile-topbar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    flex-shrink: 0;
+  }
+  .dark .mobile-topbar {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+  .mobile-topbar-title {
+    font-size: .9rem;
+    font-weight: 600;
+    color: #1e293b;
+    flex: 1;
+  }
+  .dark .mobile-topbar-title { color: #e2e8f0; }
+
+  /* Sidebar backdrop (mobile only) */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 39;
+    backdrop-filter: blur(2px);
+  }
+  .sidebar-backdrop.open { display: block; }
+
+  @media (max-width: 767px) {
+    /* Show mobile top bar, hide form-row grids */
+    .mobile-topbar { display: flex; }
+
+    /* App wrapper stacks vertically */
+    #app { flex-direction: column !important; }
+
+    /* Sidebar becomes a fixed drawer */
+    #sidebar {
+      position: fixed !important;
+      top: 0; left: 0; bottom: 0;
+      width: 260px !important;
+      z-index: 40;
+      transform: translateX(-100%);
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+      overflow-y: auto;
+    }
+    #sidebar.open { transform: translateX(0); }
+
+    /* Main area takes full width */
+    #app > main { width: 100% !important; }
+
+    /* Block editor: collapse 2-col grids to 1-col */
+    .field-row-2col { grid-template-columns: 1fr !important; }
+
+    /* Modals — full-width on mobile (modal-inner is mobile-only; no base styles needed) */
+    .modal-inner { margin: 12px !important; max-height: calc(100vh - 24px) !important; max-height: calc(100dvh - 24px) !important; }
+
+    /* Uptime card: stack actions below info */
+    .uptime-card { flex-wrap: wrap; }
+    .uptime-card-actions { flex-shrink: 0; }
+  }
+
+  @media (min-width: 768px) {
+    /* Always show sidebar on desktop, never show mobile topbar */
+    .mobile-topbar { display: none !important; }
+    #sidebar { transform: none !important; position: relative !important; }
+    .sidebar-backdrop { display: none !important; }
+  }
+</style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
+
+<!-- ── Mobile top bar ────────────────────────────────── -->
+<div class="mobile-topbar" id="mobileTopbar">
+  <button onclick="toggleSidebar()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0" aria-label="Open menu">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <span class="mobile-topbar-title" id="mobilePageTitle">Site Manager</span>
+  <button onclick="toggleTheme()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0" aria-label="Toggle theme">
+    <svg id="mobileThemeIconSun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    <svg id="mobileThemeIconMoon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+  </button>
+</div>
+
+<!-- ── Sidebar backdrop (mobile only) ─────────────────── -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
+<!-- ── Login Overlay ─────────────────────────────────── -->
+<div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm hidden">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-9 h-9 rounded-xl bg-brand flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+      </div>
+      <div>
+        <h1 class="text-lg font-semibold">Site Manager</h1>
+        <p class="text-xs text-slate-500">Sign in to continue</p>
+      </div>
+    </div>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1.5">Password</label>
+        <input id="loginPassword" type="password" placeholder="Enter password" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand" autocomplete="current-password">
+      </div>
+      <div id="loginError" class="text-red-500 text-sm hidden"></div>
+      <button type="submit" class="w-full py-2.5 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<!-- ── App Shell ─────────────────────────────────────── -->
+<div id="app" class="hidden flex h-screen overflow-hidden">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="flex flex-col w-[220px] bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex-shrink-0">
+    <!-- Logo -->
+    <div class="flex items-center gap-2.5 px-4 py-4 border-b border-slate-100 dark:border-slate-800">
+      <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center flex-shrink-0">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+      </div>
+      <span class="font-semibold text-sm">Site Manager</span>
+    </div>
+
+    <!-- Pages nav -->
+    <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-1.5 mt-1">Pages</p>
+      <div class="nav-item" onclick="selectPage('home')" id="nav-home">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        Home
+      </div>
+      <div class="nav-item" onclick="selectPage('projects')" id="nav-projects">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        Projects
+      </div>
+      <div class="nav-item" onclick="selectPage('cv')" id="nav-cv">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        CV
+      </div>
+      <div class="nav-item" onclick="selectPage('contacts')" id="nav-contacts">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        Contacts
+      </div>
+
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-1.5 mt-4">Content</p>
+      <div class="nav-item" onclick="selectSection('media')" id="nav-media">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        Media
+      </div>
+      <div class="nav-item" onclick="selectSection('uptime')" id="nav-uptime">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Uptime
+      </div>
+      <div class="nav-item" onclick="selectSection('settings')" id="nav-settings">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        Settings
+      </div>
+    </nav>
+
+    <!-- Bottom bar -->
+    <div class="px-3 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      <button onclick="logout()" class="nav-item flex-1 text-slate-400 hover:text-red-500">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Sign out
+      </button>
+      <button onclick="toggleTheme()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0" title="Toggle theme">
+        <svg id="themeIconSun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg id="themeIconMoon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main area -->
+  <main class="flex-1 overflow-y-auto">
+
+    <!-- ── Page Editor ─── -->
+    <div id="sectionPage" class="hidden">
+      <!-- Header -->
+      <div class="sticky top-0 z-10 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-sm border-b border-slate-100 dark:border-slate-800 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 id="pageTitle" class="text-xl font-semibold"></h1>
+            <p id="pageSubtitle" class="text-sm text-slate-500 mt-0.5">Drag blocks to reorder · Toggle to show/hide</p>
+          </div>
+          <button onclick="openAddBlock()" class="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add Block
+          </button>
+        </div>
+      </div>
+
+      <!-- Block list -->
+      <div class="px-6 py-6">
+        <div id="blockList" class="space-y-3 max-w-3xl mx-auto"></div>
+        <div id="blockEmpty" class="hidden max-w-3xl mx-auto mt-10 text-center">
+          <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          </div>
+          <p class="text-slate-500 text-sm">No blocks yet. Add your first block to get started.</p>
+          <button onclick="openAddBlock()" class="mt-4 px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Add Block</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Media ─── -->
+    <div id="sectionMedia" class="hidden px-6 py-6">
+      <div class="max-w-4xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-xl font-semibold">Media Library</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Upload and manage your images</p>
+          </div>
+        </div>
+        <!-- Upload zone -->
+        <div id="mainDropZone" class="drop-zone p-8 text-center mb-6 cursor-pointer" onclick="document.getElementById('mainFileInput').click()" ondragover="handleDragOver(event,'mainDropZone')" ondragleave="handleDragLeave('mainDropZone')" ondrop="handleDrop(event,'mainDropZone',null)">
+          <input type="file" id="mainFileInput" accept="image/*" multiple class="hidden" onchange="uploadFiles(this.files,null)">
+          <svg class="w-10 h-10 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Drop images here or click to upload</p>
+          <p class="text-xs text-slate-400 mt-1">JPG, PNG, WebP · Max 10MB</p>
+        </div>
+        <div id="mainUploadProgress" class="mb-4 hidden">
+          <div class="flex items-center justify-between text-xs text-slate-500 mb-1.5">
+            <span>Uploading…</span><span id="mainUploadPct">0%</span>
+          </div>
+          <div class="progress-bar"><div id="mainUploadFill" class="progress-fill" style="width:0%"></div></div>
+        </div>
+        <!-- Media grid -->
+        <div id="mediaGridMain" class="media-grid"></div>
+        <div id="mediaEmpty" class="hidden text-center py-12 text-slate-400 text-sm">No media yet. Upload your first image above.</div>
+      </div>
+    </div>
+
+    <!-- ── Uptime ─── -->
+    <div id="sectionUptime" class="hidden px-6 py-6">
+      <div class="max-w-3xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-xl font-semibold">Uptime Monitors</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Track your site availability</p>
+          </div>
+          <button onclick="openAddMonitor()" class="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add Monitor
+          </button>
+        </div>
+        <div id="uptimeList" class="space-y-3"></div>
+        <div id="uptimeEmpty" class="hidden text-center py-12 text-slate-400 text-sm">No monitors yet. Add a URL to start monitoring.</div>
+      </div>
+    </div>
+
+    <!-- ── Settings ─── -->
+    <div id="sectionSettings" class="hidden px-6 py-6">
+      <div class="max-w-2xl mx-auto">
+        <div class="mb-6">
+          <h1 class="text-xl font-semibold">Site Settings</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Configure your website settings</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
+          <div class="p-5">
+            <label class="block text-sm font-medium mb-1.5">Site Name</label>
+            <input id="settingSiteName" type="text" placeholder="My Website" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+          </div>
+          <div class="p-5">
+            <label class="block text-sm font-medium mb-1.5">Site Description</label>
+            <textarea id="settingSiteDesc" rows="2" placeholder="A short description of your site" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand resize-none"></textarea>
+          </div>
+          <div class="p-5">
+            <label class="block text-sm font-medium mb-1.5">Public URL</label>
+            <input id="settingPublicUrl" type="url" placeholder="https://yoursite.com" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+          </div>
+          <div class="p-5 flex justify-end">
+            <button onclick="saveSettings()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Save Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ─────────────── MODALS ─────────────── -->
+
+<!-- Add Block type picker -->
+<div id="modalAddBlock" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden" onclick="closeModal('modalAddBlock')">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm mx-4 modal-inner overflow-hidden fade-in" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+      <h2 class="font-semibold">Add Block</h2>
+      <button onclick="closeModal('modalAddBlock')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="p-4 grid grid-cols-2 gap-3">
+      <button onclick="addBlock('hero')" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors group">
+        <svg class="w-6 h-6 text-slate-400 group-hover:text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="text-sm font-medium">Hero</span>
+      </button>
+      <button onclick="addBlock('projects_grid')" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors group">
+        <svg class="w-6 h-6 text-slate-400 group-hover:text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+        <span class="text-sm font-medium">Projects Grid</span>
+      </button>
+      <button onclick="addBlock('timeline')" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors group">
+        <svg class="w-6 h-6 text-slate-400 group-hover:text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="text-sm font-medium">Timeline</span>
+      </button>
+      <button onclick="addBlock('contact')" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors group">
+        <svg class="w-6 h-6 text-slate-400 group-hover:text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span class="text-sm font-medium">Contact</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Block editor modal -->
+<div id="modalEditBlock" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden" onclick="closeModal('modalEditBlock')">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 modal-inner max-h-[90vh] flex flex-col overflow-hidden fade-in" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
+      <h2 id="editBlockTitle" class="font-semibold"></h2>
+      <button onclick="closeModal('modalEditBlock')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div id="editBlockBody" class="flex-1 overflow-y-auto p-6"></div>
+    <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
+      <button onclick="closeModal('modalEditBlock')" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Cancel</button>
+      <button onclick="saveBlock()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Save Block</button>
+    </div>
+  </div>
+</div>
+
+<!-- Media picker modal -->
+<div id="modalMediaPicker" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden" onclick="closeModal('modalMediaPicker')">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 modal-inner max-h-[80vh] flex flex-col overflow-hidden fade-in" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+      <h2 class="font-semibold">Media Library</h2>
+      <button onclick="closeModal('modalMediaPicker')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <!-- Picker upload zone -->
+    <div class="px-6 pt-4">
+      <div id="pickerDropZone" class="drop-zone p-4 text-center cursor-pointer mb-4" onclick="document.getElementById('pickerFileInput').click()" ondragover="handleDragOver(event,'pickerDropZone')" ondragleave="handleDragLeave('pickerDropZone')" ondrop="handleDrop(event,'pickerDropZone','picker')">
+        <input type="file" id="pickerFileInput" accept="image/*" class="hidden" onchange="uploadFiles(this.files,'picker')">
+        <p class="text-sm text-slate-500">Drop image or <span class="text-brand font-medium">click to upload</span></p>
+      </div>
+      <div id="pickerUploadProgress" class="mb-3 hidden">
+        <div class="flex justify-between text-xs text-slate-500 mb-1"><span>Uploading…</span><span id="pickerUploadPct">0%</span></div>
+        <div class="progress-bar"><div id="pickerUploadFill" class="progress-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div id="mediaPickerGrid" class="flex-1 overflow-y-auto px-6 pb-6">
+      <div class="media-grid" id="mediaPickerInner"></div>
+      <div id="mediaPickerEmpty" class="hidden text-center py-8 text-slate-400 text-sm">No media yet.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Add monitor modal -->
+<div id="modalAddMonitor" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden" onclick="closeModal('modalAddMonitor')">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm mx-4 modal-inner overflow-hidden fade-in" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+      <h2 class="font-semibold" id="monitorModalTitle">Add Monitor</h2>
+      <button onclick="closeModal('modalAddMonitor')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="p-5 space-y-4">
+      <input type="hidden" id="monitorEditId">
+      <div>
+        <label class="block text-sm font-medium mb-1.5">Name</label>
+        <input id="monitorName" type="text" placeholder="My Website" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1.5">URL</label>
+        <input id="monitorUrl" type="url" placeholder="https://example.com" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+      </div>
+    </div>
+    <div class="flex justify-end gap-3 px-5 pb-5">
+      <button onclick="closeModal('modalAddMonitor')" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Cancel</button>
+      <button onclick="saveMonitor()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+  <div id="toastInner" class="flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white min-w-[200px]">
+    <span id="toastMsg"></span>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+const state = {
+  currentPage: null,
+  currentSection: null,
+  blocks: [],
+  mediaFiles: [],
+  editingBlockId: null,
+  editingBlockType: null,
+  mediaPickerCallback: null,
+  sortable: null,
+  theme: localStorage.getItem('smTheme') || 'light',
+};
+
+// ═══════════════════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════════════════
+function applyTheme(t) {
+  state.theme = t;
+  document.documentElement.classList.toggle('dark', t === 'dark');
+  document.getElementById('themeIconSun').classList.toggle('hidden', t !== 'dark');
+  document.getElementById('themeIconMoon').classList.toggle('hidden', t === 'dark');
+  document.getElementById('mobileThemeIconSun').classList.toggle('hidden', t !== 'dark');
+  document.getElementById('mobileThemeIconMoon').classList.toggle('hidden', t === 'dark');
+  localStorage.setItem('smTheme', t);
+}
+function toggleTheme() { applyTheme(state.theme === 'dark' ? 'light' : 'dark'); }
+applyTheme(state.theme);
+
+// ── Mobile sidebar toggle
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  const isOpen = sidebar.classList.toggle('open');
+  backdrop.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  API HELPERS
+// ═══════════════════════════════════════════════════════
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  if (opts.body && typeof opts.body === 'object' && !(opts.body instanceof FormData)) {
+    opts.body = JSON.stringify(opts.body);
+  }
+  if (opts.body instanceof FormData) delete headers['Content-Type'];
+  const res = await fetch(path, { ...opts, headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || res.statusText);
+  }
+  return res.json();
+}
+
+// ═══════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════
+async function checkAuth() {
+  try {
+    await api('/auth/me');
+    showApp();
+  } catch {
+    showLogin();
+  }
+}
+
+function showLogin() {
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  document.getElementById('app').classList.add('hidden');
+}
+function showApp() {
+  document.getElementById('loginOverlay').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  selectPage('home');
+}
+
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const pw = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.classList.add('hidden');
+  try {
+    await api('/auth/login', { method: 'POST', body: { password: pw } });
+    showApp();
+  } catch (err) {
+    errEl.textContent = err.message || 'Invalid password';
+    errEl.classList.remove('hidden');
+  }
+});
+
+async function logout() {
+  await api('/auth/logout', { method: 'POST' });
+  showLogin();
+}
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+function selectPage(slug) {
+  state.currentPage = slug;
+  state.currentSection = null;
+  setActiveNav('nav-' + slug);
+  showSection('sectionPage');
+  const label = { home: 'Home', projects: 'Projects', cv: 'CV', contacts: 'Contacts' }[slug] || slug;
+  document.getElementById('pageTitle').textContent = label;
+  document.getElementById('mobilePageTitle').textContent = label;
+  loadBlocks(slug);
+  closeSidebar();
+}
+
+function selectSection(name) {
+  state.currentPage = null;
+  state.currentSection = name;
+  setActiveNav('nav-' + name);
+  showSection('section' + name.charAt(0).toUpperCase() + name.slice(1));
+  const label = { media: 'Media', uptime: 'Uptime', settings: 'Settings' }[name] || name;
+  document.getElementById('mobilePageTitle').textContent = label;
+  if (name === 'media') loadMedia();
+  if (name === 'uptime') loadUptime();
+  if (name === 'settings') loadSettings();
+  closeSidebar();
+}
+
+function setActiveNav(id) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function showSection(id) {
+  ['sectionPage', 'sectionMedia', 'sectionUptime', 'sectionSettings'].forEach(s => {
+    document.getElementById(s).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════════════
+//  BLOCKS
+// ═══════════════════════════════════════════════════════
+async function loadBlocks(slug) {
+  try {
+    state.blocks = await api(`/api/pages/${slug}/blocks`);
+    renderBlocks();
+  } catch (err) {
+    toast('Failed to load blocks: ' + err.message, 'error');
+  }
+}
+
+function renderBlocks() {
+  const list = document.getElementById('blockList');
+  const empty = document.getElementById('blockEmpty');
+  if (!state.blocks.length) {
+    list.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  list.innerHTML = state.blocks.map(b => blockCardHTML(b)).join('');
+
+  // Destroy old sortable
+  if (state.sortable) state.sortable.destroy();
+  state.sortable = Sortable.create(list, {
+    animation: 150,
+    handle: '.drag-handle',
+    ghostClass: 'sortable-ghost',
+    dragClass: 'sortable-drag',
+    onEnd: async () => {
+      const ids = [...list.querySelectorAll('[data-block-id]')].map(el => Number(el.dataset.blockId));
+      try {
+        await api(`/api/pages/${state.currentPage}/blocks/reorder`, { method: 'POST', body: { ids } });
+        // Update state order without re-render
+        const ordered = ids.map(id => state.blocks.find(b => b.id === id)).filter(Boolean);
+        state.blocks = ordered;
+      } catch (err) { toast('Reorder failed: ' + err.message, 'error'); }
+    },
+  });
+}
+
+const BLOCK_LABELS = {
+  hero: 'Hero',
+  projects_grid: 'Projects Grid',
+  timeline: 'Timeline',
+  contact: 'Contact',
+};
+
+const BLOCK_ICONS = {
+  hero: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>`,
+  projects_grid: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>`,
+  timeline: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>`,
+  contact: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>`,
+};
+
+function blockPreview(b) {
+  const c = b.content || {};
+  if (b.type === 'hero') return c.title || 'Untitled hero';
+  if (b.type === 'projects_grid') return `${(c.projects || []).length} project(s) · ${c.title || 'Untitled'}`;
+  if (b.type === 'timeline') return `${(c.items || []).length} item(s) · ${c.title || 'Untitled'}`;
+  if (b.type === 'contact') return [c.email, c.github, c.linkedin].filter(Boolean).join(' · ') || 'No links set';
+  return b.type;
+}
+
+function blockCardHTML(b) {
+  const label = BLOCK_LABELS[b.type] || b.type;
+  const icon = BLOCK_ICONS[b.type] || '';
+  const preview = blockPreview(b);
+  const enabled = b.enabled !== false && b.enabled !== 0;
+  return `
+  <div data-block-id="${b.id}" class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-4 flex items-center gap-4 fade-in group hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
+    <div class="drag-handle text-slate-300 dark:text-slate-600 hover:text-slate-500 flex-shrink-0">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
+    </div>
+    <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center flex-shrink-0">
+      <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">${icon}</svg>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 mb-0.5">
+        <span class="text-xs font-semibold text-brand uppercase tracking-wide">${label}</span>
+      </div>
+      <p class="text-sm text-slate-500 dark:text-slate-400 truncate">${escHtml(preview)}</p>
+    </div>
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <label class="toggle" title="${enabled ? 'Enabled' : 'Disabled'}">
+        <input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleBlock(${b.id}, this.checked)">
+        <span class="slider"></span>
+      </label>
+      <button onclick="openEditBlock(${b.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 flex items-center justify-center transition-colors" title="Edit">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      </button>
+      <button onclick="deleteBlock(${b.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 flex items-center justify-center transition-colors" title="Delete">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+function openAddBlock() { openModal('modalAddBlock'); }
+
+async function addBlock(type) {
+  closeModal('modalAddBlock');
+  const defaultContent = {
+    hero: { title: '', subtitle: '', primary_button_text: '', primary_button_link: '', background_image: '' },
+    projects_grid: { title: 'Projects', projects: [] },
+    timeline: { title: 'Experience', items: [] },
+    contact: { email: '', github: '', linkedin: '', website: '' },
+  };
+  try {
+    const result = await api(`/api/pages/${state.currentPage}/blocks`, {
+      method: 'POST',
+      body: { type, content: defaultContent[type] || {} },
+    });
+    await loadBlocks(state.currentPage);
+    openEditBlock(result.id);
+  } catch (err) { toast('Failed to add block: ' + err.message, 'error'); }
+}
+
+async function toggleBlock(id, enabled) {
+  try {
+    await api(`/api/blocks/${id}`, { method: 'PUT', body: { enabled } });
+    const b = state.blocks.find(b => b.id === id);
+    if (b) b.enabled = enabled;
+  } catch (err) {
+    toast('Failed to update block', 'error');
+    await loadBlocks(state.currentPage);
+  }
+}
+
+async function deleteBlock(id) {
+  if (!confirm('Delete this block?')) return;
+  try {
+    await api(`/api/blocks/${id}`, { method: 'DELETE' });
+    state.blocks = state.blocks.filter(b => b.id !== id);
+    renderBlocks();
+    toast('Block deleted');
+  } catch (err) { toast('Delete failed: ' + err.message, 'error'); }
+}
+
+// ── Block Editors ────────────────────────────────────────
+function openEditBlock(id) {
+  const block = state.blocks.find(b => b.id === id);
+  if (!block) return;
+  state.editingBlockId = id;
+  state.editingBlockType = block.type;
+  const content = block.content || {};
+
+  document.getElementById('editBlockTitle').textContent = 'Edit ' + (BLOCK_LABELS[block.type] || block.type);
+  document.getElementById('editBlockBody').innerHTML = buildEditor(block.type, content);
+  openModal('modalEditBlock');
+}
+
+function buildEditor(type, c) {
+  if (type === 'hero') return heroEditor(c);
+  if (type === 'projects_grid') return projectsGridEditor(c);
+  if (type === 'timeline') return timelineEditor(c);
+  if (type === 'contact') return contactEditor(c);
+  return '<p class="text-slate-400">No editor for this block type.</p>';
+}
+
+// ── Hero editor
+function heroEditor(c) {
+  return `
+  <div class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium mb-1.5">Title</label>
+      <input id="ef_title" type="text" value="${escAttr(c.title||'')}" placeholder="Welcome to my site" class="field">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1.5">Subtitle</label>
+      <textarea id="ef_subtitle" rows="2" placeholder="A short description" class="field resize-none">${escHtml(c.subtitle||'')}</textarea>
+    </div>
+    <div class="grid grid-cols-2 gap-4 field-row-2col">
+      <div>
+        <label class="block text-sm font-medium mb-1.5">Button Text</label>
+        <input id="ef_primary_button_text" type="text" value="${escAttr(c.primary_button_text||'')}" placeholder="Get Started" class="field">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1.5">Button Link</label>
+        <input id="ef_primary_button_link" type="text" value="${escAttr(c.primary_button_link||'')}" placeholder="https://…" class="field">
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1.5">Background Image</label>
+      ${imagePickerWidget('ef_background_image', c.background_image || '')}
+    </div>
+  </div>`;
+}
+
+function heroCollect() {
+  return {
+    title: v('ef_title'),
+    subtitle: v('ef_subtitle'),
+    primary_button_text: v('ef_primary_button_text'),
+    primary_button_link: v('ef_primary_button_link'),
+    background_image: v('ef_background_image'),
+  };
+}
+
+// ── Projects Grid editor
+function projectsGridEditor(c) {
+  const projects = c.projects || [];
+  return `
+  <div class="space-y-5">
+    <div>
+      <label class="block text-sm font-medium mb-1.5">Section Title</label>
+      <input id="ef_title" type="text" value="${escAttr(c.title||'')}" placeholder="Projects" class="field">
+    </div>
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <label class="text-sm font-medium">Projects</label>
+        <button onclick="addProjectItem()" type="button" class="text-xs text-brand font-semibold hover:underline">+ Add Project</button>
+      </div>
+      <div id="projectsList" class="space-y-4">
+        ${projects.map((p, i) => projectItemHTML(p, i)).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function projectItemHTML(p, i) {
+  return `
+  <div class="project-item border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
+    <div class="flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Project ${i + 1}</span>
+      <button onclick="removeProjectItem(this)" type="button" class="text-xs text-red-400 hover:text-red-600 font-medium">Remove</button>
+    </div>
+    <div class="grid grid-cols-2 gap-3 field-row-2col">
+      <div>
+        <label class="text-xs font-medium text-slate-500 mb-1 block">Name</label>
+        <input type="text" class="field proj-name" value="${escAttr(p.name||'')}" placeholder="Project name">
+      </div>
+      <div>
+        <label class="text-xs font-medium text-slate-500 mb-1 block">Link</label>
+        <input type="text" class="field proj-link" value="${escAttr(p.link||'')}" placeholder="https://…">
+      </div>
+    </div>
+    <div>
+      <label class="text-xs font-medium text-slate-500 mb-1 block">Description</label>
+      <textarea class="field resize-none proj-description" rows="2" placeholder="What does this project do?">${escHtml(p.description||'')}</textarea>
+    </div>
+    <div>
+      <label class="text-xs font-medium text-slate-500 mb-1 block">Image</label>
+      ${imagePickerWidget(null, p.image||'', 'proj-image')}
+    </div>
+    <div>
+      <label class="text-xs font-medium text-slate-500 mb-1 block">Tech Stack (comma-separated)</label>
+      <input type="text" class="field proj-tech_stack" value="${escAttr(Array.isArray(p.tech_stack)?p.tech_stack.join(', '):(p.tech_stack||''))}" placeholder="React, Node.js, PostgreSQL">
+    </div>
+  </div>`;
+}
+
+function addProjectItem() {
+  const list = document.getElementById('projectsList');
+  const count = list.querySelectorAll('.project-item').length;
+  const div = document.createElement('div');
+  div.innerHTML = projectItemHTML({}, count);
+  list.appendChild(div.firstElementChild);
+}
+
+function removeProjectItem(btn) {
+  btn.closest('.project-item').remove();
+  // Re-number
+  document.querySelectorAll('.project-item').forEach((el, i) => {
+    const label = el.querySelector('span');
+    if (label) label.textContent = 'Project ' + (i + 1);
+  });
+}
+
+function projectsGridCollect() {
+  const projects = [];
+  document.querySelectorAll('.project-item').forEach(el => {
+    projects.push({
+      name: el.querySelector('.proj-name')?.value || '',
+      link: el.querySelector('.proj-link')?.value || '',
+      description: el.querySelector('.proj-description')?.value || '',
+      image: el.querySelector('.proj-image')?.value || '',
+      tech_stack: (el.querySelector('.proj-tech_stack')?.value || '').split(',').map(s => s.trim()).filter(Boolean),
+    });
+  });
+  return { title: v('ef_title'), projects };
+}
+
+// ── Timeline editor
+function timelineEditor(c) {
+  const items = c.items || [];
+  return `
+  <div class="space-y-5">
+    <div>
+      <label class="block text-sm font-medium mb-1.5">Section Title</label>
+      <input id="ef_title" type="text" value="${escAttr(c.title||'')}" placeholder="Experience" class="field">
+    </div>
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <label class="text-sm font-medium">Items</label>
+        <button onclick="addTimelineItem()" type="button" class="text-xs text-brand font-semibold hover:underline">+ Add Item</button>
+      </div>
+      <div id="timelineList" class="space-y-4">
+        ${items.map((it, i) => timelineItemHTML(it, i)).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function timelineItemHTML(it, i) {
+  return `
+  <div class="timeline-item border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
+    <div class="flex items-center justify-between">
+      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Item ${i + 1}</span>
+      <button onclick="removeTimelineItem(this)" type="button" class="text-xs text-red-400 hover:text-red-600 font-medium">Remove</button>
+    </div>
+    <div class="grid grid-cols-2 gap-3 field-row-2col">
+      <div>
+        <label class="text-xs font-medium text-slate-500 mb-1 block">Role</label>
+        <input type="text" class="field tl-role" value="${escAttr(it.role||'')}" placeholder="Software Engineer">
+      </div>
+      <div>
+        <label class="text-xs font-medium text-slate-500 mb-1 block">Company</label>
+        <input type="text" class="field tl-company" value="${escAttr(it.company||'')}" placeholder="Acme Corp">
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3 field-row-2col">
+      <div>
+        <label class="text-xs font-medium text-slate-500 mb-1 block">Start Date</label>
+        <input type="text" class="field tl-start_date" value="${escAttr(it.start_date||'')}" placeholder="2020-01">
+      </div>
+      <div>
+        <label class="text-xs font-medium text-slate-500 mb-1 block">End Date</label>
+        <input type="text" class="field tl-end_date" value="${escAttr(it.end_date||'')}" placeholder="2023-06 or Present">
+      </div>
+    </div>
+    <div>
+      <label class="text-xs font-medium text-slate-500 mb-1 block">Description</label>
+      <textarea class="field resize-none tl-description" rows="2" placeholder="What you did here…">${escHtml(it.description||'')}</textarea>
+    </div>
+  </div>`;
+}
+
+function addTimelineItem() {
+  const list = document.getElementById('timelineList');
+  const count = list.querySelectorAll('.timeline-item').length;
+  const div = document.createElement('div');
+  div.innerHTML = timelineItemHTML({}, count);
+  list.appendChild(div.firstElementChild);
+}
+
+function removeTimelineItem(btn) {
+  btn.closest('.timeline-item').remove();
+  document.querySelectorAll('.timeline-item').forEach((el, i) => {
+    const label = el.querySelector('span');
+    if (label) label.textContent = 'Item ' + (i + 1);
+  });
+}
+
+function timelineCollect() {
+  const items = [];
+  document.querySelectorAll('.timeline-item').forEach(el => {
+    items.push({
+      role: el.querySelector('.tl-role')?.value || '',
+      company: el.querySelector('.tl-company')?.value || '',
+      start_date: el.querySelector('.tl-start_date')?.value || '',
+      end_date: el.querySelector('.tl-end_date')?.value || '',
+      description: el.querySelector('.tl-description')?.value || '',
+    });
+  });
+  return { title: v('ef_title'), items };
+}
+
+// ── Contact editor
+function contactEditor(c) {
+  return `
+  <div class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium mb-1.5">Email</label>
+      <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 text-sm">✉</span><input id="ef_email" type="email" value="${escAttr(c.email||'')}" placeholder="hello@example.com" class="field pl-8"></div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1.5">GitHub</label>
+      <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 text-sm">⌥</span><input id="ef_github" type="url" value="${escAttr(c.github||'')}" placeholder="https://github.com/username" class="field pl-8"></div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1.5">LinkedIn</label>
+      <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 text-sm">in</span><input id="ef_linkedin" type="url" value="${escAttr(c.linkedin||'')}" placeholder="https://linkedin.com/in/username" class="field pl-8"></div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1.5">Website</label>
+      <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 text-sm">🌐</span><input id="ef_website" type="url" value="${escAttr(c.website||'')}" placeholder="https://yoursite.com" class="field pl-8"></div>
+    </div>
+  </div>`;
+}
+
+function contactCollect() {
+  return {
+    email: v('ef_email'),
+    github: v('ef_github'),
+    linkedin: v('ef_linkedin'),
+    website: v('ef_website'),
+  };
+}
+
+// ── Collect & save
+function collectContent(type) {
+  if (type === 'hero') return heroCollect();
+  if (type === 'projects_grid') return projectsGridCollect();
+  if (type === 'timeline') return timelineCollect();
+  if (type === 'contact') return contactCollect();
+  return {};
+}
+
+async function saveBlock() {
+  const id = state.editingBlockId;
+  const type = state.editingBlockType;
+  if (!id) return;
+  try {
+    const content = collectContent(type);
+    await api(`/api/blocks/${id}`, { method: 'PUT', body: { content } });
+    closeModal('modalEditBlock');
+    await loadBlocks(state.currentPage);
+    toast('Block saved');
+  } catch (err) { toast('Save failed: ' + err.message, 'error'); }
+}
+
+// ── Image Picker Widget (generates HTML for image field + browse button)
+// Uses data attributes to avoid complex escaping in onclick handlers
+function imagePickerWidget(id, value, cssClass) {
+  const idAttr = id ? `id="${escAttr(id)}"` : '';
+  const classAttr = `class="field${cssClass ? ' ' + cssClass : ''}"`;
+  const pickerId = 'picker_' + (id || cssClass || Math.random().toString(36).slice(2));
+  const previewId = 'prev_' + pickerId;
+  return `
+  <div class="space-y-2" data-picker-id="${escAttr(pickerId)}">
+    <div class="flex gap-2">
+      <input type="text" ${idAttr} ${classAttr} data-picker-field="${escAttr(pickerId)}" value="${escAttr(value)}" placeholder="/uploads/…" oninput="updateImagePreview('${escAttr(previewId)}',this.value)">
+      <button type="button" data-open-picker="${escAttr(pickerId)}" class="flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Browse</button>
+    </div>
+    <div id="${escAttr(previewId)}" class="${value ? '' : 'hidden'}">
+      <img src="${escAttr(value)}" class="h-24 w-full object-cover rounded-lg border border-slate-200 dark:border-slate-700" onerror="this.parentElement.classList.add('hidden')" onload="this.parentElement.classList.remove('hidden')">
+    </div>
+  </div>`;
+}
+
+// Global delegated click handler for media picker "Browse" buttons
+document.addEventListener('click', function(e) {
+  // Image picker "Browse" button
+  const pickerBtn = e.target.closest('[data-open-picker]');
+  if (pickerBtn) {
+    const pickerId = pickerBtn.dataset.openPicker;
+    openMediaPicker(function(url) {
+      document.querySelectorAll(`[data-picker-field="${pickerId}"]`).forEach(inp => {
+        inp.value = url;
+        updateImagePreview('prev_' + pickerId, url);
+      });
+    });
+    return;
+  }
+
+  // Uptime monitor edit button (uses data attributes to avoid escaping issues)
+  const editBtn = e.target.closest('[data-edit-monitor]');
+  if (editBtn) {
+    openEditMonitor(
+      editBtn.dataset.editMonitor,
+      editBtn.dataset.monitorName,
+      editBtn.dataset.monitorUrl
+    );
+  }
+});
+
+
+function updateImagePreview(previewId, url) {
+  const el = document.getElementById(previewId);
+  if (!el) return;
+  if (url) {
+    el.classList.remove('hidden');
+    el.querySelector('img').src = url;
+  } else {
+    el.classList.add('hidden');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  MEDIA
+// ═══════════════════════════════════════════════════════
+async function loadMedia() {
+  try {
+    state.mediaFiles = await api('/api/media');
+    renderMediaGrid('mediaGridMain', null);
+    document.getElementById('mediaEmpty').classList.toggle('hidden', state.mediaFiles.length > 0);
+  } catch (err) { toast('Failed to load media', 'error'); }
+}
+
+function renderMediaGrid(containerId, onSelect) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!state.mediaFiles.length) { el.innerHTML = ''; return; }
+  el.innerHTML = state.mediaFiles.map(f => `
+    <div class="relative group">
+      <img src="${escAttr(f.url)}" class="media-thumb w-full" data-url="${escAttr(f.url)}" data-picker="${onSelect ? '1' : ''}" title="${escAttr(f.filename)}">
+    </div>`).join('');
+  // Attach click handlers via delegation (avoids escaping issues)
+  el.onclick = (e) => {
+    const img = e.target.closest('img[data-url]');
+    if (!img) return;
+    const url = img.dataset.url;
+    if (img.dataset.picker) {
+      pickerSelect(url);
+    } else {
+      showMediaPreview(url);
+    }
+  };
+}
+
+function showMediaPreview(url) {
+  // Simple: open in new tab
+  window.open(url, '_blank');
+}
+
+function openMediaPicker(callback) {
+  state.mediaPickerCallback = callback;
+  loadMedia().then(() => {
+    renderMediaGrid('mediaPickerInner', callback);
+    document.getElementById('mediaPickerEmpty').classList.toggle('hidden', state.mediaFiles.length > 0);
+  });
+  openModal('modalMediaPicker');
+}
+
+function pickerSelect(url) {
+  if (state.mediaPickerCallback) {
+    state.mediaPickerCallback(url);
+    state.mediaPickerCallback = null;
+  }
+  closeModal('modalMediaPicker');
+}
+
+// ═══════════════════════════════════════════════════════
+//  FILE UPLOAD
+// ═══════════════════════════════════════════════════════
+function handleDragOver(e, zoneId) {
+  e.preventDefault();
+  document.getElementById(zoneId).classList.add('active');
+}
+function handleDragLeave(zoneId) {
+  document.getElementById(zoneId).classList.remove('active');
+}
+function handleDrop(e, zoneId, context) {
+  e.preventDefault();
+  document.getElementById(zoneId).classList.remove('active');
+  uploadFiles(e.dataTransfer.files, context);
+}
+
+async function uploadFiles(files, context) {
+  const isPicker = context === 'picker';
+  const progressEl = document.getElementById(isPicker ? 'pickerUploadProgress' : 'mainUploadProgress');
+  const pctEl = document.getElementById(isPicker ? 'pickerUploadPct' : 'mainUploadPct');
+  const fillEl = document.getElementById(isPicker ? 'pickerUploadFill' : 'mainUploadFill');
+
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) { toast('Only images allowed', 'error'); continue; }
+    const fd = new FormData();
+    fd.append('file', file);
+    progressEl.classList.remove('hidden');
+    pctEl.textContent = '0%';
+    fillEl.style.width = '0%';
+
+    // Fake progress ticks while uploading
+    let pct = 0;
+    const ticker = setInterval(() => {
+      pct = Math.min(pct + 10, 85);
+      pctEl.textContent = pct + '%';
+      fillEl.style.width = pct + '%';
+    }, 100);
+
+    try {
+      const result = await fetch('/api/uploads', { method: 'POST', body: fd }).then(r => r.json());
+      clearInterval(ticker);
+      fillEl.style.width = '100%';
+      pctEl.textContent = '100%';
+      await new Promise(r => setTimeout(r, 400));
+      progressEl.classList.add('hidden');
+
+      if (result.url) {
+        state.mediaFiles.unshift({ url: result.url, filename: result.filename });
+        if (isPicker) {
+          renderMediaGrid('mediaPickerInner', state.mediaPickerCallback);
+          document.getElementById('mediaPickerEmpty').classList.add('hidden');
+          // Auto-select the uploaded image if in picker context
+          if (state.mediaPickerCallback) pickerSelect(result.url);
+        } else {
+          renderMediaGrid('mediaGridMain', null);
+          document.getElementById('mediaEmpty').classList.add('hidden');
+        }
+        toast('Uploaded: ' + result.filename);
+      } else {
+        toast(result.error || 'Upload failed', 'error');
+      }
+    } catch (err) {
+      clearInterval(ticker);
+      progressEl.classList.add('hidden');
+      toast('Upload failed: ' + err.message, 'error');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  UPTIME
+// ═══════════════════════════════════════════════════════
+async function loadUptime() {
+  try {
+    const monitors = await api('/api/uptime');
+    renderUptime(monitors);
+  } catch (err) { toast('Failed to load monitors', 'error'); }
+}
+
+function renderUptime(monitors) {
+  const list = document.getElementById('uptimeList');
+  const empty = document.getElementById('uptimeEmpty');
+  empty.classList.toggle('hidden', monitors.length > 0);
+  if (!monitors.length) { list.innerHTML = ''; return; }
+  list.innerHTML = monitors.map(m => uptimeCardHTML(m)).join('');
+}
+
+function uptimeCardHTML(m) {
+  const statusColor = { up: 'green', down: 'red', unknown: 'gray' }[m.status] || 'gray';
+  const statusDot = { up: 'bg-green-400', down: 'bg-red-500', unknown: 'bg-slate-400' }[m.status] || 'bg-slate-400';
+  const checked = m.last_checked
+    ? new Date(m.last_checked).toLocaleString()
+    : 'Never';
+  const rt = m.response_time != null ? `${m.response_time}ms` : '–';
+  return `
+  <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-4 flex items-center gap-4 fade-in">
+    <div class="relative flex-shrink-0">
+      <div class="w-3 h-3 rounded-full ${statusDot}"></div>
+      ${m.status === 'up' ? '<div class="absolute inset-0 w-3 h-3 rounded-full bg-green-400 animate-ping opacity-75"></div>' : ''}
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-medium truncate">${escHtml(m.name)}</p>
+      <p class="text-xs text-slate-400 truncate">${escHtml(m.url)}</p>
+      <div class="flex items-center gap-3 mt-1">
+        <span class="tag ${statusColor}">${m.status || 'unknown'}</span>
+        ${m.status_code ? `<span class="text-xs text-slate-400">${m.status_code}</span>` : ''}
+        <span class="text-xs text-slate-400">${rt}</span>
+        <span class="text-xs text-slate-400">Checked: ${checked}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <button onclick="checkMonitor(${m.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 flex items-center justify-center transition-colors" title="Check now">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      </button>
+      <button data-edit-monitor="${m.id}" data-monitor-name="${escAttr(m.name)}" data-monitor-url="${escAttr(m.url)}" class="w-8 h-8 rounded-lg text-slate-400 hover:text-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 flex items-center justify-center transition-colors" title="Edit">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      </button>
+      <button onclick="deleteMonitor(${m.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 flex items-center justify-center transition-colors" title="Delete">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+function openAddMonitor() {
+  document.getElementById('monitorModalTitle').textContent = 'Add Monitor';
+  document.getElementById('monitorEditId').value = '';
+  document.getElementById('monitorName').value = '';
+  document.getElementById('monitorUrl').value = '';
+  openModal('modalAddMonitor');
+}
+
+function openEditMonitor(id, name, url) {
+  document.getElementById('monitorModalTitle').textContent = 'Edit Monitor';
+  document.getElementById('monitorEditId').value = id;
+  document.getElementById('monitorName').value = name;
+  document.getElementById('monitorUrl').value = url;
+  openModal('modalAddMonitor');
+}
+
+async function saveMonitor() {
+  const id = document.getElementById('monitorEditId').value;
+  const name = document.getElementById('monitorName').value.trim();
+  const url = document.getElementById('monitorUrl').value.trim();
+  if (!name || !url) { toast('Name and URL are required', 'error'); return; }
+  try {
+    if (id) {
+      await api(`/api/uptime/${id}`, { method: 'PUT', body: { name, url } });
+    } else {
+      await api('/api/uptime', { method: 'POST', body: { name, url } });
+    }
+    closeModal('modalAddMonitor');
+    await loadUptime();
+    toast(id ? 'Monitor updated' : 'Monitor added');
+  } catch (err) { toast('Failed: ' + err.message, 'error'); }
+}
+
+async function checkMonitor(id) {
+  toast('Checking…');
+  try {
+    await api(`/api/uptime/${id}/check`, { method: 'POST' });
+    await loadUptime();
+    toast('Check complete');
+  } catch (err) { toast('Check failed: ' + err.message, 'error'); }
+}
+
+async function deleteMonitor(id) {
+  if (!confirm('Delete this monitor?')) return;
+  try {
+    await api(`/api/uptime/${id}`, { method: 'DELETE' });
+    await loadUptime();
+    toast('Monitor deleted');
+  } catch (err) { toast('Delete failed: ' + err.message, 'error'); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════════════════
+async function loadSettings() {
+  try {
+    const settings = await api('/api/site');
+    document.getElementById('settingSiteName').value = settings.site_name || '';
+    document.getElementById('settingSiteDesc').value = settings.site_description || '';
+    document.getElementById('settingPublicUrl').value = settings.public_url || '';
+  } catch (err) { toast('Failed to load settings', 'error'); }
+}
+
+async function saveSettings() {
+  try {
+    await api('/api/site', {
+      method: 'PUT',
+      body: {
+        site_name: document.getElementById('settingSiteName').value,
+        site_description: document.getElementById('settingSiteDesc').value,
+        public_url: document.getElementById('settingPublicUrl').value,
+      },
+    });
+    toast('Settings saved');
+  } catch (err) { toast('Save failed: ' + err.message, 'error'); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODAL HELPERS
+// ═══════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['modalAddBlock','modalEditBlock','modalMediaPicker','modalAddMonitor'].forEach(closeModal);
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════
+let toastTimer;
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  const inner = document.getElementById('toastInner');
+  const msgEl = document.getElementById('toastMsg');
+  inner.className = 'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white min-w-[200px] ' +
+    (type === 'error' ? 'bg-red-500' : 'bg-slate-800 dark:bg-slate-700');
+  msgEl.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.add('hidden'), 3000);
+}
+
+// ═══════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════
+function v(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Inject field class styles (Tailwind dynamic)
+const fieldStyle = document.createElement('style');
+fieldStyle.textContent = `.field{width:100%;padding:0.5rem 0.75rem;border-radius:0.5rem;border:1px solid #e2e8f0;background:#fff;font-size:0.875rem;outline:none;transition:box-shadow .15s;}.field:focus{box-shadow:0 0 0 2px #6366f1;}.dark .field{background:#1e293b;border-color:#334155;color:#e2e8f0;}`;
+document.head.appendChild(fieldStyle);
+
+// ═══════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════
+checkAuth();
+</script>
+</body>
+</html>

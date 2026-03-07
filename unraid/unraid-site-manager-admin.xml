@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>site-manager</Name>
+  <Repository>aedankerr/site-manager:latest</Repository>
+  <Registry>https://hub.docker.com/r/aedankerr/site-manager</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/Aedankerr/site-manager/issues</Support>
+  <Project>https://github.com/Aedankerr/site-manager</Project>
+  <Overview>Site Manager - Admin Interface&#xD;
+&#xD;
+Professional CV/Resume and personal site management with full editing capabilities. Create, manage and organize your professional CV with:&#xD;
+&#xD;
+• Visual career timeline with country flags&#xD;
+• ATS-optimized formatting&#xD;
+• Granular visibility control&#xD;
+• Profile picture and company logo support&#xD;
+• Print/PDF optimization&#xD;
+• JSON import/export&#xD;
+• Multiple CV datasets&#xD;
+• Cloudflare Access authentication support&#xD;
+&#xD;
+ADMIN VERSION - Full CRUD access. Protect with Cloudflare Access or a password — see SESSION_SECRET and ADMIN_PASSWORD_HASH variables below.&#xD;
+&#xD;
+TIP: Also install "Site Manager Public" for a read-only shareable version on port 3011 that uses the SAME appdata path.</Overview>
+  <Category>Productivity: Tools: Status:Stable</Category>
+  <WebUI>http://[IP]:[PORT:3010]</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/Aedankerr/site-manager/main/unraid/unraid-site-manager-admin.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/Aedankerr/site-manager/main/icon.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled></DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Admin WebUI Port" Target="3010" Default="3010" Mode="tcp" Description="Admin interface web port" Type="Port" Display="always" Required="true" Mask="false">3010</Config>
+  <Config Name="AppData" Target="/app/data" Default="/mnt/user/appdata/site-manager/data" Mode="rw" Description="Database storage. IMPORTANT: Use the same path for both Admin and Public containers to share data." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/site-manager/data</Config>
+  <Config Name="Uploads" Target="/app/uploads" Default="/mnt/user/appdata/site-manager/uploads" Mode="rw" Description="Uploaded images (profile picture, company logos). IMPORTANT: Use the same path for both Admin and Public containers." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/site-manager/uploads</Config>
+  <Config Name="DB Path" Target="DB_PATH" Default="/app/data/site.db" Mode="" Description="Path to the SQLite database inside the container (leave as default)" Type="Variable" Display="advanced" Required="false" Mask="false">/app/data/site.db</Config>
+  <Config Name="Session Secret" Target="SESSION_SECRET" Default="" Mode="" Description="Required when using password or Cloudflare Access auth. Set to a long random string." Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="Admin Password Hash" Target="ADMIN_PASSWORD_HASH" Default="" Mode="" Description="Bcrypt hash of your admin password. Leave blank to disable local password auth. Generate on the host with: node -e 'const b=require(&quot;bcryptjs&quot;);b.hash(&quot;yourpassword&quot;,10).then(console.log)'" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="Trust Cloudflare Access" Target="ADMIN_TRUST_CLOUDFLARE_ACCESS" Default="false" Mode="" Description="Set to true if the admin interface is behind Cloudflare Access. Trusts the Cf-Access-Authenticated-User-Email header." Type="Variable" Display="always" Required="false" Mask="false">false</Config>
+  <Config Name="Allowed Emails" Target="ADMIN_ALLOWED_EMAILS" Default="" Mode="" Description="Comma-separated list of emails allowed via Cloudflare Access. Leave blank to allow all authenticated CF users." Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="Cookie Secure" Target="COOKIE_SECURE" Default="true" Mode="" Description="Set to true when accessed over HTTPS (recommended for Cloudflare Tunnel setups)" Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="Upload Max MB" Target="UPLOAD_MAX_MB" Default="15" Mode="" Description="Maximum file size in MB for image uploads (profile picture, logos)" Type="Variable" Display="advanced" Required="false" Mask="false">15</Config>
+  <Config Name="Node Environment" Target="NODE_ENV" Default="production" Mode="" Description="Node environment (leave as production)" Type="Variable" Display="advanced" Required="false" Mask="false">production</Config>
+</Container>
