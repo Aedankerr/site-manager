@@ -220,7 +220,7 @@ describe('Backend API', () => {
             assert.strictEqual(res.status, 200);
             const text = await res.text();
             assert.ok(text.includes('<!DOCTYPE html>'));
-            assert.ok(text.includes('CV Manager'));
+            assert.ok(text.includes('Site Manager'));
         });
     });
 

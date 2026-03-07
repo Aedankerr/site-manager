@@ -7,29 +7,32 @@ const ROOT = path.join(__dirname, '..');
 
 describe('Frontend files', () => {
     describe('Admin interface', () => {
-        it('index.html exists and is valid HTML', () => {
-            const file = path.join(ROOT, 'public', 'index.html');
-            assert.ok(fs.existsSync(file), 'public/index.html should exist');
+        it('manager/index.html exists and is valid HTML', () => {
+            const file = path.join(ROOT, 'public', 'manager', 'index.html');
+            assert.ok(fs.existsSync(file), 'public/manager/index.html should exist');
             const content = fs.readFileSync(file, 'utf8');
             assert.ok(content.includes('<!DOCTYPE html>'), 'should have DOCTYPE');
             assert.ok(content.includes('<html'), 'should have html tag');
             assert.ok(content.includes('</html>'), 'should have closing html tag');
             assert.ok(content.includes('<head>'), 'should have head section');
-            assert.ok(content.includes('<body>'), 'should have body section');
+            assert.ok(content.includes('<body'), 'should have body section');
         });
 
-        it('loads required CSS files', () => {
-            const file = path.join(ROOT, 'public', 'index.html');
+        it('loads required CSS and JS files', () => {
+            const file = path.join(ROOT, 'public', 'manager', 'index.html');
             const content = fs.readFileSync(file, 'utf8');
-            assert.ok(content.includes('styles.css'), 'should reference styles.css');
-            assert.ok(content.includes('admin.css'), 'should reference admin.css');
+            assert.ok(content.includes('tailwind.css'), 'should reference tailwind.css');
+            assert.ok(content.includes('sortable.min.js'), 'should reference sortable.min.js');
         });
 
-        it('loads required JS files', () => {
-            const file = path.join(ROOT, 'public', 'index.html');
-            const content = fs.readFileSync(file, 'utf8');
-            assert.ok(content.includes('scripts.js'), 'should reference scripts.js');
-            assert.ok(content.includes('admin.js'), 'should reference admin.js');
+        it('manager tailwind.css exists', () => {
+            const file = path.join(ROOT, 'public', 'manager', 'tailwind.css');
+            assert.ok(fs.existsSync(file), 'public/manager/tailwind.css should exist');
+        });
+
+        it('manager sortable.min.js exists', () => {
+            const file = path.join(ROOT, 'public', 'manager', 'sortable.min.js');
+            assert.ok(fs.existsSync(file), 'public/manager/sortable.min.js should exist');
         });
 
         it('shared scripts.js exists', () => {
@@ -37,19 +40,9 @@ describe('Frontend files', () => {
             assert.ok(fs.existsSync(file), 'public/shared/scripts.js should exist');
         });
 
-        it('shared admin.js exists', () => {
-            const file = path.join(ROOT, 'public', 'shared', 'admin.js');
-            assert.ok(fs.existsSync(file), 'public/shared/admin.js should exist');
-        });
-
         it('shared styles.css exists', () => {
             const file = path.join(ROOT, 'public', 'shared', 'styles.css');
             assert.ok(fs.existsSync(file), 'public/shared/styles.css should exist');
-        });
-
-        it('shared admin.css exists', () => {
-            const file = path.join(ROOT, 'public', 'shared', 'admin.css');
-            assert.ok(fs.existsSync(file), 'public/shared/admin.css should exist');
         });
     });
 
