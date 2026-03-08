@@ -1929,8 +1929,9 @@ if (PUBLIC_ONLY) {
     app.get('/api/cv', (req, res) => { const profile = db.prepare('SELECT * FROM profile WHERE id = 1').get(); const experiences = db.prepare('SELECT * FROM experiences ORDER BY sort_order ASC, start_date DESC').all(); const certifications = db.prepare('SELECT * FROM certifications ORDER BY sort_order ASC, issue_date DESC').all(); const education = db.prepare('SELECT * FROM education ORDER BY sort_order ASC, end_date DESC').all(); const skillCategories = db.prepare('SELECT * FROM skill_categories ORDER BY sort_order ASC').all(); const skills = db.prepare('SELECT * FROM skills ORDER BY sort_order ASC').all(); const projects = db.prepare('SELECT * FROM projects ORDER BY sort_order ASC').all(); const sections = db.prepare('SELECT * FROM section_visibility ORDER BY sort_order ASC').all(); const sectionVisibility = {}; const sectionOrderData = []; sections.forEach(s => { sectionVisibility[s.section_name] = !!s.visible; sectionOrderData.push({ key: s.section_name, sort_order: s.sort_order || 0, visible: !!s.visible, display_name: s.display_name || null }); }); const customSections = db.prepare('SELECT * FROM custom_sections ORDER BY sort_order ASC').all(); const customItems = db.prepare('SELECT * FROM custom_section_items ORDER BY sort_order ASC').all(); const customSectionsData = customSections.map(s => ({ ...s, visible: !!s.visible, metadata: s.metadata ? JSON.parse(s.metadata) : null, items: customItems.filter(i => i.section_id === s.id).map(i => ({ ...i, visible: !!i.visible, metadata: i.metadata ? JSON.parse(i.metadata) : null })) })); res.json({ profile, experiences: experiences.map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [] })), certifications, education, skills: skillCategories.map(cat => ({ ...cat, skills: skills.filter(s => s.category_id === cat.id).map(s => s.name) })), projects: projects.map(p => ({ ...p, technologies: p.technologies ? JSON.parse(p.technologies) : [] })), sectionVisibility, sectionOrder: sectionOrderData, customSections: customSectionsData }); });
 
     // Normalise CV data from older cv-manager JSON format to the current site-manager format.
-    // Converts sectionVisibility (plain object) → sectionOrder (array) and normalises legacy
-    // "Mon YYYY" date strings (e.g. "Jan 2020") to ISO "YYYY-MM".
+    // Converts sectionVisibility (plain object) → sectionOrder (array), normalises legacy
+    // "Mon YYYY" date strings (e.g. "Jan 2020") to ISO "YYYY-MM", converts "Present"/"Now"
+    // end dates to null, and upgrades a flat skills string array to a categorised structure.
     function normalizeCVImportData(data) {
         if (!data || typeof data !== 'object') return data;
         if (data.sectionVisibility && !data.sectionOrder) {
@@ -1939,6 +1940,8 @@ if (PUBLIC_ONLY) {
         }
         function normalizeLegacyDate(d) {
             if (!d || typeof d !== 'string') return d;
+            // "Present", "Now", "Current", "Ongoing" → null (still employed / no end date)
+            if (/^(present|now|current|ongoing)$/i.test(d.trim())) return null;
             const MONTHS = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
             const m = /^([A-Za-z]{3})\s+(\d{4})$/.exec(d.trim());
             if (!m || !MONTHS[m[1]]) return d;
@@ -1947,6 +1950,10 @@ if (PUBLIC_ONLY) {
         if (data.experiences) data = { ...data, experiences: data.experiences.map(e => ({ ...e, start_date: normalizeLegacyDate(e.start_date), end_date: normalizeLegacyDate(e.end_date) })) };
         if (data.education) data = { ...data, education: data.education.map(e => ({ ...e, start_date: normalizeLegacyDate(e.start_date), end_date: normalizeLegacyDate(e.end_date) })) };
         if (data.certifications) data = { ...data, certifications: data.certifications.map(c => ({ ...c, issue_date: normalizeLegacyDate(c.issue_date), expiry_date: normalizeLegacyDate(c.expiry_date) })) };
+        // Old cv-manager format: skills as a flat array of strings → wrap in one category
+        if (data.skills && Array.isArray(data.skills) && data.skills.length > 0 && typeof data.skills[0] === 'string') {
+            data = { ...data, skills: [{ name: 'Skills', icon: 'default', skills: data.skills }] };
+        }
         return data;
     }
 
@@ -2156,7 +2163,7 @@ if (PUBLIC_ONLY) {
             }
             const data = parseHTMLCV(html);
             // Require at least a name or some content to confirm this is a CV page
-            const hasContent = data.profile.name || data.experiences.length > 0 || data.education.length > 0 || data.skills.length > 0;
+            const hasContent = data.profile.name || data.experiences.length > 0 || data.education.length > 0 || data.skills.length > 0 || data.certifications.length > 0 || data.projects.length > 0;
             if (!hasContent) {
                 return res.status(400).json({ error: 'Could not extract CV data from the HTML file. Make sure you are uploading a saved CV page from this application.' });
             }
@@ -2230,7 +2237,11 @@ if (PUBLIC_ONLY) {
             return rows;
         }
         function csvToObjects(text) {
-            const rows = parseCSV(text).filter(r => r.some(c => c.trim()));
+            // Strip UTF-8 BOM if present (LinkedIn commonly exports BOM-prefixed CSV files;
+            // without stripping, the first column header gets an invisible \uFEFF prefix that
+            // breaks field lookups like p['First Name']).
+            const cleanText = text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text;
+            const rows = parseCSV(cleanText).filter(r => r.some(c => c.trim()));
             if (rows.length < 2) return [];
             const headers = rows[0].map(h => h.trim());
             return rows.slice(1).map(r => {
@@ -2423,7 +2434,7 @@ if (PUBLIC_ONLY) {
         try { data = JSON.parse(req.file.buffer.toString('utf8')); } catch (e) { return res.status(400).json({ error: 'Invalid JSON file. The file could not be parsed.' }); }
         if (!data || typeof data !== 'object' || Array.isArray(data)) return res.status(400).json({ error: 'Invalid CV JSON format. Expected a JSON object.' });
         data = normalizeCVImportData(data);
-        const hasContent = data.profile || (data.experiences && data.experiences.length > 0) || (data.education && data.education.length > 0) || (data.skills && data.skills.length > 0);
+        const hasContent = data.profile || (data.experiences && data.experiences.length > 0) || (data.education && data.education.length > 0) || (data.skills && data.skills.length > 0) || (data.certifications && data.certifications.length > 0) || (data.projects && data.projects.length > 0);
         if (!hasContent) return res.status(400).json({ error: 'No recognisable CV data found in the JSON file.' });
         try {
             runCVImportTransaction(data);

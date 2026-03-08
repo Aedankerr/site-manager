@@ -4,6 +4,15 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.16.2] - 2026-03-08
+
+### Fixed
+- JSON import now accepts files that contain only certifications or projects (previously the content check did not include these sections, so such files were rejected with "No recognisable CV data found").
+- HTML import now accepts pages that contain only certifications or projects (same omission as above).
+- LinkedIn data export ZIP: stripped the UTF-8 BOM character that LinkedIn prepends to CSV files on some platforms. Without stripping, the first column header in each CSV got an invisible `\uFEFF` prefix that caused field lookups (e.g. `First Name`, `Title`) to silently return empty strings, resulting in empty profile names and missing positions.
+- JSON/HTML import: "Present", "Now", "Current", and "Ongoing" date strings are now normalised to `null` (no end date) instead of being stored verbatim in date columns.
+- JSON import: skills exported in the old cv-manager flat-array format (`["JavaScript", "Python"]`) are now automatically wrapped in a single "Skills" category instead of crashing with a SQLite NOT NULL constraint error on `skill_categories.name`.
+
 ## [1.16.1] - 2026-03-08
 
 ### Fixed
