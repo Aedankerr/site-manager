@@ -223,6 +223,93 @@ describe('Backend API', () => {
             assert.ok(text.includes('Site Manager'));
         });
 
+        it('POST /api/import accepts certifications-only JSON (hasContent fix)', async () => {
+            const res = await fetch(`${BASE_URL}/api/import`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    certifications: [{ name: 'AWS Certified', provider: 'Amazon', issue_date: '2024-01', expiry_date: null, credential_id: 'abc123' }],
+                }),
+            });
+            assert.strictEqual(res.status, 200, 'certifications-only import should succeed');
+            const data = await res.json();
+            assert.strictEqual(data.success, true);
+        });
+
+        it('POST /api/import accepts projects-only JSON (hasContent fix)', async () => {
+            const res = await fetch(`${BASE_URL}/api/import`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    projects: [{ title: 'My Project', description: 'A project', technologies: ['Node.js'], link: 'https://example.com' }],
+                }),
+            });
+            assert.strictEqual(res.status, 200, 'projects-only import should succeed');
+            const data = await res.json();
+            assert.strictEqual(data.success, true);
+        });
+
+        it('POST /api/import handles flat skills array (old cv-manager format)', async () => {
+            const res = await fetch(`${BASE_URL}/api/import`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    profile: { name: 'FlatSkillsTest' },
+                    skills: ['JavaScript', 'Python', 'Node.js'],
+                }),
+            });
+            assert.strictEqual(res.status, 200, 'flat skills array should be normalised and succeed');
+            const data = await res.json();
+            assert.strictEqual(data.success, true);
+            // Verify skills were imported as a single category
+            const skillsRes = await fetch(`${BASE_URL}/api/skills`);
+            const skills = await skillsRes.json();
+            assert.ok(Array.isArray(skills) && skills.length === 1, 'should have one skill category');
+            assert.ok(skills[0].skills.includes('JavaScript'), 'should contain JavaScript skill');
+        });
+
+        it('POST /api/import normalises "Present" end dates', async () => {
+            const res = await fetch(`${BASE_URL}/api/import`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    profile: { name: 'PresentDateTest' },
+                    experiences: [{ job_title: 'Engineer', company_name: 'Acme', start_date: 'Jan 2020', end_date: 'Present' }],
+                }),
+            });
+            assert.strictEqual(res.status, 200, '"Present" date import should succeed');
+            const data = await res.json();
+            assert.strictEqual(data.success, true);
+            // Verify that end_date is null (not "Present") in the database
+            const expRes = await fetch(`${BASE_URL}/api/experiences`);
+            const experiences = await expRes.json();
+            const exp = experiences.find(e => e.company_name === 'Acme');
+            assert.ok(exp, 'imported experience should exist');
+            assert.strictEqual(exp.end_date, null, 'end_date "Present" should be normalised to null');
+        });
+
+        it('POST /api/import-linkedin handles BOM-prefixed CSV files', async () => {
+            const AdmZip = require('adm-zip');
+            const zip = new AdmZip();
+            // Prepend UTF-8 BOM (\uFEFF) to Profile.csv to simulate LinkedIn export on Windows
+            const bom = '\uFEFF';
+            const profileCsv = `${bom}First Name,Last Name,Headline,Summary,Geo Location\nBom,Tester,Engineer,Test summary,London`;
+            const positionsCsv = `${bom}Company Name,Title,Description,Location,Started On,Finished On\nBOM Corp,Dev,,London,Jan 2022,Present`;
+            zip.addFile('Profile.csv', Buffer.from(profileCsv, 'utf8'));
+            zip.addFile('Positions.csv', Buffer.from(positionsCsv, 'utf8'));
+            const zipBuffer = zip.toBuffer();
+            const formData = new FormData();
+            formData.append('file', new Blob([zipBuffer], { type: 'application/zip' }), 'linkedin.zip');
+            const res = await fetch(`${BASE_URL}/api/import-linkedin`, { method: 'POST', body: formData });
+            assert.strictEqual(res.status, 200, 'BOM-prefixed LinkedIn ZIP should import successfully');
+            const result = await res.json();
+            assert.strictEqual(result.success, true);
+            // Verify profile name was read correctly despite BOM on First Name header
+            const profileRes = await fetch(`${BASE_URL}/api/profile`);
+            const profile = await profileRes.json();
+            assert.strictEqual(profile.name, 'Bom Tester', 'profile name should be parsed correctly despite BOM');
+        });
+
         it('POST /api/import syncs the default dataset', async () => {
             // Import CV data with a unique profile name
             const importRes = await fetch(`${BASE_URL}/api/import`, {
