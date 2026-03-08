@@ -222,6 +222,35 @@ describe('Backend API', () => {
             assert.ok(text.includes('<!DOCTYPE html>'));
             assert.ok(text.includes('Site Manager'));
         });
+
+        it('POST /api/import syncs the default dataset', async () => {
+            // Import CV data with a unique profile name
+            const importRes = await fetch(`${BASE_URL}/api/import`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    profile: { name: 'DatasetSyncTestUser', title: 'Tester', bio: 'Test bio' },
+                    experiences: [],
+                    education: [],
+                    skills: [],
+                }),
+            });
+            assert.strictEqual(importRes.status, 200);
+
+            // Fetch the default dataset slug
+            const defaultRes = await fetch(`${BASE_URL}/api/datasets/default`);
+            assert.strictEqual(defaultRes.status, 200);
+            const defaultDs = await defaultRes.json();
+            assert.ok(defaultDs.exists, 'Default dataset should exist');
+            assert.ok(defaultDs.slug, 'Default dataset should have a slug');
+
+            // Verify the default dataset reflects the imported profile name via the public API
+            const datasetRes = await fetch(`${PUBLIC_URL}/api/datasets/slug/${defaultDs.slug}`);
+            assert.strictEqual(datasetRes.status, 200);
+            const datasetData = await datasetRes.json();
+            assert.strictEqual(datasetData.profile && datasetData.profile.name, 'DatasetSyncTestUser',
+                'Default dataset profile name should reflect imported data');
+        });
     });
 
     describe('Public API (port)', () => {

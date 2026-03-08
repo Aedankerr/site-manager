@@ -4,6 +4,11 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.16.1] - 2026-03-08
+
+### Fixed
+- Imported JSON (and HTML/LinkedIn) CV data now applies immediately to the public CV page. Previously the default dataset snapshot was not refreshed after import, so visitors continued to see the old data. All import endpoints now call `syncDefaultDataset()` after a successful import to keep the snapshot in sync with the live tables.
+
 ## [1.16.0] - 2026-03-08
 
 ### Added
