@@ -4,6 +4,11 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.15.1] - 2026-03-08
+
+### Fixed
+- Newly added project and experience (timeline) items inside the block editor modal now scroll into view automatically, so users can immediately see and edit the item they just added.
+
 ## [1.15.0] - 2026-03-08
 
 ### Added

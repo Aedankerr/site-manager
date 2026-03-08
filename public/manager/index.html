@@ -896,7 +896,8 @@ function addProjectItem() {
   const count = list.querySelectorAll('.project-item').length;
   const div = document.createElement('div');
   div.innerHTML = projectItemHTML({}, count);
-  list.appendChild(div.firstElementChild);
+  const newItem = list.appendChild(div.firstElementChild);
+  newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function removeProjectItem(btn) {
@@ -982,7 +983,8 @@ function addTimelineItem() {
   const count = list.querySelectorAll('.timeline-item').length;
   const div = document.createElement('div');
   div.innerHTML = timelineItemHTML({}, count);
-  list.appendChild(div.firstElementChild);
+  const newItem = list.appendChild(div.firstElementChild);
+  newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function removeTimelineItem(btn) {
