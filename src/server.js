@@ -8,6 +8,7 @@ const multer = require('multer');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const AdmZip = require('adm-zip');
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -1928,6 +1929,439 @@ if (PUBLIC_ONLY) {
     app.get('/api/cv', (req, res) => { const profile = db.prepare('SELECT * FROM profile WHERE id = 1').get(); const experiences = db.prepare('SELECT * FROM experiences ORDER BY sort_order ASC, start_date DESC').all(); const certifications = db.prepare('SELECT * FROM certifications ORDER BY sort_order ASC, issue_date DESC').all(); const education = db.prepare('SELECT * FROM education ORDER BY sort_order ASC, end_date DESC').all(); const skillCategories = db.prepare('SELECT * FROM skill_categories ORDER BY sort_order ASC').all(); const skills = db.prepare('SELECT * FROM skills ORDER BY sort_order ASC').all(); const projects = db.prepare('SELECT * FROM projects ORDER BY sort_order ASC').all(); const sections = db.prepare('SELECT * FROM section_visibility ORDER BY sort_order ASC').all(); const sectionVisibility = {}; const sectionOrderData = []; sections.forEach(s => { sectionVisibility[s.section_name] = !!s.visible; sectionOrderData.push({ key: s.section_name, sort_order: s.sort_order || 0, visible: !!s.visible, display_name: s.display_name || null }); }); const customSections = db.prepare('SELECT * FROM custom_sections ORDER BY sort_order ASC').all(); const customItems = db.prepare('SELECT * FROM custom_section_items ORDER BY sort_order ASC').all(); const customSectionsData = customSections.map(s => ({ ...s, visible: !!s.visible, metadata: s.metadata ? JSON.parse(s.metadata) : null, items: customItems.filter(i => i.section_id === s.id).map(i => ({ ...i, visible: !!i.visible, metadata: i.metadata ? JSON.parse(i.metadata) : null })) })); res.json({ profile, experiences: experiences.map(e => ({ ...e, highlights: e.highlights ? JSON.parse(e.highlights) : [] })), certifications, education, skills: skillCategories.map(cat => ({ ...cat, skills: skills.filter(s => s.category_id === cat.id).map(s => s.name) })), projects: projects.map(p => ({ ...p, technologies: p.technologies ? JSON.parse(p.technologies) : [] })), sectionVisibility, sectionOrder: sectionOrderData, customSections: customSectionsData }); });
 
     app.post('/api/import', (req, res) => { const data = req.body; const importData = db.transaction(() => { if (data.profile) { const p = data.profile; db.prepare(`UPDATE profile SET name = ?, initials = ?, title = ?, subtitle = ?, bio = ?, location = ?, linkedin = ?, email = ?, phone = ?, languages = ? WHERE id = 1`).run(p.name, p.initials, p.title, p.subtitle, p.bio, p.location, p.linkedin, p.email, p.phone, p.languages); } if (data.experiences) { db.prepare('DELETE FROM experiences').run(); const stmt = db.prepare(`INSERT INTO experiences (job_title, company_name, start_date, end_date, location, country_code, highlights, sort_order, visible, logo_filename, logo_propagate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.experiences.forEach((e, idx) => { stmt.run(e.job_title, e.company_name, e.start_date, e.end_date, e.location, e.country_code || '', JSON.stringify(e.highlights || []), idx, e.visible != false ? 1 : 0, e.logo_filename || null, e.logo_propagate ? 1 : 0); }); } if (data.certifications) { db.prepare('DELETE FROM certifications').run(); const stmt = db.prepare(`INSERT INTO certifications (name, provider, issue_date, expiry_date, credential_id, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?)`); data.certifications.forEach((c, idx) => { stmt.run(c.name, c.provider, c.issue_date, c.expiry_date, c.credential_id, idx, c.visible != false ? 1 : 0); }); } if (data.education) { db.prepare('DELETE FROM education').run(); const stmt = db.prepare(`INSERT INTO education (degree_title, institution_name, start_date, end_date, description, sort_order, visible, logo_filename, logo_propagate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.education.forEach((e, idx) => { stmt.run(e.degree_title, e.institution_name, e.start_date, e.end_date, e.description, idx, e.visible != false ? 1 : 0, e.logo_filename || null, e.logo_propagate ? 1 : 0); }); } if (data.skills) { db.prepare('DELETE FROM skills').run(); db.prepare('DELETE FROM skill_categories').run(); const catStmt = db.prepare('INSERT INTO skill_categories (name, icon, sort_order, visible) VALUES (?, ?, ?, ?)'); const skillStmt = db.prepare('INSERT INTO skills (category_id, name, sort_order) VALUES (?, ?, ?)'); data.skills.forEach((cat, catIdx) => { const result = catStmt.run(cat.name, cat.icon || 'default', catIdx, cat.visible != false ? 1 : 0); const categoryId = result.lastInsertRowid; if (cat.skills) { cat.skills.forEach((skill, skillIdx) => { skillStmt.run(categoryId, skill, skillIdx); }); } }); } if (data.projects) { db.prepare('DELETE FROM projects').run(); const stmt = db.prepare(`INSERT INTO projects (title, description, technologies, link, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?)`); data.projects.forEach((p, idx) => { stmt.run(p.title, p.description, JSON.stringify(p.technologies || []), p.link, idx, p.visible != false ? 1 : 0); }); } if (data.customSections && Array.isArray(data.customSections)) { db.prepare('DELETE FROM custom_section_items').run(); db.prepare('DELETE FROM custom_sections').run(); db.prepare("DELETE FROM section_visibility WHERE section_name LIKE 'custom_%'").run(); const sectionStmt = db.prepare(`INSERT INTO custom_sections (name, section_key, layout_type, icon, sort_order, visible, metadata) VALUES (?, ?, ?, ?, ?, ?, ?)`); const itemStmt = db.prepare(`INSERT INTO custom_section_items (section_id, title, subtitle, description, link, icon, image, metadata, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`); data.customSections.forEach((s, idx) => { const sectionKey = s.section_key || `custom_${Date.now()}_${idx}`; const sectionMetadata = s.metadata ? (typeof s.metadata === 'string' ? s.metadata : JSON.stringify(s.metadata)) : null; const result = sectionStmt.run(s.name, sectionKey, s.layout_type || 'grid-3', s.icon || 'layers', s.sort_order !== undefined ? s.sort_order : idx, s.visible != false ? 1 : 0, sectionMetadata); const sectionId = result.lastInsertRowid; db.prepare('INSERT OR REPLACE INTO section_visibility (section_name, visible, sort_order, display_name) VALUES (?, ?, ?, ?)').run(sectionKey, s.visible != false ? 1 : 0, s.sort_order !== undefined ? s.sort_order : idx, s.display_name || null); if (s.items && Array.isArray(s.items)) { s.items.forEach((item, itemIdx) => { itemStmt.run(sectionId, item.title || null, item.subtitle || null, item.description || null, item.link || null, item.icon || null, item.image || null, item.metadata ? (typeof item.metadata === 'string' ? item.metadata : JSON.stringify(item.metadata)) : null, item.sort_order !== undefined ? item.sort_order : itemIdx, item.visible != false ? 1 : 0); }); } }); } if (data.sectionOrder && Array.isArray(data.sectionOrder)) { data.sectionOrder.forEach(s => { db.prepare('UPDATE section_visibility SET visible = ?, sort_order = ?, display_name = ? WHERE section_name = ?').run(s.visible != false ? 1 : 0, s.sort_order || 0, s.display_name || null, s.key); }); } }); try { importData(); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); } });
+
+    // Parse CV data from saved HTML page (app's own rendered CV format)
+    function parseHTMLCV(html) {
+        // Decode named and numeric HTML entities to their plain-text equivalents
+        function decodeEntities(str) {
+            return str
+                .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&');
+        }
+        // Strip HTML tags iteratively to handle obfuscated patterns like <scr<script>ipt>
+        function removeTags(str) {
+            let s = str, prev = '';
+            while (s !== prev) { prev = s; s = s.replace(/<[^>]*>/g, ''); }
+            return s;
+        }
+        function stripTags(str) {
+            return decodeEntities(removeTags(str).replace(/\s+/g, ' ').trim());
+        }
+        // Extract text content from element with a given id
+        function getById(id) {
+            const m = html.match(new RegExp(`id="${id}"[^>]*>([\\s\\S]*?)<\\/`, 'i'));
+            return m ? decodeEntities(removeTags(m[1]).trim()) : '';
+        }
+        // Find a container section by id and return only its inner HTML (depth-aware)
+        function getSectionHTML(id) {
+            const startIdx = html.indexOf(`id="${id}"`);
+            if (startIdx === -1) return '';
+            // Determine the tag name of the containing element
+            const tagStart = html.lastIndexOf('<', startIdx);
+            const tagNameM = html.substring(tagStart + 1).match(/^([a-zA-Z][a-zA-Z0-9]*)/);
+            const tagName = tagNameM ? tagNameM[1].toLowerCase() : 'div';
+            const tagEnd = html.indexOf('>', startIdx);
+            if (tagEnd === -1) return '';
+            // Walk forward tracking nesting depth to find the matching closing tag
+            let depth = 1, pos = tagEnd + 1;
+            const openTag = `<${tagName}`;
+            const closeTag = `</${tagName}>`;
+            while (depth > 0 && pos < html.length) {
+                const openIdx = html.indexOf(openTag, pos);
+                const closeIdx = html.indexOf(closeTag, pos);
+                if (closeIdx === -1) break;
+                if (openIdx !== -1 && openIdx < closeIdx) {
+                    const nextCh = html[openIdx + openTag.length];
+                    if (nextCh === '>' || nextCh === ' ' || nextCh === '\n' || nextCh === '\t' || nextCh === '\r') {
+                        depth++;
+                        pos = openIdx + openTag.length;
+                    } else {
+                        pos = openIdx + 1;
+                    }
+                } else {
+                    depth--;
+                    if (depth === 0) return html.substring(tagEnd + 1, closeIdx);
+                    pos = closeIdx + closeTag.length;
+                }
+            }
+            return html.substring(tagEnd + 1, Math.min(pos, tagEnd + 100000));
+        }
+        // Split a section's HTML into individual article/item chunks
+        function splitArticles(sectionHtml, marker) {
+            const parts = sectionHtml.split(new RegExp(`(?=<article[^>]*class="[^"]*${marker}[^"]*")`));
+            return parts.slice(1); // first part is before first article
+        }
+
+        // ── Profile ──────────────────────────────────────────────────────────
+        const profile = {
+            name: getById('profileName'),
+            title: getById('profileTitle'),
+            subtitle: getById('profileSubtitle'),
+            bio: getById('aboutText'),
+            location: '', linkedin: '', email: '', phone: '', languages: ''
+        };
+        // Contact badges – email / phone / location / linkedin / languages
+        const emailM = html.match(/href="mailto:([^"]+)"/i);
+        if (emailM) profile.email = decodeEntities(emailM[1]);
+        const phoneM = html.match(/href="tel:([^"]+)"/i);
+        if (phoneM) profile.phone = decodeEntities(phoneM[1]);
+        const badgesHTML = getSectionHTML('contactBadges');
+        const locM = badgesHTML.match(/itemprop="address"[^>]*>([\s\S]*?)<\/span>/i);
+        if (locM) profile.location = stripTags(locM[1]);
+        const liM = html.match(/href="(https?:\/\/[^"]*linkedin[^"]*)"/i);
+        if (liM) profile.linkedin = decodeEntities(liM[1]);
+        const langBadge = [...badgesHTML.matchAll(/<span[^>]*class="contact-badge"[^>]*>([\s\S]*?)<\/span>/gi)].pop();
+        if (langBadge) { const lText = stripTags(langBadge[1]); if (lText && lText.match(/^[\w\s,;]+$/)) profile.languages = lText; }
+
+        // ── Experiences ──────────────────────────────────────────────────────
+        const expSection = getSectionHTML('experienceList');
+        const experiences = splitArticles(expSection, 'item-card').map(chunk => {
+            const titleM = chunk.match(/<h3[^>]*class="item-title"[^>]*>([\s\S]*?)<\/h3>/i);
+            const compM = chunk.match(/class="item-subtitle"[\s\S]*?<span[^>]*>([\s\S]*?)<\/span>/i);
+            const startM = chunk.match(/itemprop="startDate"[^>]*datetime="([^"]*)"/i);
+            const endM = chunk.match(/itemprop="endDate"[^>]*datetime="([^"]*)"/i);
+            const locM2 = chunk.match(/class="item-location"[^>]*>([\s\S]*?)<\/div>/i);
+            const highlights = [...chunk.matchAll(/<li>([\s\S]*?)<\/li>/gi)].map(m => decodeEntities(removeTags(m[1]).trim())).filter(Boolean);
+            return {
+                job_title: titleM ? decodeEntities(removeTags(titleM[1]).trim()) : '',
+                company_name: compM ? decodeEntities(removeTags(compM[1]).trim()) : '',
+                start_date: startM ? startM[1] : '',
+                end_date: endM ? endM[1] : '',
+                location: locM2 ? stripTags(locM2[1]) : '',
+                highlights,
+                visible: true
+            };
+        }).filter(e => e.job_title || e.company_name);
+
+        // ── Certifications ────────────────────────────────────────────────────
+        const certSection = getSectionHTML('certGrid');
+        const certifications = splitArticles(certSection, 'cert-card').map(chunk => {
+            const nameM = chunk.match(/class="cert-name"[^>]*>([\s\S]*?)<\/div>/i);
+            const provM = chunk.match(/class="cert-provider"[^>]*>([\s\S]*?)<\/div>/i);
+            const dateM = chunk.match(/class="cert-date"[^>]*>([\s\S]*?)<\/time>/i) || chunk.match(/<time[^>]*>([\s\S]*?)<\/time>/i);
+            const dtM = chunk.match(/<time[^>]*datetime="([^"]*)"/i);
+            return {
+                name: nameM ? stripTags(nameM[1]) : '',
+                provider: provM ? stripTags(provM[1]) : '',
+                issue_date: dtM ? dtM[1] : (dateM ? stripTags(dateM[1]) : ''),
+                expiry_date: '',
+                visible: true
+            };
+        }).filter(c => c.name);
+
+        // ── Education ─────────────────────────────────────────────────────────
+        const eduSection = getSectionHTML('educationList');
+        const education = splitArticles(eduSection, 'item-card').map(chunk => {
+            const titleM = chunk.match(/<h3[^>]*class="item-title"[^>]*>([\s\S]*?)<\/h3>/i);
+            const instM = chunk.match(/class="item-subtitle"[\s\S]*?<span[^>]*>([\s\S]*?)<\/span>/i);
+            const times = [...chunk.matchAll(/<time[^>]*datetime="([^"]*)"/gi)];
+            const descM = chunk.match(/class="item-location"[^>]*>([\s\S]*?)<\/div>/i);
+            return {
+                degree_title: titleM ? decodeEntities(removeTags(titleM[1]).trim()) : '',
+                institution_name: instM ? decodeEntities(removeTags(instM[1]).trim()) : '',
+                start_date: times[0] ? times[0][1] : '',
+                end_date: times[1] ? times[1][1] : '',
+                description: descM ? stripTags(descM[1]) : '',
+                visible: true
+            };
+        }).filter(e => e.degree_title || e.institution_name);
+
+        // ── Skills ────────────────────────────────────────────────────────────
+        const skillSection = getSectionHTML('skillsGrid');
+        const skills = [...skillSection.matchAll(/<div[^>]*class="[^"]*skill-category[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi)].map(catChunk => {
+            const catHtml = catChunk[1];
+            const catNameM = catHtml.match(/class="skill-category-title"[^>]*>([\s\S]*?)<\/div>/i);
+            const catName = catNameM ? stripTags(catNameM[1]) : '';
+            const skillNames = [...catHtml.matchAll(/class="skill-tag"[^>]*>([\s\S]*?)<\/span>/gi)].map(m => decodeEntities(removeTags(m[1]).trim())).filter(Boolean);
+            return { name: catName, icon: 'default', skills: skillNames };
+        }).filter(c => c.name && c.skills.length > 0);
+
+        // ── Projects ──────────────────────────────────────────────────────────
+        const projSection = getSectionHTML('projectsGrid');
+        const projects = splitArticles(projSection, 'project-card').map(chunk => {
+            const titleM = chunk.match(/<h3[^>]*class="project-title"[^>]*>([\s\S]*?)<\/h3>/i);
+            const descM = chunk.match(/class="project-description"[^>]*>([\s\S]*?)<\/p>/i);
+            const linkM = chunk.match(/class="project-link"[^>]*href="([^"]*)"/i) || chunk.match(/href="([^"]*)"[^>]*class="project-link"/i);
+            const techs = [...chunk.matchAll(/class="tech-tag"[^>]*>([\s\S]*?)<\/span>/gi)].map(m => decodeEntities(removeTags(m[1]).trim())).filter(Boolean);
+            return {
+                title: titleM ? decodeEntities(removeTags(titleM[1]).trim()) : '',
+                description: descM ? decodeEntities(removeTags(descM[1]).trim()) : '',
+                link: linkM ? decodeEntities(linkM[1]) : '',
+                technologies: techs,
+                visible: true
+            };
+        }).filter(p => p.title);
+
+        return { profile, experiences, certifications, education, skills, projects };
+    }
+
+    // HTML/HTM file import endpoint — parses the app's own saved CV HTML format
+    const htmlImportStorage = multer.memoryStorage();
+    const htmlImportUpload = multer({
+        storage: htmlImportStorage,
+        limits: { fileSize: 10 * 1024 * 1024 },
+        fileFilter: (req, file, cb) => {
+            const allowed = ['text/html', 'application/xhtml+xml', 'text/htm'];
+            const ext = (file.originalname || '').toLowerCase();
+            if (allowed.includes(file.mimetype) || ext.endsWith('.html') || ext.endsWith('.htm')) {
+                cb(null, true);
+            } else {
+                cb(null, false);
+            }
+        }
+    });
+
+    app.post('/api/import-html', uploadRateLimiter, htmlImportUpload.single('file'), (req, res) => {
+        if (!req.file) return res.status(400).json({ error: 'No HTML file uploaded. Please select a .html or .htm file.' });
+        try {
+            const html = req.file.buffer.toString('utf8');
+            if (!html.includes('<!DOCTYPE') && !html.includes('<html') && !html.includes('<body')) {
+                return res.status(400).json({ error: 'The uploaded file does not appear to be a valid HTML document.' });
+            }
+            const data = parseHTMLCV(html);
+            // Require at least a name or some content to confirm this is a CV page
+            const hasContent = data.profile.name || data.experiences.length > 0 || data.education.length > 0 || data.skills.length > 0;
+            if (!hasContent) {
+                return res.status(400).json({ error: 'Could not extract CV data from the HTML file. Make sure you are uploading a saved CV page from this application.' });
+            }
+            // Re-use the existing import transaction
+            const importData = db.transaction(() => {
+                const p = data.profile;
+                db.prepare(`UPDATE profile SET name = ?, title = ?, subtitle = ?, bio = ?, location = ?, linkedin = ?, email = ?, phone = ? WHERE id = 1`).run(p.name, p.title, p.subtitle, p.bio, p.location, p.linkedin, p.email, p.phone);
+                if (data.experiences.length > 0) {
+                    db.prepare('DELETE FROM experiences').run();
+                    const stmt = db.prepare(`INSERT INTO experiences (job_title, company_name, start_date, end_date, location, highlights, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+                    data.experiences.forEach((e, idx) => stmt.run(e.job_title, e.company_name, e.start_date, e.end_date, e.location, JSON.stringify(e.highlights || []), idx, 1));
+                }
+                if (data.certifications.length > 0) {
+                    db.prepare('DELETE FROM certifications').run();
+                    const stmt = db.prepare(`INSERT INTO certifications (name, provider, issue_date, expiry_date, credential_id, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+                    data.certifications.forEach((c, idx) => stmt.run(c.name, c.provider, c.issue_date, c.expiry_date, null, idx, 1));
+                }
+                if (data.education.length > 0) {
+                    db.prepare('DELETE FROM education').run();
+                    const stmt = db.prepare(`INSERT INTO education (degree_title, institution_name, start_date, end_date, description, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+                    data.education.forEach((e, idx) => stmt.run(e.degree_title, e.institution_name, e.start_date, e.end_date, e.description, idx, 1));
+                }
+                if (data.skills.length > 0) {
+                    db.prepare('DELETE FROM skills').run();
+                    db.prepare('DELETE FROM skill_categories').run();
+                    const catStmt = db.prepare('INSERT INTO skill_categories (name, icon, sort_order, visible) VALUES (?, ?, ?, ?)');
+                    const skillStmt = db.prepare('INSERT INTO skills (category_id, name, sort_order) VALUES (?, ?, ?)');
+                    data.skills.forEach((cat, catIdx) => {
+                        const result = catStmt.run(cat.name, cat.icon || 'default', catIdx, 1);
+                        (cat.skills || []).forEach((s, si) => skillStmt.run(result.lastInsertRowid, s, si));
+                    });
+                }
+                if (data.projects.length > 0) {
+                    db.prepare('DELETE FROM projects').run();
+                    const stmt = db.prepare(`INSERT INTO projects (title, description, technologies, link, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?)`);
+                    data.projects.forEach((p, idx) => stmt.run(p.title, p.description, JSON.stringify(p.technologies || []), p.link, idx, 1));
+                }
+            });
+            importData();
+            res.json({ success: true, imported: { profile: !!data.profile.name, experiences: data.experiences.length, certifications: data.certifications.length, education: data.education.length, skills: data.skills.length, projects: data.projects.length } });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Parse LinkedIn data export ZIP containing CSV files
+    function parseLinkedInZip(zipBuffer) {
+        // Minimal RFC 4180-compliant CSV parser that handles quoted fields and embedded newlines
+        function parseCSV(text) {
+            const rows = [];
+            let col = 0, inQuote = false, field = '', row = [];
+            // Normalize line endings
+            const t = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            for (let i = 0; i < t.length; i++) {
+                const ch = t[i];
+                if (inQuote) {
+                    if (ch === '"') {
+                        if (t[i + 1] === '"') { field += '"'; i++; } // escaped quote
+                        else { inQuote = false; }
+                    } else { field += ch; }
+                } else if (ch === '"') {
+                    inQuote = true;
+                } else if (ch === ',') {
+                    row.push(field); field = ''; col++;
+                } else if (ch === '\n') {
+                    row.push(field); rows.push(row); row = []; field = ''; col = 0;
+                } else {
+                    field += ch;
+                }
+            }
+            if (field || row.length) { row.push(field); rows.push(row); }
+            return rows;
+        }
+        function csvToObjects(text) {
+            const rows = parseCSV(text).filter(r => r.some(c => c.trim()));
+            if (rows.length < 2) return [];
+            const headers = rows[0].map(h => h.trim());
+            return rows.slice(1).map(r => {
+                const obj = {};
+                headers.forEach((h, i) => { obj[h] = (r[i] || '').trim(); });
+                return obj;
+            });
+        }
+        // Convert "Jan 2020" or "2020" to "YYYY-MM" or "YYYY"
+        function linkedInDate(str) {
+            if (!str || str.toLowerCase() === 'present') return '';
+            const months = { jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12' };
+            const m = str.trim().match(/^([A-Za-z]+)\s+(\d{4})$/);
+            if (m) { const mo = months[m[1].toLowerCase().slice(0,3)]; return mo ? `${m[2]}-${mo}` : m[2]; }
+            const y = str.trim().match(/^(\d{4})$/);
+            if (y) return y[1];
+            return str.trim();
+        }
+
+        const zip = new AdmZip(zipBuffer);
+        const entries = {};
+        zip.getEntries().forEach(e => {
+            const name = e.entryName.split('/').pop().toLowerCase();
+            entries[name] = e.getData().toString('utf8');
+        });
+
+        const result = {};
+
+        // Profile
+        const profileRows = csvToObjects(entries['profile.csv'] || '');
+        if (profileRows.length > 0) {
+            const p = profileRows[0];
+            result.profile = {
+                name: [p['First Name'], p['Last Name']].filter(Boolean).join(' '),
+                title: p['Headline'] || '',
+                subtitle: '',
+                bio: p['Summary'] || '',
+                location: p['Geo Location'] || p['Address'] || '',
+                linkedin: '',
+                email: '',
+                phone: '',
+                languages: ''
+            };
+        }
+
+        // Experiences (Positions.csv)
+        const posRows = csvToObjects(entries['positions.csv'] || '');
+        result.experiences = posRows.map((p, idx) => ({
+            job_title: p['Title'] || '',
+            company_name: p['Company Name'] || '',
+            start_date: linkedInDate(p['Started On']),
+            end_date: linkedInDate(p['Finished On']),
+            location: p['Location'] || '',
+            highlights: p['Description'] ? p['Description'].split('\n').map(l => l.trim()).filter(Boolean) : [],
+            sort_order: idx,
+            visible: true
+        })).filter(e => e.job_title || e.company_name);
+
+        // Education
+        const eduRows = csvToObjects(entries['education.csv'] || '');
+        result.education = eduRows.map((e, idx) => ({
+            degree_title: e['Degree Name'] || e['Notes'] || '',
+            institution_name: e['School Name'] || '',
+            start_date: linkedInDate(e['Start Date']),
+            end_date: linkedInDate(e['End Date']),
+            description: [e['Notes'], e['Activities']].filter(Boolean).join('; '),
+            sort_order: idx,
+            visible: true
+        })).filter(e => e.institution_name);
+
+        // Skills — LinkedIn exports each skill as its own row; group them all into one category
+        const skillRows = csvToObjects(entries['skills.csv'] || '');
+        const skillNames = skillRows.map(r => r['Name'] || Object.values(r)[0] || '').filter(Boolean);
+        if (skillNames.length > 0) {
+            result.skills = [{ name: 'Skills', icon: 'default', skills: skillNames }];
+        } else {
+            result.skills = [];
+        }
+
+        // Certifications
+        const certRows = csvToObjects(entries['certifications.csv'] || '');
+        result.certifications = certRows.map((c, idx) => ({
+            name: c['Name'] || '',
+            provider: c['Authority'] || '',
+            issue_date: linkedInDate(c['Started On']),
+            expiry_date: linkedInDate(c['Finished On']),
+            credential_id: c['License Number'] || '',
+            sort_order: idx,
+            visible: true
+        })).filter(c => c.name);
+
+        // Projects
+        const projRows = csvToObjects(entries['projects.csv'] || '');
+        result.projects = projRows.map((p, idx) => ({
+            title: p['Title'] || '',
+            description: p['Description'] || '',
+            link: p['Url'] || '',
+            technologies: [],
+            sort_order: idx,
+            visible: true
+        })).filter(p => p.title);
+
+        return result;
+    }
+
+    // LinkedIn data export ZIP upload endpoint
+    const linkedInImportStorage = multer.memoryStorage();
+    const linkedInImportUpload = multer({
+        storage: linkedInImportStorage,
+        limits: { fileSize: 50 * 1024 * 1024 },
+        fileFilter: (req, file, cb) => {
+            const ext = (file.originalname || '').toLowerCase();
+            if (file.mimetype === 'application/zip' || file.mimetype === 'application/x-zip-compressed' || ext.endsWith('.zip')) {
+                cb(null, true);
+            } else {
+                cb(null, false);
+            }
+        }
+    });
+
+    app.post('/api/import-linkedin', uploadRateLimiter, linkedInImportUpload.single('file'), (req, res) => {
+        if (!req.file) return res.status(400).json({ error: 'No ZIP file uploaded. Please select your LinkedIn data export .zip file.' });
+        try {
+            const data = parseLinkedInZip(req.file.buffer);
+            const hasContent = (data.profile && data.profile.name) || (data.experiences && data.experiences.length > 0) || (data.education && data.education.length > 0) || (data.skills && data.skills.length > 0);
+            if (!hasContent) {
+                return res.status(400).json({ error: 'Could not find LinkedIn CV data in this ZIP. Make sure you are uploading the LinkedIn data export containing Profile.csv, Positions.csv, Education.csv, Skills.csv, Certifications.csv, and/or Projects.csv.' });
+            }
+            const importData = db.transaction(() => {
+                if (data.profile) {
+                    const p = data.profile;
+                    db.prepare(`UPDATE profile SET name = ?, title = ?, subtitle = ?, bio = ?, location = ?, linkedin = ?, email = ?, phone = ? WHERE id = 1`).run(p.name, p.title, p.subtitle, p.bio, p.location, p.linkedin, p.email, p.phone);
+                }
+                if (data.experiences && data.experiences.length > 0) {
+                    db.prepare('DELETE FROM experiences').run();
+                    const stmt = db.prepare(`INSERT INTO experiences (job_title, company_name, start_date, end_date, location, highlights, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+                    data.experiences.forEach((e, idx) => stmt.run(e.job_title, e.company_name, e.start_date, e.end_date, e.location, JSON.stringify(e.highlights || []), idx, 1));
+                }
+                if (data.education && data.education.length > 0) {
+                    db.prepare('DELETE FROM education').run();
+                    const stmt = db.prepare(`INSERT INTO education (degree_title, institution_name, start_date, end_date, description, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+                    data.education.forEach((e, idx) => stmt.run(e.degree_title, e.institution_name, e.start_date, e.end_date, e.description, idx, 1));
+                }
+                if (data.skills && data.skills.length > 0) {
+                    db.prepare('DELETE FROM skills').run();
+                    db.prepare('DELETE FROM skill_categories').run();
+                    const catStmt = db.prepare('INSERT INTO skill_categories (name, icon, sort_order, visible) VALUES (?, ?, ?, ?)');
+                    const skillStmt = db.prepare('INSERT INTO skills (category_id, name, sort_order) VALUES (?, ?, ?)');
+                    data.skills.forEach((cat, catIdx) => {
+                        const result = catStmt.run(cat.name, cat.icon || 'default', catIdx, 1);
+                        (cat.skills || []).forEach((s, si) => skillStmt.run(result.lastInsertRowid, s, si));
+                    });
+                }
+                if (data.certifications && data.certifications.length > 0) {
+                    db.prepare('DELETE FROM certifications').run();
+                    const stmt = db.prepare(`INSERT INTO certifications (name, provider, issue_date, expiry_date, credential_id, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+                    data.certifications.forEach((c, idx) => stmt.run(c.name, c.provider, c.issue_date, c.expiry_date, c.credential_id || null, idx, 1));
+                }
+                if (data.projects && data.projects.length > 0) {
+                    db.prepare('DELETE FROM projects').run();
+                    const stmt = db.prepare(`INSERT INTO projects (title, description, technologies, link, sort_order, visible) VALUES (?, ?, ?, ?, ?, ?)`);
+                    data.projects.forEach((p, idx) => stmt.run(p.title, p.description, JSON.stringify(p.technologies || []), p.link, idx, 1));
+                }
+            });
+            importData();
+            res.json({ success: true, imported: { profile: !!(data.profile && data.profile.name), experiences: (data.experiences || []).length, education: (data.education || []).length, skills: (data.skills || []).reduce((a, c) => a + c.skills.length, 0), certifications: (data.certifications || []).length, projects: (data.projects || []).length } });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
 
     // ── Website Manager API routes ──────────────────────────────────────────
 

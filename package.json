@@ -1,6 +1,6 @@
 {
   "name": "site-manager",
-  "version": "1.14.3",
+  "version": "1.15.0",
   "description": "Professional CV Management System",
   "main": "src/server.js",
   "scripts": {
@@ -11,6 +11,7 @@
     "test:backend": "node --test tests/backend.test.js"
   },
   "dependencies": {
+    "adm-zip": "^0.5.16",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
     "cookie-parser": "^1.4.7",
