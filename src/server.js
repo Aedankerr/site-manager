@@ -1020,7 +1020,11 @@ if (PUBLIC_ONLY) {
     publicApp.get('/favicon.ico', (req, res) => res.sendFile(publicIconPathA));
     publicApp.get('/favicon.png', (req, res) => res.sendFile(publicIconPathA));
     publicApp.get('/apple-touch-icon.png', (req, res) => res.sendFile(publicIconPathA));
-    publicApp.get('/', (req, res) => { servePublicIndex(req, res); });
+    // Serve site.html for all public page routes (SPA handles routing client-side)
+    const sitePathA = path.join(__dirname, '../public-readonly/site.html');
+    ['/site', '/site/', '/', '/projects', '/cv', '/contacts'].forEach(route => {
+        publicApp.get(route, (req, res) => res.sendFile(sitePathA));
+    });
     publicApp.use(express.static(path.join(__dirname, '../public-readonly'), { index: false }));
     publicApp.use('/uploads', express.static(uploadsPath));
 
@@ -1093,7 +1097,23 @@ if (PUBLIC_ONLY) {
     publicApp.get('/v/:slug', (req, res) => { serveDatasetPage(req, res); });
     publicApp.get('/api/datasets/slug/:slug', (req, res) => { serveDatasetData(req, res); });
 
-    publicApp.get('*', (req, res) => { servePublicIndex(req, res); });
+    // Public read-only pages & blocks routes (used by site.html SPA)
+    publicApp.get('/api/pages', (req, res) => {
+        try {
+            res.json(db.prepare('SELECT slug, title, description, sort_order FROM pages WHERE visible = 1 ORDER BY sort_order ASC').all());
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+    publicApp.get('/api/pages/:slug/blocks', (req, res) => {
+        try {
+            const page = db.prepare('SELECT slug FROM pages WHERE slug = ? AND visible = 1').get(req.params.slug);
+            if (!page) return res.status(404).json({ error: 'Page not found' });
+            const blocks = db.prepare('SELECT id, type, content, sort_order FROM blocks WHERE page_slug = ? AND enabled = 1 ORDER BY sort_order ASC').all(req.params.slug);
+            res.json(blocks.map(b => ({ ...b, content: b.content ? JSON.parse(b.content) : {} })));
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+    publicApp.get('/api/site', (req, res) => { try { const rows = db.prepare('SELECT key, value FROM site_settings').all(); const result = {}; rows.forEach(r => { result[r.key] = r.value; }); res.json(result); } catch (err) { res.status(500).json({ error: err.message }); } });
+
+    publicApp.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../public-readonly/site.html')); });
     publicApp.listen(PUBLIC_PORT, '0.0.0.0', () => { console.log(`CV Manager (Public Read-Only) running at http://localhost:${PUBLIC_PORT}`); });
 
 } else {
@@ -2223,7 +2243,7 @@ if (PUBLIC_ONLY) {
     publicApp.get('/favicon.ico', (req, res) => res.sendFile(publicIconPathB));
     publicApp.get('/favicon.png', (req, res) => res.sendFile(publicIconPathB));
     publicApp.get('/apple-touch-icon.png', (req, res) => res.sendFile(publicIconPathB));
-    publicApp.get('/', (req, res) => { servePublicIndex(req, res); });
+    publicApp.get('/', (req, res) => res.sendFile(path.join(__dirname, '../public-readonly/site.html')));
     publicApp.use(express.static(path.join(__dirname, '../public-readonly'), { index: false }));
     publicApp.use('/uploads', express.static(uploadsPath));
     publicApp.get('/api/profile', (req, res) => { res.json(db.prepare('SELECT name, initials, title, subtitle, bio, location, linkedin, languages, profile_picture_enabled, picture_filename, open_to_work FROM profile WHERE id = 1').get() || {}); });
@@ -2305,11 +2325,11 @@ if (PUBLIC_ONLY) {
 
     // Public website pages (site.html SPA handles routing client-side)
     const sitePagesPath = path.join(__dirname, '../public-readonly/site.html');
-    ['/site', '/site/', '/site/projects', '/site/cv', '/site/contacts'].forEach(route => {
+    ['/site', '/site/', '/site/projects', '/site/cv', '/site/contacts', '/projects', '/cv', '/contacts'].forEach(route => {
         publicApp.get(route, (req, res) => res.sendFile(sitePagesPath));
     });
 
-    publicApp.get('*', (req, res) => { servePublicIndex(req, res); });
+    publicApp.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../public-readonly/site.html')); });
 
     app.listen(PORT, '0.0.0.0', () => { console.log(`CV Manager v${CURRENT_VERSION} (Admin) running at http://localhost:${PORT}`); });
     publicApp.listen(PUBLIC_PORT, '0.0.0.0', () => { console.log(`CV Manager (Public Read-Only) running at http://localhost:${PUBLIC_PORT}`); });

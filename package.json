@@ -1,6 +1,6 @@
 {
   "name": "site-manager",
-  "version": "1.14.2",
+  "version": "1.14.3",
   "description": "Professional CV Management System",
   "main": "src/server.js",
   "scripts": {

@@ -4,6 +4,13 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.14.3] - 2026-03-08
+
+### Fixed
+- Public read-only site now serves the Site Manager page-based UI (`site.html`) at the root URL instead of the old CV template, so changes made in the admin page editor are immediately reflected on the public site
+- Added `/projects`, `/cv`, `/contacts` routes to the public server so the SPA handles page refreshes correctly at these URLs
+- Added `/api/pages`, `/api/pages/:slug/blocks`, and `/api/site` endpoints to the public-only mode so the public site can fetch pages and blocks in that mode
+
 ## [1.14.2] - 2026-03-07
 
 ### Changed
