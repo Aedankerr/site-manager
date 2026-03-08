@@ -4,6 +4,12 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.16.0] - 2026-03-08
+
+### Added
+- JSON file import: upload a `.json` CV file directly from Settings → CV Data. Works with both the current site-manager format and the older cv-manager export format.
+- `normalizeCVImportData` helper that automatically converts old cv-manager JSON (flat `sectionVisibility` object, legacy `"Mon YYYY"` date strings) to the current format, so existing exports continue to import correctly.
+
 ## [1.15.1] - 2026-03-08
 
 ### Fixed
