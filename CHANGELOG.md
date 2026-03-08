@@ -4,6 +4,13 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.15.0] - 2026-03-08
+
+### Added
+- **CV Import from HTML**: Upload a saved `.html`/`.htm` copy of your CV page to restore all CV data (profile, experience, education, skills, certifications, projects). Accessible from Settings → CV Data in the admin panel. Parses the app's own rendered CV HTML format using element IDs and semantic markup.
+- **CV Import from LinkedIn**: Upload your LinkedIn data export `.zip` file to populate your CV directly from LinkedIn. Parses `Profile.csv`, `Positions.csv`, `Education.csv`, `Skills.csv`, `Certifications.csv`, and `Projects.csv`. Access via Settings → CV Data → Import from LinkedIn. Supports LinkedIn's date format (`Jan 2020`, `Present`) and quoted CSV fields.
+- New admin API endpoints: `POST /api/import-html` and `POST /api/import-linkedin`
+
 ## [1.14.3] - 2026-03-08
 
 ### Fixed
