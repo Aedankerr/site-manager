@@ -364,7 +364,7 @@
         <!-- CV Data Import -->
         <div class="mt-8 mb-6">
           <h2 class="text-lg font-semibold">CV Data</h2>
-          <p class="text-sm text-slate-500 mt-0.5">Import CV data from an HTML page or your LinkedIn export</p>
+          <p class="text-sm text-slate-500 mt-0.5">Import CV data from a JSON file, an HTML page, or your LinkedIn export</p>
         </div>
         <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
           <div class="p-5">
@@ -374,6 +374,15 @@
             <button onclick="document.getElementById('cvHtmlFileInput').click()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
               Upload HTML File
+            </button>
+          </div>
+          <div class="p-5">
+            <label class="block text-sm font-medium mb-1">Import from JSON</label>
+            <p class="text-xs text-slate-500 mb-3">Upload a CV JSON file previously exported from this app or the older cv-manager. Imports profile, experience, education, skills, certifications and projects. This will overwrite existing CV entries.</p>
+            <input type="file" id="cvJsonFileInput" accept=".json,application/json" class="hidden" onchange="importCVFromJSON(this)">
+            <button onclick="document.getElementById('cvJsonFileInput').click()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+              Upload JSON File
             </button>
           </div>
           <div class="p-5">
@@ -1419,6 +1428,29 @@ async function importCVFromLinkedIn(input) {
       if (data.imported.projects) parts.push(`${data.imported.projects} project(s)`);
     }
     toast('LinkedIn data imported' + (parts.length ? ': ' + parts.join(', ') : ''));
+  } catch (err) { toast('Import failed: ' + err.message, 'error'); }
+}
+
+
+async function importCVFromJSON(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  input.value = '';
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const res = await fetch('/api/import-json', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || 'Import failed', 'error'); return; }
+    const parts = [];
+    if (data.imported) {
+      if (data.imported.experiences) parts.push(`${data.imported.experiences} experience(s)`);
+      if (data.imported.education) parts.push(`${data.imported.education} education`);
+      if (data.imported.skills) parts.push(`${data.imported.skills} skill category(s)`);
+      if (data.imported.certifications) parts.push(`${data.imported.certifications} certification(s)`);
+      if (data.imported.projects) parts.push(`${data.imported.projects} project(s)`);
+    }
+    toast('CV imported from JSON' + (parts.length ? ': ' + parts.join(', ') : ''));
   } catch (err) { toast('Import failed: ' + err.message, 'error'); }
 }
 
