@@ -1,6 +1,6 @@
 # Site Manager
 [![CI](https://github.com/Aedankerr/site-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Aedankerr/site-manager/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20NC-blue.svg)](LICENSE.txt)
 
 This is a CV / Resume management system with an editable theme, persistent database storage, and Docker deployment ready for Unraid.  
 
@@ -269,4 +269,4 @@ npm start
 
 ## License
 
-MIT
+PolyForm Noncommercial 1.0.0 — free for personal and non-commercial use. Commercial use is not permitted. See [LICENSE.txt](LICENSE.txt) for details.
