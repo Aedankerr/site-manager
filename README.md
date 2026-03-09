@@ -4,7 +4,7 @@
 
 This is a CV / Resume management system with an editable theme, persistent database storage, and Docker deployment ready for Unraid.  
 
-THIS IS A NEW PROJECT NOW test
+THIS IS A NEW PROJECT NOW 2
 
 <img width="600"  alt="cv1" src="https://github.com/user-attachments/assets/6e20de1e-2001-4097-9844-2aeb611bc53e" />  
 
