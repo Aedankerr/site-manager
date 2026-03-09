@@ -4,6 +4,11 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.16.3] - 2026-03-08
+
+### Changed
+- License updated from MIT to PolyForm Noncommercial 1.0.0. Commercial use is no longer permitted.
+
 ## [1.16.2] - 2026-03-08
 
 ### Fixed
