@@ -496,6 +496,29 @@ if (!PUBLIC_ONLY) {
             last_checked DATETIME,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS managed_sites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            slug TEXT NOT NULL UNIQUE,
+            description TEXT,
+            type TEXT NOT NULL DEFAULT 'custom',
+            visibility TEXT NOT NULL DEFAULT 'private',
+            status TEXT NOT NULL DEFAULT 'draft',
+            custom_domain TEXT,
+            public_url TEXT,
+            favicon TEXT,
+            monitoring_enabled INTEGER DEFAULT 0,
+            monitoring_url TEXT,
+            monitoring_interval INTEGER DEFAULT 60,
+            monitoring_ssl_check INTEGER DEFAULT 1,
+            monitoring_status TEXT DEFAULT 'unknown',
+            monitoring_last_checked DATETIME,
+            monitoring_response_time INTEGER,
+            kuma_monitor_id INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     `);
 
     // Step 2: Migration - add sort_order column if missing
@@ -2658,7 +2681,7 @@ if (PUBLIC_ONLY) {
         else { managerApiRateLimit[ip].count++; if (managerApiRateLimit[ip].count > 300) return res.status(429).json({ error: 'Too many requests' }); }
         next();
     }
-    app.use(['/auth/me', '/auth/login', '/auth/logout', '/api/site', '/api/custom-css', '/api/pages', '/api/blocks', '/api/uploads', '/api/media', '/api/uptime', '/manager'], managerApiRateLimiter);
+    app.use(['/auth/me', '/auth/login', '/auth/logout', '/api/site', '/api/custom-css', '/api/pages', '/api/blocks', '/api/uploads', '/api/media', '/api/uptime', '/api/managed-sites', '/manager'], managerApiRateLimiter);
 
     // Auth JSON endpoints (used by manager UI)
     app.get('/auth/me', (req, res) => {
@@ -2938,6 +2961,159 @@ if (PUBLIC_ONLY) {
     // Serve manager UI (must be before catch-all)
     app.get('/manager', (req, res) => res.sendFile(path.join(__dirname, '../public/manager/index.html')));
     app.get('/manager/', (req, res) => res.sendFile(path.join(__dirname, '../public/manager/index.html')));
+
+    // ── Managed Sites API routes ─────────────────────────────────────────────
+
+    const VALID_SITE_TYPES = ['cv', 'portfolio', 'landing-page', 'static-site', 'custom'];
+    const VALID_SITE_VISIBILITY = ['private', 'preview', 'public'];
+    const VALID_SITE_STATUS = ['draft', 'published', 'archived'];
+
+    function slugifySite(name) {
+        return name.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'site';
+    }
+
+    function normaliseSite(row) {
+        return {
+            ...row,
+            monitoring_enabled: !!row.monitoring_enabled,
+            monitoring_ssl_check: !!row.monitoring_ssl_check,
+        };
+    }
+
+    app.get('/api/managed-sites', managerApiRateLimiter, requireAuth, (req, res) => {
+        try {
+            const rows = db.prepare('SELECT * FROM managed_sites ORDER BY created_at ASC').all();
+            res.json(rows.map(normaliseSite));
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.get('/api/managed-sites/:id', managerApiRateLimiter, requireAuth, (req, res) => {
+        try {
+            const site = db.prepare('SELECT * FROM managed_sites WHERE id = ?').get(req.params.id);
+            if (!site) return res.status(404).json({ error: 'Site not found' });
+            res.json(normaliseSite(site));
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.post('/api/managed-sites', managerApiRateLimiter, requireAuth, (req, res) => {
+        try {
+            const { name, slug: rawSlug, description, type, visibility, status, custom_domain, public_url } = req.body;
+            if (!name) return res.status(400).json({ error: 'name is required' });
+            const slug = rawSlug ? slugifySite(String(rawSlug)) : slugifySite(name);
+            if (!slug) return res.status(400).json({ error: 'Invalid slug' });
+            if (type && !VALID_SITE_TYPES.includes(type)) return res.status(400).json({ error: `Invalid type. Must be one of: ${VALID_SITE_TYPES.join(', ')}` });
+            if (visibility && !VALID_SITE_VISIBILITY.includes(visibility)) return res.status(400).json({ error: `Invalid visibility. Must be one of: ${VALID_SITE_VISIBILITY.join(', ')}` });
+            if (status && !VALID_SITE_STATUS.includes(status)) return res.status(400).json({ error: `Invalid status. Must be one of: ${VALID_SITE_STATUS.join(', ')}` });
+            const result = db.prepare(
+                `INSERT INTO managed_sites (name, slug, description, type, visibility, status, custom_domain, public_url)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+            ).run(name, slug, description || null, type || 'custom', visibility || 'private', status || 'draft', custom_domain || null, public_url || null);
+            res.json({ id: result.lastInsertRowid, slug });
+        } catch (err) {
+            if (err.message.includes('UNIQUE')) return res.status(409).json({ error: 'A site with that slug already exists' });
+            res.status(500).json({ error: err.message });
+        }
+    });
+
+    app.put('/api/managed-sites/:id', managerApiRateLimiter, requireAuth, (req, res) => {
+        try {
+            const site = db.prepare('SELECT id FROM managed_sites WHERE id = ?').get(req.params.id);
+            if (!site) return res.status(404).json({ error: 'Site not found' });
+            const { name, description, type, visibility, status, custom_domain, public_url,
+                    monitoring_enabled, monitoring_url, monitoring_interval, monitoring_ssl_check } = req.body;
+            if (type && !VALID_SITE_TYPES.includes(type)) return res.status(400).json({ error: `Invalid type` });
+            if (visibility && !VALID_SITE_VISIBILITY.includes(visibility)) return res.status(400).json({ error: `Invalid visibility` });
+            if (status && !VALID_SITE_STATUS.includes(status)) return res.status(400).json({ error: `Invalid status` });
+            db.prepare(
+                `UPDATE managed_sites SET
+                    name = COALESCE(?, name),
+                    description = COALESCE(?, description),
+                    type = COALESCE(?, type),
+                    visibility = COALESCE(?, visibility),
+                    status = COALESCE(?, status),
+                    custom_domain = COALESCE(?, custom_domain),
+                    public_url = COALESCE(?, public_url),
+                    monitoring_enabled = COALESCE(?, monitoring_enabled),
+                    monitoring_url = COALESCE(?, monitoring_url),
+                    monitoring_interval = COALESCE(?, monitoring_interval),
+                    monitoring_ssl_check = COALESCE(?, monitoring_ssl_check),
+                    updated_at = CURRENT_TIMESTAMP
+                 WHERE id = ?`
+            ).run(
+                name || null, description || null, type || null, visibility || null, status || null,
+                custom_domain || null, public_url || null,
+                monitoring_enabled !== undefined ? (monitoring_enabled ? 1 : 0) : null,
+                monitoring_url || null,
+                monitoring_interval || null,
+                monitoring_ssl_check !== undefined ? (monitoring_ssl_check ? 1 : 0) : null,
+                req.params.id
+            );
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.delete('/api/managed-sites/:id', managerApiRateLimiter, requireAuth, (req, res) => {
+        try {
+            const site = db.prepare('SELECT id FROM managed_sites WHERE id = ?').get(req.params.id);
+            if (!site) return res.status(404).json({ error: 'Site not found' });
+            db.prepare('DELETE FROM managed_sites WHERE id = ?').run(req.params.id);
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.post('/api/managed-sites/:id/duplicate', managerApiRateLimiter, requireAuth, (req, res) => {
+        try {
+            const site = db.prepare('SELECT * FROM managed_sites WHERE id = ?').get(req.params.id);
+            if (!site) return res.status(404).json({ error: 'Site not found' });
+            const newName = `${site.name} (Copy)`;
+            const baseSlug = `${site.slug}-copy`;
+            let slug = baseSlug;
+            let counter = 2;
+            while (db.prepare('SELECT id FROM managed_sites WHERE slug = ?').get(slug)) {
+                slug = `${baseSlug}-${counter++}`;
+            }
+            // Duplicated sites always start as private drafts for safety — avoids accidentally publishing a copy.
+            const result = db.prepare(
+                `INSERT INTO managed_sites (name, slug, description, type, visibility, status, custom_domain, public_url)
+                 VALUES (?, ?, ?, ?, ?, 'draft', NULL, NULL)`
+            ).run(newName, slug, site.description, site.type, 'private');
+            res.json({ id: result.lastInsertRowid, slug });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    app.post('/api/managed-sites/:id/check', managerApiRateLimiter, requireAuth, async (req, res) => {
+        try {
+            const site = db.prepare('SELECT * FROM managed_sites WHERE id = ?').get(req.params.id);
+            if (!site) return res.status(404).json({ error: 'Site not found' });
+            const url = site.monitoring_url || site.public_url;
+            if (!url) return res.status(400).json({ error: 'No monitoring URL configured for this site' });
+
+            const urlErr = validateMonitorUrl(url);
+            if (urlErr) return res.status(400).json({ error: urlErr });
+
+            const start = Date.now();
+            let monitoringStatus = 'down';
+            let responseTime = null;
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000);
+                const r = await fetch(url, { signal: controller.signal, method: 'HEAD' });
+                clearTimeout(timeout);
+                responseTime = Date.now() - start;
+                monitoringStatus = r.ok ? 'up' : 'down';
+            } catch {
+                responseTime = Date.now() - start;
+                monitoringStatus = 'down';
+            }
+            db.prepare(
+                'UPDATE managed_sites SET monitoring_status = ?, monitoring_response_time = ?, monitoring_last_checked = CURRENT_TIMESTAMP WHERE id = ?'
+            ).run(monitoringStatus, responseTime, req.params.id);
+            const updated = db.prepare('SELECT * FROM managed_sites WHERE id = ?').get(req.params.id);
+            res.json(normaliseSite(updated));
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+
 
     app.get('*', (req, res) => { res.sendFile(path.join(__dirname, '../public/manager/index.html')); });
 

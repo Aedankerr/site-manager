@@ -382,4 +382,114 @@ describe('Backend API', () => {
             assert.ok(text.includes('<!DOCTYPE html>'));
         });
     });
+
+    describe('Managed Sites API', () => {
+        let createdSiteId;
+        let createdSiteSlug;
+
+        it('GET /api/managed-sites returns empty array initially', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites`);
+            assert.strictEqual(res.status, 200);
+            const data = await res.json();
+            assert.ok(Array.isArray(data));
+        });
+
+        it('POST /api/managed-sites creates a site', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'Test Site', slug: 'test-site', type: 'portfolio', visibility: 'private' }),
+            });
+            assert.strictEqual(res.status, 200);
+            const data = await res.json();
+            assert.ok(data.id);
+            assert.strictEqual(data.slug, 'test-site');
+            createdSiteId = data.id;
+            createdSiteSlug = data.slug;
+        });
+
+        it('POST /api/managed-sites rejects duplicate slug', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'Dupe', slug: 'test-site' }),
+            });
+            assert.strictEqual(res.status, 409);
+        });
+
+        it('POST /api/managed-sites rejects missing name', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ slug: 'no-name' }),
+            });
+            assert.strictEqual(res.status, 400);
+        });
+
+        it('GET /api/managed-sites/:id returns the site', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites/${createdSiteId}`);
+            assert.strictEqual(res.status, 200);
+            const data = await res.json();
+            assert.strictEqual(data.name, 'Test Site');
+            assert.strictEqual(data.slug, 'test-site');
+            assert.strictEqual(data.type, 'portfolio');
+        });
+
+        it('PUT /api/managed-sites/:id updates the site', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites/${createdSiteId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'Updated Site', visibility: 'public', status: 'published' }),
+            });
+            assert.strictEqual(res.status, 200);
+            const data = await res.json();
+            assert.strictEqual(data.success, true);
+            // Verify update
+            const getRes = await fetch(`${BASE_URL}/api/managed-sites/${createdSiteId}`);
+            const updated = await getRes.json();
+            assert.strictEqual(updated.name, 'Updated Site');
+            assert.strictEqual(updated.visibility, 'public');
+            assert.strictEqual(updated.status, 'published');
+        });
+
+        it('PUT /api/managed-sites/:id returns 404 for unknown id', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites/99999`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'Ghost' }),
+            });
+            assert.strictEqual(res.status, 404);
+        });
+
+        it('POST /api/managed-sites/:id/duplicate duplicates the site', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites/${createdSiteId}/duplicate`, { method: 'POST' });
+            assert.strictEqual(res.status, 200);
+            const data = await res.json();
+            assert.ok(data.id);
+            assert.ok(data.slug.includes('copy'));
+            // Clean up duplicate
+            await fetch(`${BASE_URL}/api/managed-sites/${data.id}`, { method: 'DELETE' });
+        });
+
+        it('GET /api/managed-sites returns list with created site', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites`);
+            assert.strictEqual(res.status, 200);
+            const data = await res.json();
+            assert.ok(Array.isArray(data));
+            const found = data.find(s => s.id === createdSiteId);
+            assert.ok(found, 'Created site should appear in list');
+        });
+
+        it('DELETE /api/managed-sites/:id removes the site', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites/${createdSiteId}`, { method: 'DELETE' });
+            assert.strictEqual(res.status, 200);
+            const data = await res.json();
+            assert.strictEqual(data.success, true);
+        });
+
+        it('GET /api/managed-sites/:id returns 404 after deletion', async () => {
+            const res = await fetch(`${BASE_URL}/api/managed-sites/${createdSiteId}`);
+            assert.strictEqual(res.status, 404);
+        });
+    });
 });
