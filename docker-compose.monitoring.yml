@@ -1,0 +1,31 @@
+# Monitoring stack: Uptime Kuma
+# Provides uptime, SSL, HTTP status, and response-time monitoring for all hosted sites.
+#
+# Usage:
+#   Start alongside site-manager:
+#     docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+#
+#   Or standalone:
+#     docker compose -f docker-compose.monitoring.yml up -d
+#
+# Access the Uptime Kuma dashboard at http://localhost:3013 (admin-only — protect with a firewall/proxy).
+# The site-manager admin panel connects to Kuma via KUMA_API_URL (set in Settings → Monitoring).
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "3013:3001"   # Kuma's internal port is always 3001; map to 3013 on the host
+    volumes:
+      - ./uptime-kuma-data:/app/data
+    environment:
+      # Set to 1 to disable the built-in Cloudflare Turnstile verification (not needed for self-hosting)
+      - UPTIME_KUMA_DISABLE_FRAME_SAMEORIGIN=0
+    networks:
+      - site-manager-net
+
+networks:
+  site-manager-net:
+    external: false
