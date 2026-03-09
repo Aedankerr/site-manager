@@ -207,10 +207,13 @@
       <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center flex-shrink-0">
         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
       </div>
-      <span class="font-semibold text-sm">Site Manager</span>
+      <div>
+        <span class="font-semibold text-sm block leading-tight">Site Manager</span>
+        <span class="text-[10px] text-slate-400 leading-tight">Website Builder</span>
+      </div>
     </div>
 
-    <!-- Pages nav -->
+    <!-- Nav -->
     <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
       <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-1.5 mt-1">Pages</p>
       <div class="nav-item" onclick="selectPage('home')" id="nav-home">
@@ -221,20 +224,26 @@
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
         Projects
       </div>
-      <div class="nav-item" onclick="selectPage('cv')" id="nav-cv">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        CV
-      </div>
       <div class="nav-item" onclick="selectPage('contacts')" id="nav-contacts">
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-        Contacts
+        Contact
       </div>
 
-      <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-1.5 mt-4">Content</p>
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-1.5 mt-4">Site</p>
+      <div class="nav-item" onclick="selectSection('profiles')" id="nav-profiles">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        CV Profiles
+      </div>
+      <div class="nav-item" onclick="selectSection('customcss')" id="nav-customcss">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        Custom CSS
+      </div>
       <div class="nav-item" onclick="selectSection('media')" id="nav-media">
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         Media
       </div>
+
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-1.5 mt-4">Tools</p>
       <div class="nav-item" onclick="selectSection('uptime')" id="nav-uptime">
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         Uptime
@@ -261,31 +270,81 @@
   <!-- Main area -->
   <main class="flex-1 overflow-y-auto">
 
-    <!-- ── Page Editor ─── -->
-    <div id="sectionPage" class="hidden">
-      <!-- Header -->
-      <div class="sticky top-0 z-10 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-sm border-b border-slate-100 dark:border-slate-800 px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 id="pageTitle" class="text-xl font-semibold"></h1>
-            <p id="pageSubtitle" class="text-sm text-slate-500 mt-0.5">Drag blocks to reorder · Toggle to show/hide</p>
-          </div>
-          <button onclick="openAddBlock()" class="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Add Block
-          </button>
+    <!-- ── Page Editor (inline — no modals, no drag-and-drop) ─── -->
+    <div id="sectionPage" class="hidden px-6 py-6">
+      <div class="max-w-2xl mx-auto">
+        <div class="mb-6">
+          <h1 id="pageEditorTitle" class="text-xl font-semibold"></h1>
+          <p class="text-sm text-slate-500 mt-0.5">Edit your page content directly — changes save per section</p>
         </div>
-      </div>
+        <div id="pageEditorSections" class="space-y-4"></div>
+        <div id="pageEditorEmpty" class="hidden text-center py-10 text-slate-400 text-sm">No sections yet — add one below.</div>
 
-      <!-- Block list -->
-      <div class="px-6 py-6">
-        <div id="blockList" class="space-y-3 max-w-3xl mx-auto"></div>
-        <div id="blockEmpty" class="hidden max-w-3xl mx-auto mt-10 text-center">
-          <div class="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        <!-- Inline section picker (no modal) -->
+        <div id="addSectionPicker" class="hidden mt-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Choose a section type</p>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="addPageSection('hero')" class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand hover:text-brand transition-colors">Hero</button>
+            <button onclick="addPageSection('projects_grid')" class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand hover:text-brand transition-colors">Projects Grid</button>
+            <button onclick="addPageSection('timeline')" class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand hover:text-brand transition-colors">Timeline</button>
+            <button onclick="addPageSection('contact')" class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand hover:text-brand transition-colors">Contact</button>
           </div>
-          <p class="text-slate-500 text-sm">No blocks yet. Add your first block to get started.</p>
-          <button onclick="openAddBlock()" class="mt-4 px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Add Block</button>
+        </div>
+        <button onclick="toggleAddSectionPicker()" class="mt-3 flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-500 hover:text-brand transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Add Section
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Profiles ─── -->
+    <div id="sectionProfiles" class="hidden px-6 py-6">
+      <div class="max-w-2xl mx-auto">
+        <div class="mb-6">
+          <h1 class="text-xl font-semibold">Profiles</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Save snapshots of your CV data and switch between them</p>
+        </div>
+
+        <!-- Save current as new profile -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5 mb-4">
+          <label class="block text-sm font-medium mb-2">Save current CV as a profile</label>
+          <div class="flex gap-2">
+            <input id="newProfileName" type="text" placeholder="e.g. Frontend, Full-time, Academic…" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+            <button onclick="saveCurrentAsProfile()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">Save</button>
+          </div>
+        </div>
+
+        <!-- Import JSON as new profile -->
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5 mb-6">
+          <label class="block text-sm font-medium mb-1">Import JSON as a profile</label>
+          <p class="text-xs text-slate-500 mb-3">The .json file is read into memory and stored as a profile — your live CV is not affected. The file itself is not kept on the server.</p>
+          <div class="flex gap-2">
+            <input id="importProfileName" type="text" placeholder="Profile name" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+            <input type="file" id="profileJsonInput" accept=".json,application/json" class="hidden" onchange="importJsonAsProfile(this)">
+            <button onclick="triggerProfileJsonImport()" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Choose JSON</button>
+          </div>
+        </div>
+
+        <!-- Profile list -->
+        <div id="profileList" class="space-y-2"></div>
+        <div id="profileEmpty" class="hidden text-center py-10 text-slate-400 text-sm">No saved profiles yet. Save your current CV above to get started.</div>
+      </div>
+    </div>
+
+    <!-- ── Custom CSS ─── -->
+    <div id="sectionCustomcss" class="hidden px-6 py-6">
+      <div class="max-w-2xl mx-auto">
+        <div class="mb-6">
+          <h1 class="text-xl font-semibold">Custom CSS</h1>
+          <p class="text-sm text-slate-500 mt-0.5">Add your own styles to customise the look of your public CV page</p>
+        </div>
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5">
+          <label class="block text-sm font-medium mb-1">CSS</label>
+          <p class="text-xs text-slate-500 mb-3">Styles are injected into the public CV page on every request. Use your browser's DevTools to inspect element class names.</p>
+          <textarea id="customCssInput" rows="18" spellcheck="false" placeholder=".profile-name { color: #e11d48; }&#10;.header { background: #1e293b; }&#10;&#10;/* Any valid CSS works here */" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand resize-y"></textarea>
+          <div class="flex justify-end mt-3">
+            <button onclick="saveCustomCSS()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Save CSS</button>
+          </div>
         </div>
       </div>
     </div>
@@ -300,8 +359,8 @@
           </div>
         </div>
         <!-- Upload zone -->
-        <div id="mainDropZone" class="drop-zone p-8 text-center mb-6 cursor-pointer" onclick="document.getElementById('mainFileInput').click()" ondragover="handleDragOver(event,'mainDropZone')" ondragleave="handleDragLeave('mainDropZone')" ondrop="handleDrop(event,'mainDropZone',null)">
-          <input type="file" id="mainFileInput" accept="image/*" multiple class="hidden" onchange="uploadFiles(this.files,null)">
+        <div id="mainDropZone" class="drop-zone p-8 text-center mb-6 cursor-pointer" onclick="document.getElementById('mainFileInput').click()" ondragover="handleDragOver(event,'mainDropZone')" ondragleave="handleDragLeave('mainDropZone')" ondrop="handleDrop(event,'mainDropZone')">
+          <input type="file" id="mainFileInput" accept="image/*" multiple class="hidden" onchange="uploadFiles(this.files)">
           <svg class="w-10 h-10 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
           <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Drop images here or click to upload</p>
           <p class="text-xs text-slate-400 mt-1">JPG, PNG, WebP · Max 10MB</p>
@@ -364,21 +423,12 @@
         <!-- CV Data Import -->
         <div class="mt-8 mb-6">
           <h2 class="text-lg font-semibold">CV Data</h2>
-          <p class="text-sm text-slate-500 mt-0.5">Import CV data from a JSON file, an HTML page, or your LinkedIn export</p>
+          <p class="text-sm text-slate-500 mt-0.5">Import CV data directly into the live database. To import without affecting your live CV, use the Profiles section instead.</p>
         </div>
         <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
           <div class="p-5">
-            <label class="block text-sm font-medium mb-1">Import CV from HTML</label>
-            <p class="text-xs text-slate-500 mb-3">Save your CV page as a complete HTML file in your browser, then upload it here to restore the data. This will overwrite existing CV entries.</p>
-            <input type="file" id="cvHtmlFileInput" accept=".html,.htm,text/html" class="hidden" onchange="importCVFromHTML(this)">
-            <button onclick="document.getElementById('cvHtmlFileInput').click()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-              Upload HTML File
-            </button>
-          </div>
-          <div class="p-5">
             <label class="block text-sm font-medium mb-1">Import from JSON</label>
-            <p class="text-xs text-slate-500 mb-3">Upload a CV JSON file previously exported from this app or the older cv-manager. Imports profile, experience, education, skills, certifications and projects. This will overwrite existing CV entries.</p>
+            <p class="text-xs text-slate-500 mb-3">The .json file is read into memory — it is <strong>not</strong> stored on the server. The data it contains (profile, experience, education, skills, certifications, projects) is written directly into the database, replacing existing entries.</p>
             <input type="file" id="cvJsonFileInput" accept=".json,application/json" class="hidden" onchange="importCVFromJSON(this)">
             <button onclick="document.getElementById('cvJsonFileInput').click()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
@@ -402,74 +452,6 @@
 </div>
 
 <!-- ─────────────── MODALS ─────────────── -->
-
-<!-- Add Block type picker -->
-<div id="modalAddBlock" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden" onclick="closeModal('modalAddBlock')">
-  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-sm mx-4 modal-inner overflow-hidden fade-in" onclick="event.stopPropagation()">
-    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-      <h2 class="font-semibold">Add Block</h2>
-      <button onclick="closeModal('modalAddBlock')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-    </div>
-    <div class="p-4 grid grid-cols-2 gap-3">
-      <button onclick="addBlock('hero')" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors group">
-        <svg class="w-6 h-6 text-slate-400 group-hover:text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        <span class="text-sm font-medium">Hero</span>
-      </button>
-      <button onclick="addBlock('projects_grid')" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors group">
-        <svg class="w-6 h-6 text-slate-400 group-hover:text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-        <span class="text-sm font-medium">Projects Grid</span>
-      </button>
-      <button onclick="addBlock('timeline')" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors group">
-        <svg class="w-6 h-6 text-slate-400 group-hover:text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span class="text-sm font-medium">Timeline</span>
-      </button>
-      <button onclick="addBlock('contact')" class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors group">
-        <svg class="w-6 h-6 text-slate-400 group-hover:text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-        <span class="text-sm font-medium">Contact</span>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Block editor modal -->
-<div id="modalEditBlock" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden" onclick="closeModal('modalEditBlock')">
-  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 modal-inner max-h-[90vh] flex flex-col overflow-hidden fade-in" onclick="event.stopPropagation()">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
-      <h2 id="editBlockTitle" class="font-semibold"></h2>
-      <button onclick="closeModal('modalEditBlock')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-    </div>
-    <div id="editBlockBody" class="flex-1 overflow-y-auto p-6"></div>
-    <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
-      <button onclick="closeModal('modalEditBlock')" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Cancel</button>
-      <button onclick="saveBlock()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Save Block</button>
-    </div>
-  </div>
-</div>
-
-<!-- Media picker modal -->
-<div id="modalMediaPicker" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden" onclick="closeModal('modalMediaPicker')">
-  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-4 modal-inner max-h-[80vh] flex flex-col overflow-hidden fade-in" onclick="event.stopPropagation()">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-      <h2 class="font-semibold">Media Library</h2>
-      <button onclick="closeModal('modalMediaPicker')" class="text-slate-400 hover:text-slate-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-    </div>
-    <!-- Picker upload zone -->
-    <div class="px-6 pt-4">
-      <div id="pickerDropZone" class="drop-zone p-4 text-center cursor-pointer mb-4" onclick="document.getElementById('pickerFileInput').click()" ondragover="handleDragOver(event,'pickerDropZone')" ondragleave="handleDragLeave('pickerDropZone')" ondrop="handleDrop(event,'pickerDropZone','picker')">
-        <input type="file" id="pickerFileInput" accept="image/*" class="hidden" onchange="uploadFiles(this.files,'picker')">
-        <p class="text-sm text-slate-500">Drop image or <span class="text-brand font-medium">click to upload</span></p>
-      </div>
-      <div id="pickerUploadProgress" class="mb-3 hidden">
-        <div class="flex justify-between text-xs text-slate-500 mb-1"><span>Uploading…</span><span id="pickerUploadPct">0%</span></div>
-        <div class="progress-bar"><div id="pickerUploadFill" class="progress-fill" style="width:0%"></div></div>
-      </div>
-    </div>
-    <div id="mediaPickerGrid" class="flex-1 overflow-y-auto px-6 pb-6">
-      <div class="media-grid" id="mediaPickerInner"></div>
-      <div id="mediaPickerEmpty" class="hidden text-center py-8 text-slate-400 text-sm">No media yet.</div>
-    </div>
-  </div>
-</div>
 
 <!-- Add monitor modal -->
 <div id="modalAddMonitor" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden" onclick="closeModal('modalAddMonitor')">
@@ -508,14 +490,11 @@
 //  STATE
 // ═══════════════════════════════════════════════════════
 const state = {
-  currentPage: null,
   currentSection: null,
-  blocks: [],
+  currentPage: null,
+  pageBlocks: [],
+  profiles: [],
   mediaFiles: [],
-  editingBlockId: null,
-  editingBlockType: null,
-  mediaPickerCallback: null,
-  sortable: null,
   theme: localStorage.getItem('smTheme') || 'light',
 };
 
@@ -614,10 +593,10 @@ function selectPage(slug) {
   state.currentSection = null;
   setActiveNav('nav-' + slug);
   showSection('sectionPage');
-  const label = { home: 'Home', projects: 'Projects', cv: 'CV', contacts: 'Contacts' }[slug] || slug;
-  document.getElementById('pageTitle').textContent = label;
+  const label = { home: 'Home', projects: 'Projects', contacts: 'Contact' }[slug] || slug;
+  document.getElementById('pageEditorTitle').textContent = label;
   document.getElementById('mobilePageTitle').textContent = label;
-  loadBlocks(slug);
+  loadPageEditor(slug);
   closeSidebar();
 }
 
@@ -626,8 +605,10 @@ function selectSection(name) {
   state.currentSection = name;
   setActiveNav('nav-' + name);
   showSection('section' + name.charAt(0).toUpperCase() + name.slice(1));
-  const label = { media: 'Media', uptime: 'Uptime', settings: 'Settings' }[name] || name;
+  const label = { profiles: 'CV Profiles', customcss: 'Custom CSS', media: 'Media', uptime: 'Uptime', settings: 'Settings' }[name] || name;
   document.getElementById('mobilePageTitle').textContent = label;
+  if (name === 'profiles') loadProfiles();
+  if (name === 'customcss') loadCustomCSS();
   if (name === 'media') loadMedia();
   if (name === 'uptime') loadUptime();
   if (name === 'settings') loadSettings();
@@ -641,492 +622,369 @@ function setActiveNav(id) {
 }
 
 function showSection(id) {
-  ['sectionPage', 'sectionMedia', 'sectionUptime', 'sectionSettings'].forEach(s => {
+  ['sectionPage', 'sectionProfiles', 'sectionCustomcss', 'sectionMedia', 'sectionUptime', 'sectionSettings'].forEach(s => {
     document.getElementById(s).classList.add('hidden');
   });
   document.getElementById(id).classList.remove('hidden');
 }
 
 // ═══════════════════════════════════════════════════════
-//  BLOCKS
+//  PAGE EDITOR (inline — no modals)
 // ═══════════════════════════════════════════════════════
-async function loadBlocks(slug) {
+const SECTION_LABELS = { hero: 'Hero', projects_grid: 'Projects Grid', timeline: 'Timeline', contact: 'Contact' };
+
+async function loadPageEditor(slug) {
   try {
-    state.blocks = await api(`/api/pages/${slug}/blocks`);
-    renderBlocks();
-  } catch (err) {
-    toast('Failed to load blocks: ' + err.message, 'error');
-  }
+    const blocks = await api(`/api/pages/${slug}/blocks`);
+    state.pageBlocks = blocks;
+    renderPageEditor(blocks);
+  } catch (err) { toast('Failed to load page: ' + err.message, 'error'); }
 }
 
-function renderBlocks() {
-  const list = document.getElementById('blockList');
-  const empty = document.getElementById('blockEmpty');
-  if (!state.blocks.length) {
-    list.innerHTML = '';
+function renderPageEditor(blocks) {
+  const container = document.getElementById('pageEditorSections');
+  const empty = document.getElementById('pageEditorEmpty');
+  if (!blocks.length) {
+    container.innerHTML = '';
     empty.classList.remove('hidden');
     return;
   }
   empty.classList.add('hidden');
-  list.innerHTML = state.blocks.map(b => blockCardHTML(b)).join('');
-
-  // Destroy old sortable
-  if (state.sortable) state.sortable.destroy();
-  state.sortable = Sortable.create(list, {
-    animation: 150,
-    handle: '.drag-handle',
-    ghostClass: 'sortable-ghost',
-    dragClass: 'sortable-drag',
-    onEnd: async () => {
-      const ids = [...list.querySelectorAll('[data-block-id]')].map(el => Number(el.dataset.blockId));
-      try {
-        await api(`/api/pages/${state.currentPage}/blocks/reorder`, { method: 'POST', body: { ids } });
-        // Update state order without re-render
-        const ordered = ids.map(id => state.blocks.find(b => b.id === id)).filter(Boolean);
-        state.blocks = ordered;
-      } catch (err) { toast('Reorder failed: ' + err.message, 'error'); }
-    },
-  });
+  container.innerHTML = blocks.map(b => inlineSectionCard(b)).join('');
 }
 
-const BLOCK_LABELS = {
-  hero: 'Hero',
-  projects_grid: 'Projects Grid',
-  timeline: 'Timeline',
-  contact: 'Contact',
-};
-
-const BLOCK_ICONS = {
-  hero: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>`,
-  projects_grid: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>`,
-  timeline: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>`,
-  contact: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>`,
-};
-
-function blockPreview(b) {
-  const c = b.content || {};
-  if (b.type === 'hero') return c.title || 'Untitled hero';
-  if (b.type === 'projects_grid') return `${(c.projects || []).length} project(s) · ${c.title || 'Untitled'}`;
-  if (b.type === 'timeline') return `${(c.items || []).length} item(s) · ${c.title || 'Untitled'}`;
-  if (b.type === 'contact') return [c.email, c.github, c.linkedin].filter(Boolean).join(' · ') || 'No links set';
-  return b.type;
-}
-
-function blockCardHTML(b) {
-  const label = BLOCK_LABELS[b.type] || b.type;
-  const icon = BLOCK_ICONS[b.type] || '';
-  const preview = blockPreview(b);
+function inlineSectionCard(b) {
+  const label = SECTION_LABELS[b.type] || b.type;
   const enabled = b.enabled !== false && b.enabled !== 0;
   return `
-  <div data-block-id="${b.id}" class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-4 flex items-center gap-4 fade-in group hover:border-slate-200 dark:hover:border-slate-700 transition-colors">
-    <div class="drag-handle text-slate-300 dark:text-slate-600 hover:text-slate-500 flex-shrink-0">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
-    </div>
-    <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center flex-shrink-0">
-      <svg class="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">${icon}</svg>
-    </div>
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-2 mb-0.5">
-        <span class="text-xs font-semibold text-brand uppercase tracking-wide">${label}</span>
+  <div data-block-id="${b.id}" class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden fade-in">
+    <div class="flex items-center justify-between px-5 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-3">
+        <label class="toggle" title="${enabled ? 'Visible' : 'Hidden'}">
+          <input type="checkbox" ${enabled ? 'checked' : ''} onchange="togglePageSection(${b.id}, this.checked)">
+          <span class="slider"></span>
+        </label>
+        <span class="text-sm font-semibold">${label}</span>
       </div>
-      <p class="text-sm text-slate-500 dark:text-slate-400 truncate">${escHtml(preview)}</p>
+      <button onclick="deletePageSection(${b.id})" class="text-slate-400 hover:text-red-500 transition-colors" title="Remove section">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
     </div>
-    <div class="flex items-center gap-3 flex-shrink-0">
-      <label class="toggle" title="${enabled ? 'Enabled' : 'Disabled'}">
-        <input type="checkbox" ${enabled ? 'checked' : ''} onchange="toggleBlock(${b.id}, this.checked)">
-        <span class="slider"></span>
-      </label>
-      <button onclick="openEditBlock(${b.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-brand hover:bg-indigo-50 dark:hover:bg-indigo-950 flex items-center justify-center transition-colors" title="Edit">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-      </button>
-      <button onclick="deleteBlock(${b.id})" class="w-8 h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 flex items-center justify-center transition-colors" title="Delete">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-      </button>
+    <div class="p-5 space-y-4">${buildInlineEditor(b.type, b.content || {}, b.id)}</div>
+    <div class="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+      <button onclick="savePageSection(${b.id})" class="px-4 py-1.5 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Save</button>
     </div>
   </div>`;
 }
 
-function openAddBlock() { openModal('modalAddBlock'); }
+function buildInlineEditor(type, c, id) {
+  const p = `s${id}_`;
+  if (type === 'hero') return `
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Title</label>
+    <input id="${p}title" type="text" value="${escAttr(c.title||'')}" placeholder="Welcome to my site" class="field"></div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Subtitle</label>
+    <textarea id="${p}subtitle" rows="2" class="field resize-none" placeholder="A short description">${escHtml(c.subtitle||'')}</textarea></div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><label class="block text-xs font-medium text-slate-500 mb-1">Button Text</label>
+      <input id="${p}btn_text" type="text" value="${escAttr(c.primary_button_text||'')}" placeholder="Get Started" class="field"></div>
+      <div><label class="block text-xs font-medium text-slate-500 mb-1">Button Link</label>
+      <input id="${p}btn_link" type="text" value="${escAttr(c.primary_button_link||'')}" placeholder="https://…" class="field"></div>
+    </div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Background Image URL</label>
+    <input id="${p}bg" type="text" value="${escAttr(c.background_image||'')}" placeholder="/uploads/image.jpg — copy a URL from Media" class="field"></div>`;
 
-async function addBlock(type) {
-  closeModal('modalAddBlock');
-  const defaultContent = {
+  if (type === 'contact') return `
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Email</label>
+    <input id="${p}email" type="email" value="${escAttr(c.email||'')}" placeholder="hello@example.com" class="field"></div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">GitHub</label>
+    <input id="${p}github" type="url" value="${escAttr(c.github||'')}" placeholder="https://github.com/username" class="field"></div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">LinkedIn</label>
+    <input id="${p}linkedin" type="url" value="${escAttr(c.linkedin||'')}" placeholder="https://linkedin.com/in/username" class="field"></div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Website</label>
+    <input id="${p}website" type="url" value="${escAttr(c.website||'')}" placeholder="https://yoursite.com" class="field"></div>`;
+
+  if (type === 'projects_grid') {
+    const projects = c.projects || [];
+    return `
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Section Title</label>
+    <input id="${p}title" type="text" value="${escAttr(c.title||'')}" placeholder="Projects" class="field"></div>
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-slate-500">Projects</span>
+        <button onclick="addInlineProject('${p}plist')" type="button" class="text-xs text-brand font-semibold hover:underline">+ Add</button>
+      </div>
+      <div id="${p}plist" class="space-y-3">${projects.map((proj, i) => inlineProjectRow(proj, i)).join('')}</div>
+    </div>`;
+  }
+
+  if (type === 'timeline') {
+    const items = c.items || [];
+    return `
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Section Title</label>
+    <input id="${p}title" type="text" value="${escAttr(c.title||'')}" placeholder="Experience" class="field"></div>
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-medium text-slate-500">Items</span>
+        <button onclick="addInlineTimelineItem('${p}tlist')" type="button" class="text-xs text-brand font-semibold hover:underline">+ Add</button>
+      </div>
+      <div id="${p}tlist" class="space-y-3">${items.map((it, i) => inlineTimelineRow(it, i)).join('')}</div>
+    </div>`;
+  }
+  return '<p class="text-xs text-slate-400">Unknown section type.</p>';
+}
+
+function inlineProjectRow(proj, i) {
+  return `<div class="inline-proj-row border border-slate-200 dark:border-slate-700 rounded-lg p-3 space-y-2">
+    <div class="flex justify-between items-center">
+      <span class="text-xs font-medium text-slate-400">Project ${i+1}</span>
+      <button onclick="this.closest('.inline-proj-row').remove()" type="button" class="text-xs text-slate-400 hover:text-red-500">Remove</button>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <input type="text" class="field ipj-name" value="${escAttr(proj.name||'')}" placeholder="Name">
+      <input type="text" class="field ipj-link" value="${escAttr(proj.link||'')}" placeholder="https://…">
+    </div>
+    <textarea class="field resize-none ipj-desc" rows="2" placeholder="Description">${escHtml(proj.description||'')}</textarea>
+    <input type="text" class="field ipj-tech" value="${escAttr(Array.isArray(proj.tech_stack)?proj.tech_stack.join(', '):(proj.tech_stack||''))}" placeholder="Tech stack (comma-separated)">
+  </div>`;
+}
+
+function addInlineProject(listId) {
+  const list = document.getElementById(listId);
+  if (!list) return;
+  const count = list.querySelectorAll('.inline-proj-row').length;
+  const div = document.createElement('div');
+  div.innerHTML = inlineProjectRow({}, count);
+  list.appendChild(div.firstElementChild);
+}
+
+function inlineTimelineRow(it, i) {
+  return `<div class="inline-tl-row border border-slate-200 dark:border-slate-700 rounded-lg p-3 space-y-2">
+    <div class="flex justify-between items-center">
+      <span class="text-xs font-medium text-slate-400">Item ${i+1}</span>
+      <button onclick="this.closest('.inline-tl-row').remove()" type="button" class="text-xs text-slate-400 hover:text-red-500">Remove</button>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <input type="text" class="field itl-role" value="${escAttr(it.role||'')}" placeholder="Role">
+      <input type="text" class="field itl-company" value="${escAttr(it.company||'')}" placeholder="Company">
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <input type="text" class="field itl-start" value="${escAttr(it.start_date||'')}" placeholder="Start (2020-01)">
+      <input type="text" class="field itl-end" value="${escAttr(it.end_date||'')}" placeholder="End (Present)">
+    </div>
+    <textarea class="field resize-none itl-desc" rows="2" placeholder="Description">${escHtml(it.description||'')}</textarea>
+  </div>`;
+}
+
+function addInlineTimelineItem(listId) {
+  const list = document.getElementById(listId);
+  if (!list) return;
+  const count = list.querySelectorAll('.inline-tl-row').length;
+  const div = document.createElement('div');
+  div.innerHTML = inlineTimelineRow({}, count);
+  list.appendChild(div.firstElementChild);
+}
+
+function collectPageSectionContent(blockId, type) {
+  const p = `s${blockId}_`;
+  const g = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  if (type === 'hero') return {
+    title: g(`${p}title`), subtitle: g(`${p}subtitle`),
+    primary_button_text: g(`${p}btn_text`), primary_button_link: g(`${p}btn_link`),
+    background_image: g(`${p}bg`),
+  };
+  if (type === 'contact') return {
+    email: g(`${p}email`), github: g(`${p}github`),
+    linkedin: g(`${p}linkedin`), website: g(`${p}website`),
+  };
+  if (type === 'projects_grid') {
+    const projects = [];
+    document.getElementById(`${p}plist`)?.querySelectorAll('.inline-proj-row').forEach(row => {
+      projects.push({
+        name: row.querySelector('.ipj-name')?.value || '',
+        link: row.querySelector('.ipj-link')?.value || '',
+        description: row.querySelector('.ipj-desc')?.value || '',
+        tech_stack: (row.querySelector('.ipj-tech')?.value || '').split(',').map(s => s.trim()).filter(Boolean),
+      });
+    });
+    return { title: g(`${p}title`), projects };
+  }
+  if (type === 'timeline') {
+    const items = [];
+    document.getElementById(`${p}tlist`)?.querySelectorAll('.inline-tl-row').forEach(row => {
+      items.push({
+        role: row.querySelector('.itl-role')?.value || '',
+        company: row.querySelector('.itl-company')?.value || '',
+        start_date: row.querySelector('.itl-start')?.value || '',
+        end_date: row.querySelector('.itl-end')?.value || '',
+        description: row.querySelector('.itl-desc')?.value || '',
+      });
+    });
+    return { title: g(`${p}title`), items };
+  }
+  return {};
+}
+
+async function savePageSection(blockId) {
+  const block = state.pageBlocks.find(b => b.id === blockId);
+  if (!block) return;
+  try {
+    const content = collectPageSectionContent(blockId, block.type);
+    await api(`/api/blocks/${blockId}`, { method: 'PUT', body: { content } });
+    block.content = content;
+    toast('Section saved');
+  } catch (err) { toast('Save failed: ' + err.message, 'error'); }
+}
+
+async function togglePageSection(blockId, enabled) {
+  try {
+    await api(`/api/blocks/${blockId}`, { method: 'PUT', body: { enabled } });
+    const block = state.pageBlocks.find(b => b.id === blockId);
+    if (block) block.enabled = enabled;
+  } catch (err) { toast('Failed to update', 'error'); await loadPageEditor(state.currentPage); }
+}
+
+async function deletePageSection(blockId) {
+  if (!confirm('Remove this section?')) return;
+  try {
+    await api(`/api/blocks/${blockId}`, { method: 'DELETE' });
+    state.pageBlocks = state.pageBlocks.filter(b => b.id !== blockId);
+    renderPageEditor(state.pageBlocks);
+    toast('Section removed');
+  } catch (err) { toast('Delete failed: ' + err.message, 'error'); }
+}
+
+function toggleAddSectionPicker() {
+  document.getElementById('addSectionPicker').classList.toggle('hidden');
+}
+
+async function addPageSection(type) {
+  const defaults = {
     hero: { title: '', subtitle: '', primary_button_text: '', primary_button_link: '', background_image: '' },
     projects_grid: { title: 'Projects', projects: [] },
     timeline: { title: 'Experience', items: [] },
     contact: { email: '', github: '', linkedin: '', website: '' },
   };
   try {
-    const result = await api(`/api/pages/${state.currentPage}/blocks`, {
-      method: 'POST',
-      body: { type, content: defaultContent[type] || {} },
-    });
-    await loadBlocks(state.currentPage);
-    openEditBlock(result.id);
-  } catch (err) { toast('Failed to add block: ' + err.message, 'error'); }
+    await api(`/api/pages/${state.currentPage}/blocks`, { method: 'POST', body: { type, content: defaults[type] || {} } });
+    document.getElementById('addSectionPicker').classList.add('hidden');
+    await loadPageEditor(state.currentPage);
+    toast('Section added');
+  } catch (err) { toast('Failed: ' + err.message, 'error'); }
 }
 
-async function toggleBlock(id, enabled) {
+// ═══════════════════════════════════════════════════════
+//  PROFILES
+// ═══════════════════════════════════════════════════════
+async function loadProfiles() {
   try {
-    await api(`/api/blocks/${id}`, { method: 'PUT', body: { enabled } });
-    const b = state.blocks.find(b => b.id === id);
-    if (b) b.enabled = enabled;
-  } catch (err) {
-    toast('Failed to update block', 'error');
-    await loadBlocks(state.currentPage);
-  }
+    state.profiles = await api('/api/datasets');
+    renderProfiles();
+  } catch (err) { toast('Failed to load profiles: ' + err.message, 'error'); }
 }
 
-async function deleteBlock(id) {
-  if (!confirm('Delete this block?')) return;
+function renderProfiles() {
+  const list = document.getElementById('profileList');
+  const empty = document.getElementById('profileEmpty');
+  const profiles = state.profiles || [];
+  if (!profiles.length) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  list.innerHTML = profiles.map(p => {
+    const updated = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '';
+    return `
+    <div class="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-4 flex items-center gap-4 fade-in">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-0.5">
+          <span class="text-sm font-semibold">${escHtml(p.name)}</span>
+          ${p.is_default ? '<span class="tag green">Default</span>' : ''}
+        </div>
+        <p class="text-xs text-slate-400">${updated ? 'Updated ' + updated : ''}</p>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        ${!p.is_default ? `<button onclick="setDefaultProfile(${p.id})" class="px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Set Default</button>` : ''}
+        <button onclick="loadProfile(${p.id})" class="px-3 py-1.5 text-xs bg-brand hover:bg-brand-dark text-white rounded-lg transition-colors">Load</button>
+        ${!p.is_default ? `<button onclick="deleteProfile(${p.id})" class="w-7 h-7 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 flex items-center justify-center transition-colors" title="Delete"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveCurrentAsProfile() {
+  const name = document.getElementById('newProfileName').value.trim();
+  if (!name) { toast('Enter a profile name', 'error'); return; }
   try {
-    await api(`/api/blocks/${id}`, { method: 'DELETE' });
-    state.blocks = state.blocks.filter(b => b.id !== id);
-    renderBlocks();
-    toast('Block deleted');
-  } catch (err) { toast('Delete failed: ' + err.message, 'error'); }
-}
-
-// ── Block Editors ────────────────────────────────────────
-function openEditBlock(id) {
-  const block = state.blocks.find(b => b.id === id);
-  if (!block) return;
-  state.editingBlockId = id;
-  state.editingBlockType = block.type;
-  const content = block.content || {};
-
-  document.getElementById('editBlockTitle').textContent = 'Edit ' + (BLOCK_LABELS[block.type] || block.type);
-  document.getElementById('editBlockBody').innerHTML = buildEditor(block.type, content);
-  openModal('modalEditBlock');
-}
-
-function buildEditor(type, c) {
-  if (type === 'hero') return heroEditor(c);
-  if (type === 'projects_grid') return projectsGridEditor(c);
-  if (type === 'timeline') return timelineEditor(c);
-  if (type === 'contact') return contactEditor(c);
-  return '<p class="text-slate-400">No editor for this block type.</p>';
-}
-
-// ── Hero editor
-function heroEditor(c) {
-  return `
-  <div class="space-y-4">
-    <div>
-      <label class="block text-sm font-medium mb-1.5">Title</label>
-      <input id="ef_title" type="text" value="${escAttr(c.title||'')}" placeholder="Welcome to my site" class="field">
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1.5">Subtitle</label>
-      <textarea id="ef_subtitle" rows="2" placeholder="A short description" class="field resize-none">${escHtml(c.subtitle||'')}</textarea>
-    </div>
-    <div class="grid grid-cols-2 gap-4 field-row-2col">
-      <div>
-        <label class="block text-sm font-medium mb-1.5">Button Text</label>
-        <input id="ef_primary_button_text" type="text" value="${escAttr(c.primary_button_text||'')}" placeholder="Get Started" class="field">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1.5">Button Link</label>
-        <input id="ef_primary_button_link" type="text" value="${escAttr(c.primary_button_link||'')}" placeholder="https://…" class="field">
-      </div>
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1.5">Background Image</label>
-      ${imagePickerWidget('ef_background_image', c.background_image || '')}
-    </div>
-  </div>`;
-}
-
-function heroCollect() {
-  return {
-    title: v('ef_title'),
-    subtitle: v('ef_subtitle'),
-    primary_button_text: v('ef_primary_button_text'),
-    primary_button_link: v('ef_primary_button_link'),
-    background_image: v('ef_background_image'),
-  };
-}
-
-// ── Projects Grid editor
-function projectsGridEditor(c) {
-  const projects = c.projects || [];
-  return `
-  <div class="space-y-5">
-    <div>
-      <label class="block text-sm font-medium mb-1.5">Section Title</label>
-      <input id="ef_title" type="text" value="${escAttr(c.title||'')}" placeholder="Projects" class="field">
-    </div>
-    <div>
-      <div class="flex items-center justify-between mb-2">
-        <label class="text-sm font-medium">Projects</label>
-        <button onclick="addProjectItem()" type="button" class="text-xs text-brand font-semibold hover:underline">+ Add Project</button>
-      </div>
-      <div id="projectsList" class="space-y-4">
-        ${projects.map((p, i) => projectItemHTML(p, i)).join('')}
-      </div>
-    </div>
-  </div>`;
-}
-
-function projectItemHTML(p, i) {
-  return `
-  <div class="project-item border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
-    <div class="flex items-center justify-between">
-      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Project ${i + 1}</span>
-      <button onclick="removeProjectItem(this)" type="button" class="text-xs text-red-400 hover:text-red-600 font-medium">Remove</button>
-    </div>
-    <div class="grid grid-cols-2 gap-3 field-row-2col">
-      <div>
-        <label class="text-xs font-medium text-slate-500 mb-1 block">Name</label>
-        <input type="text" class="field proj-name" value="${escAttr(p.name||'')}" placeholder="Project name">
-      </div>
-      <div>
-        <label class="text-xs font-medium text-slate-500 mb-1 block">Link</label>
-        <input type="text" class="field proj-link" value="${escAttr(p.link||'')}" placeholder="https://…">
-      </div>
-    </div>
-    <div>
-      <label class="text-xs font-medium text-slate-500 mb-1 block">Description</label>
-      <textarea class="field resize-none proj-description" rows="2" placeholder="What does this project do?">${escHtml(p.description||'')}</textarea>
-    </div>
-    <div>
-      <label class="text-xs font-medium text-slate-500 mb-1 block">Image</label>
-      ${imagePickerWidget(null, p.image||'', 'proj-image')}
-    </div>
-    <div>
-      <label class="text-xs font-medium text-slate-500 mb-1 block">Tech Stack (comma-separated)</label>
-      <input type="text" class="field proj-tech_stack" value="${escAttr(Array.isArray(p.tech_stack)?p.tech_stack.join(', '):(p.tech_stack||''))}" placeholder="React, Node.js, PostgreSQL">
-    </div>
-  </div>`;
-}
-
-function addProjectItem() {
-  const list = document.getElementById('projectsList');
-  const count = list.querySelectorAll('.project-item').length;
-  const div = document.createElement('div');
-  div.innerHTML = projectItemHTML({}, count);
-  const newItem = list.appendChild(div.firstElementChild);
-  newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function removeProjectItem(btn) {
-  btn.closest('.project-item').remove();
-  // Re-number
-  document.querySelectorAll('.project-item').forEach((el, i) => {
-    const label = el.querySelector('span');
-    if (label) label.textContent = 'Project ' + (i + 1);
-  });
-}
-
-function projectsGridCollect() {
-  const projects = [];
-  document.querySelectorAll('.project-item').forEach(el => {
-    projects.push({
-      name: el.querySelector('.proj-name')?.value || '',
-      link: el.querySelector('.proj-link')?.value || '',
-      description: el.querySelector('.proj-description')?.value || '',
-      image: el.querySelector('.proj-image')?.value || '',
-      tech_stack: (el.querySelector('.proj-tech_stack')?.value || '').split(',').map(s => s.trim()).filter(Boolean),
-    });
-  });
-  return { title: v('ef_title'), projects };
-}
-
-// ── Timeline editor
-function timelineEditor(c) {
-  const items = c.items || [];
-  return `
-  <div class="space-y-5">
-    <div>
-      <label class="block text-sm font-medium mb-1.5">Section Title</label>
-      <input id="ef_title" type="text" value="${escAttr(c.title||'')}" placeholder="Experience" class="field">
-    </div>
-    <div>
-      <div class="flex items-center justify-between mb-2">
-        <label class="text-sm font-medium">Items</label>
-        <button onclick="addTimelineItem()" type="button" class="text-xs text-brand font-semibold hover:underline">+ Add Item</button>
-      </div>
-      <div id="timelineList" class="space-y-4">
-        ${items.map((it, i) => timelineItemHTML(it, i)).join('')}
-      </div>
-    </div>
-  </div>`;
-}
-
-function timelineItemHTML(it, i) {
-  return `
-  <div class="timeline-item border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
-    <div class="flex items-center justify-between">
-      <span class="text-xs font-semibold text-slate-400 uppercase tracking-wide">Item ${i + 1}</span>
-      <button onclick="removeTimelineItem(this)" type="button" class="text-xs text-red-400 hover:text-red-600 font-medium">Remove</button>
-    </div>
-    <div class="grid grid-cols-2 gap-3 field-row-2col">
-      <div>
-        <label class="text-xs font-medium text-slate-500 mb-1 block">Role</label>
-        <input type="text" class="field tl-role" value="${escAttr(it.role||'')}" placeholder="Software Engineer">
-      </div>
-      <div>
-        <label class="text-xs font-medium text-slate-500 mb-1 block">Company</label>
-        <input type="text" class="field tl-company" value="${escAttr(it.company||'')}" placeholder="Acme Corp">
-      </div>
-    </div>
-    <div class="grid grid-cols-2 gap-3 field-row-2col">
-      <div>
-        <label class="text-xs font-medium text-slate-500 mb-1 block">Start Date</label>
-        <input type="text" class="field tl-start_date" value="${escAttr(it.start_date||'')}" placeholder="2020-01">
-      </div>
-      <div>
-        <label class="text-xs font-medium text-slate-500 mb-1 block">End Date</label>
-        <input type="text" class="field tl-end_date" value="${escAttr(it.end_date||'')}" placeholder="2023-06 or Present">
-      </div>
-    </div>
-    <div>
-      <label class="text-xs font-medium text-slate-500 mb-1 block">Description</label>
-      <textarea class="field resize-none tl-description" rows="2" placeholder="What you did here…">${escHtml(it.description||'')}</textarea>
-    </div>
-  </div>`;
-}
-
-function addTimelineItem() {
-  const list = document.getElementById('timelineList');
-  const count = list.querySelectorAll('.timeline-item').length;
-  const div = document.createElement('div');
-  div.innerHTML = timelineItemHTML({}, count);
-  const newItem = list.appendChild(div.firstElementChild);
-  newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function removeTimelineItem(btn) {
-  btn.closest('.timeline-item').remove();
-  document.querySelectorAll('.timeline-item').forEach((el, i) => {
-    const label = el.querySelector('span');
-    if (label) label.textContent = 'Item ' + (i + 1);
-  });
-}
-
-function timelineCollect() {
-  const items = [];
-  document.querySelectorAll('.timeline-item').forEach(el => {
-    items.push({
-      role: el.querySelector('.tl-role')?.value || '',
-      company: el.querySelector('.tl-company')?.value || '',
-      start_date: el.querySelector('.tl-start_date')?.value || '',
-      end_date: el.querySelector('.tl-end_date')?.value || '',
-      description: el.querySelector('.tl-description')?.value || '',
-    });
-  });
-  return { title: v('ef_title'), items };
-}
-
-// ── Contact editor
-function contactEditor(c) {
-  return `
-  <div class="space-y-4">
-    <div>
-      <label class="block text-sm font-medium mb-1.5">Email</label>
-      <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 text-sm">✉</span><input id="ef_email" type="email" value="${escAttr(c.email||'')}" placeholder="hello@example.com" class="field pl-8"></div>
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1.5">GitHub</label>
-      <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 text-sm">⌥</span><input id="ef_github" type="url" value="${escAttr(c.github||'')}" placeholder="https://github.com/username" class="field pl-8"></div>
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1.5">LinkedIn</label>
-      <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 text-sm">in</span><input id="ef_linkedin" type="url" value="${escAttr(c.linkedin||'')}" placeholder="https://linkedin.com/in/username" class="field pl-8"></div>
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1.5">Website</label>
-      <div class="relative"><span class="absolute left-3 top-2.5 text-slate-400 text-sm">🌐</span><input id="ef_website" type="url" value="${escAttr(c.website||'')}" placeholder="https://yoursite.com" class="field pl-8"></div>
-    </div>
-  </div>`;
-}
-
-function contactCollect() {
-  return {
-    email: v('ef_email'),
-    github: v('ef_github'),
-    linkedin: v('ef_linkedin'),
-    website: v('ef_website'),
-  };
-}
-
-// ── Collect & save
-function collectContent(type) {
-  if (type === 'hero') return heroCollect();
-  if (type === 'projects_grid') return projectsGridCollect();
-  if (type === 'timeline') return timelineCollect();
-  if (type === 'contact') return contactCollect();
-  return {};
-}
-
-async function saveBlock() {
-  const id = state.editingBlockId;
-  const type = state.editingBlockType;
-  if (!id) return;
-  try {
-    const content = collectContent(type);
-    await api(`/api/blocks/${id}`, { method: 'PUT', body: { content } });
-    closeModal('modalEditBlock');
-    await loadBlocks(state.currentPage);
-    toast('Block saved');
+    await api('/api/datasets', { method: 'POST', body: { name } });
+    document.getElementById('newProfileName').value = '';
+    toast('Profile saved: ' + name);
+    await loadProfiles();
   } catch (err) { toast('Save failed: ' + err.message, 'error'); }
 }
 
-// ── Image Picker Widget (generates HTML for image field + browse button)
-// Uses data attributes to avoid complex escaping in onclick handlers
-function imagePickerWidget(id, value, cssClass) {
-  const idAttr = id ? `id="${escAttr(id)}"` : '';
-  const classAttr = `class="field${cssClass ? ' ' + cssClass : ''}"`;
-  const pickerId = 'picker_' + (id || cssClass || Math.random().toString(36).slice(2));
-  const previewId = 'prev_' + pickerId;
-  return `
-  <div class="space-y-2" data-picker-id="${escAttr(pickerId)}">
-    <div class="flex gap-2">
-      <input type="text" ${idAttr} ${classAttr} data-picker-field="${escAttr(pickerId)}" value="${escAttr(value)}" placeholder="/uploads/…" oninput="updateImagePreview('${escAttr(previewId)}',this.value)">
-      <button type="button" data-open-picker="${escAttr(pickerId)}" class="flex-shrink-0 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors whitespace-nowrap">Browse</button>
-    </div>
-    <div id="${escAttr(previewId)}" class="${value ? '' : 'hidden'}">
-      <img src="${escAttr(value)}" class="h-24 w-full object-cover rounded-lg border border-slate-200 dark:border-slate-700" onerror="this.parentElement.classList.add('hidden')" onload="this.parentElement.classList.remove('hidden')">
-    </div>
-  </div>`;
+async function loadProfile(id) {
+  if (!confirm('Load this profile? Your current live CV data will be replaced.')) return;
+  try {
+    const data = await api(`/api/datasets/${id}/load`, { method: 'POST' });
+    toast('Profile loaded: ' + data.name);
+  } catch (err) { toast('Load failed: ' + err.message, 'error'); }
 }
 
-// Global delegated click handler for media picker "Browse" buttons
-document.addEventListener('click', function(e) {
-  // Image picker "Browse" button
-  const pickerBtn = e.target.closest('[data-open-picker]');
-  if (pickerBtn) {
-    const pickerId = pickerBtn.dataset.openPicker;
-    openMediaPicker(function(url) {
-      document.querySelectorAll(`[data-picker-field="${pickerId}"]`).forEach(inp => {
-        inp.value = url;
-        updateImagePreview('prev_' + pickerId, url);
-      });
-    });
-    return;
-  }
+async function setDefaultProfile(id) {
+  try {
+    await api(`/api/datasets/${id}/default`, { method: 'PUT' });
+    toast('Default profile updated');
+    await loadProfiles();
+  } catch (err) { toast('Failed: ' + err.message, 'error'); }
+}
 
-  // Uptime monitor edit button (uses data attributes to avoid escaping issues)
-  const editBtn = e.target.closest('[data-edit-monitor]');
-  if (editBtn) {
-    openEditMonitor(
-      editBtn.dataset.editMonitor,
-      editBtn.dataset.monitorName,
-      editBtn.dataset.monitorUrl
-    );
-  }
-});
+async function deleteProfile(id) {
+  if (!confirm('Delete this profile?')) return;
+  try {
+    await api(`/api/datasets/${id}`, { method: 'DELETE' });
+    toast('Profile deleted');
+    await loadProfiles();
+  } catch (err) { toast('Delete failed: ' + err.message, 'error'); }
+}
 
+function triggerProfileJsonImport() {
+  const name = document.getElementById('importProfileName').value.trim();
+  if (!name) { toast('Enter a profile name first', 'error'); return; }
+  document.getElementById('profileJsonInput').click();
+}
 
-function updateImagePreview(previewId, url) {
-  const el = document.getElementById(previewId);
-  if (!el) return;
-  if (url) {
-    el.classList.remove('hidden');
-    el.querySelector('img').src = url;
-  } else {
-    el.classList.add('hidden');
-  }
+async function importJsonAsProfile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  input.value = '';
+  const name = document.getElementById('importProfileName').value.trim();
+  if (!name) { toast('Enter a profile name', 'error'); return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('name', name);
+  try {
+    const res = await fetch('/api/datasets/from-json', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok) { toast(data.error || 'Import failed', 'error'); return; }
+    document.getElementById('importProfileName').value = '';
+    toast(data.created ? 'Profile imported: ' + name : 'Profile updated: ' + name);
+    await loadProfiles();
+  } catch (err) { toast('Import failed: ' + err.message, 'error'); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  CUSTOM CSS
+// ═══════════════════════════════════════════════════════
+async function loadCustomCSS() {
+  try {
+    const data = await api('/api/custom-css');
+    document.getElementById('customCssInput').value = data.css || '';
+  } catch (err) { toast('Failed to load CSS', 'error'); }
+}
+
+async function saveCustomCSS() {
+  const css = document.getElementById('customCssInput').value;
+  try {
+    await api('/api/custom-css', { method: 'PUT', body: { css } });
+    toast('Custom CSS saved — changes are live');
+  } catch (err) { toast('Save failed: ' + err.message, 'error'); }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1135,52 +993,23 @@ function updateImagePreview(previewId, url) {
 async function loadMedia() {
   try {
     state.mediaFiles = await api('/api/media');
-    renderMediaGrid('mediaGridMain', null);
+    renderMediaGrid();
     document.getElementById('mediaEmpty').classList.toggle('hidden', state.mediaFiles.length > 0);
   } catch (err) { toast('Failed to load media', 'error'); }
 }
 
-function renderMediaGrid(containerId, onSelect) {
-  const el = document.getElementById(containerId);
+function renderMediaGrid() {
+  const el = document.getElementById('mediaGridMain');
   if (!el) return;
   if (!state.mediaFiles.length) { el.innerHTML = ''; return; }
   el.innerHTML = state.mediaFiles.map(f => `
     <div class="relative group">
-      <img src="${escAttr(f.url)}" class="media-thumb w-full" data-url="${escAttr(f.url)}" data-picker="${onSelect ? '1' : ''}" title="${escAttr(f.filename)}">
+      <img src="${escAttr(f.url)}" class="media-thumb w-full" data-url="${escAttr(f.url)}" title="${escAttr(f.filename)}">
     </div>`).join('');
-  // Attach click handlers via delegation (avoids escaping issues)
   el.onclick = (e) => {
     const img = e.target.closest('img[data-url]');
-    if (!img) return;
-    const url = img.dataset.url;
-    if (img.dataset.picker) {
-      pickerSelect(url);
-    } else {
-      showMediaPreview(url);
-    }
+    if (img) window.open(img.dataset.url, '_blank');
   };
-}
-
-function showMediaPreview(url) {
-  // Simple: open in new tab
-  window.open(url, '_blank');
-}
-
-function openMediaPicker(callback) {
-  state.mediaPickerCallback = callback;
-  loadMedia().then(() => {
-    renderMediaGrid('mediaPickerInner', callback);
-    document.getElementById('mediaPickerEmpty').classList.toggle('hidden', state.mediaFiles.length > 0);
-  });
-  openModal('modalMediaPicker');
-}
-
-function pickerSelect(url) {
-  if (state.mediaPickerCallback) {
-    state.mediaPickerCallback(url);
-    state.mediaPickerCallback = null;
-  }
-  closeModal('modalMediaPicker');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1193,17 +1022,16 @@ function handleDragOver(e, zoneId) {
 function handleDragLeave(zoneId) {
   document.getElementById(zoneId).classList.remove('active');
 }
-function handleDrop(e, zoneId, context) {
+function handleDrop(e, zoneId) {
   e.preventDefault();
   document.getElementById(zoneId).classList.remove('active');
-  uploadFiles(e.dataTransfer.files, context);
+  uploadFiles(e.dataTransfer.files);
 }
 
-async function uploadFiles(files, context) {
-  const isPicker = context === 'picker';
-  const progressEl = document.getElementById(isPicker ? 'pickerUploadProgress' : 'mainUploadProgress');
-  const pctEl = document.getElementById(isPicker ? 'pickerUploadPct' : 'mainUploadPct');
-  const fillEl = document.getElementById(isPicker ? 'pickerUploadFill' : 'mainUploadFill');
+async function uploadFiles(files) {
+  const progressEl = document.getElementById('mainUploadProgress');
+  const pctEl = document.getElementById('mainUploadPct');
+  const fillEl = document.getElementById('mainUploadFill');
 
   for (const file of files) {
     if (!file.type.startsWith('image/')) { toast('Only images allowed', 'error'); continue; }
@@ -1213,7 +1041,6 @@ async function uploadFiles(files, context) {
     pctEl.textContent = '0%';
     fillEl.style.width = '0%';
 
-    // Fake progress ticks while uploading
     let pct = 0;
     const ticker = setInterval(() => {
       pct = Math.min(pct + 10, 85);
@@ -1228,18 +1055,10 @@ async function uploadFiles(files, context) {
       pctEl.textContent = '100%';
       await new Promise(r => setTimeout(r, 400));
       progressEl.classList.add('hidden');
-
       if (result.url) {
         state.mediaFiles.unshift({ url: result.url, filename: result.filename });
-        if (isPicker) {
-          renderMediaGrid('mediaPickerInner', state.mediaPickerCallback);
-          document.getElementById('mediaPickerEmpty').classList.add('hidden');
-          // Auto-select the uploaded image if in picker context
-          if (state.mediaPickerCallback) pickerSelect(result.url);
-        } else {
-          renderMediaGrid('mediaGridMain', null);
-          document.getElementById('mediaEmpty').classList.add('hidden');
-        }
+        renderMediaGrid();
+        document.getElementById('mediaEmpty').classList.add('hidden');
         toast('Uploaded: ' + result.filename);
       } else {
         toast(result.error || 'Upload failed', 'error');
@@ -1461,8 +1280,14 @@ async function importCVFromJSON(input) {
 function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    ['modalAddBlock','modalEditBlock','modalMediaPicker','modalAddMonitor'].forEach(closeModal);
+  if (e.key === 'Escape') closeModal('modalAddMonitor');
+});
+
+// Delegated click: uptime monitor edit buttons
+document.addEventListener('click', function(e) {
+  const editBtn = e.target.closest('[data-edit-monitor]');
+  if (editBtn) {
+    openEditMonitor(editBtn.dataset.editMonitor, editBtn.dataset.monitorName, editBtn.dataset.monitorUrl);
   }
 });
 

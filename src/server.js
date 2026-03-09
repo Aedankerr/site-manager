@@ -221,6 +221,14 @@ function getTrackingCode() {
     } catch (e) { return ''; }
 }
 
+function getCustomCss() {
+    try {
+        const setting = db.prepare('SELECT value FROM settings WHERE key = ?').get('customCss');
+        // Strip any </style> to prevent breaking out of the injected style tag
+        return (setting?.value || '').replace(/<\/style>/gi, '');
+    } catch (e) { return ''; }
+}
+
 function servePublicIndex(req, res) {
     try {
         // Check if a default dataset exists — serve from it instead of live DB
@@ -256,6 +264,10 @@ function servePublicIndex(req, res) {
             // Inject default dataset slug (no DATASET_PREVIEW = no preview banner)
             const datasetScript = `<script>window.DATASET_SLUG = "${defaultDataset.slug}";</script>`;
             html = html.replace('</head>', `${datasetScript}</head>`);
+
+            // Inject custom CSS
+            const customCss = getCustomCss();
+            if (customCss) html = html.replace('</head>', `<style id="custom-css">${customCss}</style></head>`);
             
             return res.type('html').send(html);
         }
@@ -283,7 +295,11 @@ function servePublicIndex(req, res) {
         if (trackingCode) {
             html = html.replace('<head>', `<head>\n${trackingCode}`);
         }
-        
+
+        // Inject custom CSS
+        const customCss = getCustomCss();
+        if (customCss) html = html.replace('</head>', `<style id="custom-css">${customCss}</style></head>`);
+
         res.type('html').send(html);
     } catch (err) { res.sendFile(path.join(__dirname, '../public-readonly/index.html')); }
 }
@@ -321,6 +337,10 @@ function serveDatasetPage(req, res) {
         if (trackingCode) {
             html = html.replace('<head>', `<head>\n${trackingCode}`);
         }
+
+        // Inject custom CSS
+        const customCss = getCustomCss();
+        if (customCss) html = html.replace('</head>', `<style id="custom-css">${customCss}</style></head>`);
         
         res.type('html').send(html);
     } catch (err) {
@@ -2442,6 +2462,31 @@ if (PUBLIC_ONLY) {
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
+    // Import a .json file as a named profile — does NOT overwrite live CV data.
+    // The file is read into memory, parsed, and stored as a dataset entry. The file itself is not kept.
+    app.post('/api/datasets/from-json', managerApiRateLimiter, uploadRateLimiter, jsonImportUpload.single('file'), (req, res) => {
+        if (!req.file) return res.status(400).json({ error: 'No JSON file uploaded.' });
+        const name = (req.body.name || '').trim();
+        if (!name) return res.status(400).json({ error: 'Profile name is required.' });
+        let data;
+        try { data = JSON.parse(req.file.buffer.toString('utf8')); }
+        catch (e) { return res.status(400).json({ error: 'Invalid JSON file. The file could not be parsed.' }); }
+        if (!data || typeof data !== 'object' || Array.isArray(data)) return res.status(400).json({ error: 'Invalid CV JSON format.' });
+        data = normalizeCVImportData(data);
+        try {
+            const existing = db.prepare('SELECT id FROM saved_datasets WHERE name = ?').get(name);
+            if (existing) {
+                db.prepare('UPDATE saved_datasets SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(JSON.stringify(data), existing.id);
+                res.json({ success: true, id: existing.id, updated: true });
+            } else {
+                const result = db.prepare('INSERT INTO saved_datasets (name, data) VALUES (?, ?)').run(name, JSON.stringify(data));
+                const newId = result.lastInsertRowid;
+                try { const slug = generateSlug(name, newId); db.prepare('UPDATE saved_datasets SET slug = ? WHERE id = ?').run(slug, newId); } catch (e) {}
+                res.json({ success: true, id: newId, created: true });
+            }
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
     // ── Website Manager API routes ──────────────────────────────────────────
 
     // Rate limiter for all website manager API routes (300 req/min per IP)
@@ -2454,7 +2499,7 @@ if (PUBLIC_ONLY) {
         else { managerApiRateLimit[ip].count++; if (managerApiRateLimit[ip].count > 300) return res.status(429).json({ error: 'Too many requests' }); }
         next();
     }
-    app.use(['/auth/me', '/auth/login', '/auth/logout', '/api/site', '/api/pages', '/api/blocks', '/api/uploads', '/api/media', '/api/uptime', '/manager'], managerApiRateLimiter);
+    app.use(['/auth/me', '/auth/login', '/auth/logout', '/api/site', '/api/custom-css', '/api/pages', '/api/blocks', '/api/uploads', '/api/media', '/api/uptime', '/manager'], managerApiRateLimiter);
 
     // Auth JSON endpoints (used by manager UI)
     app.get('/auth/me', (req, res) => {
@@ -2505,6 +2550,21 @@ if (PUBLIC_ONLY) {
                 }
             });
             update();
+            res.json({ success: true });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+
+    // Custom CSS — stored in settings table and injected into the public CV page on every request
+    app.get('/api/custom-css', managerApiRateLimiter, requireAuth, (req, res) => {
+        try {
+            const setting = db.prepare('SELECT value FROM settings WHERE key = ?').get('customCss');
+            res.json({ css: setting?.value || '' });
+        } catch (err) { res.status(500).json({ error: err.message }); }
+    });
+    app.put('/api/custom-css', managerApiRateLimiter, requireAuth, (req, res) => {
+        try {
+            const css = typeof req.body.css === 'string' ? req.body.css : '';
+            db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run('customCss', css);
             res.json({ success: true });
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
