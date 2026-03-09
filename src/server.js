@@ -790,7 +790,166 @@ if (!PUBLIC_ONLY) {
         db.prepare('INSERT OR IGNORE INTO pages (slug, title, sort_order) VALUES (?, ?, ?)').run(p.slug, p.title, p.sort_order);
     });
 
-    // Step 4: Auto-create "Default" dataset from live DB if no default exists
+    // Seed example blocks into default pages if none exist yet (fresh install demo content)
+    const blockCount = db.prepare('SELECT COUNT(*) as n FROM blocks').get().n;
+    if (blockCount === 0) {
+        const insertBlock = db.prepare(
+            'INSERT INTO blocks (page_slug, type, content, sort_order, enabled) VALUES (?, ?, ?, ?, 1)'
+        );
+
+        // ── Home page ──────────────────────────────────────────────────────────
+        insertBlock.run('home', 'hero', JSON.stringify({
+            title: "Hi, I'm Alex Rivera",
+            subtitle: "Full-stack developer building fast, accessible web experiences. Open to new opportunities.",
+            primary_button_text: "See My Work",
+            primary_button_link: "/projects",
+            background_image: ""
+        }), 0);
+
+        insertBlock.run('home', 'timeline', JSON.stringify({
+            title: "Recent Experience",
+            items: [
+                {
+                    role: "Senior Frontend Engineer",
+                    company: "Vercel",
+                    start_date: "2022-03",
+                    end_date: "",
+                    description: "Leading UI performance initiatives across the dashboard, reducing Time-to-Interactive by 40%. Championing design-system adoption across 6 product teams."
+                },
+                {
+                    role: "Full-Stack Developer",
+                    company: "Stripe",
+                    start_date: "2019-07",
+                    end_date: "2022-02",
+                    description: "Built internal tooling and merchant-facing integrations in React and Go. Owned the invoicing module end-to-end."
+                }
+            ]
+        }), 1);
+
+        insertBlock.run('home', 'contact', JSON.stringify({
+            email: "alex@example.com",
+            github: "https://github.com/alexrivera",
+            linkedin: "https://linkedin.com/in/alexrivera",
+            website: "https://alexrivera.dev"
+        }), 2);
+
+        // ── Projects page ──────────────────────────────────────────────────────
+        insertBlock.run('projects', 'hero', JSON.stringify({
+            title: "Projects",
+            subtitle: "A selection of things I've built — from open-source tools to production apps.",
+            primary_button_text: "",
+            primary_button_link: "",
+            background_image: ""
+        }), 0);
+
+        insertBlock.run('projects', 'projects_grid', JSON.stringify({
+            title: "",
+            projects: [
+                {
+                    name: "Logship",
+                    description: "Real-time log aggregation pipeline handling 50k events/s. Built with Go, Kafka, and a React dashboard.",
+                    link: "https://github.com/alexrivera/logship",
+                    tech_stack: ["Go", "Kafka", "React", "PostgreSQL"],
+                    image: ""
+                },
+                {
+                    name: "FormKit Pro",
+                    description: "Headless form-builder library for React with schema-driven validation, conditional fields, and multi-step flows.",
+                    link: "https://github.com/alexrivera/formkit-pro",
+                    tech_stack: ["TypeScript", "React", "Zod"],
+                    image: ""
+                },
+                {
+                    name: "PocketCV",
+                    description: "Self-hosted resume manager (this very app!). Generates a clean public CV page from a SQLite database.",
+                    link: "https://github.com/alexrivera/pocketcv",
+                    tech_stack: ["Node.js", "Express", "SQLite", "Tailwind"],
+                    image: ""
+                },
+                {
+                    name: "Dispatch",
+                    description: "Lightweight webhook relay with retries, failure queues, and a simple dashboard for monitoring delivery status.",
+                    link: "https://github.com/alexrivera/dispatch",
+                    tech_stack: ["Go", "Redis", "Docker"],
+                    image: ""
+                },
+                {
+                    name: "Inkdrop Theme Pack",
+                    description: "Collection of 12 high-contrast and low-contrast editor themes for the Inkdrop note-taking app. 2k+ installs.",
+                    link: "https://github.com/alexrivera/inkdrop-themes",
+                    tech_stack: ["CSS"],
+                    image: ""
+                },
+                {
+                    name: "OSS Contributions",
+                    description: "Regular contributor to Next.js docs, Radix UI accessibility layer, and the Remix router. View all on GitHub.",
+                    link: "https://github.com/alexrivera",
+                    tech_stack: ["Various"],
+                    image: ""
+                }
+            ]
+        }), 1);
+
+        // ── CV page ────────────────────────────────────────────────────────────
+        insertBlock.run('cv', 'hero', JSON.stringify({
+            title: "Curriculum Vitae",
+            subtitle: "Alex Rivera · Full-Stack Engineer · San Francisco, CA",
+            primary_button_text: "Download PDF",
+            primary_button_link: "#",
+            background_image: ""
+        }), 0);
+
+        insertBlock.run('cv', 'timeline', JSON.stringify({
+            title: "Work Experience",
+            items: [
+                {
+                    role: "Senior Frontend Engineer",
+                    company: "Vercel",
+                    start_date: "2022-03",
+                    end_date: "",
+                    description: "Leading UI performance initiatives across the dashboard. Reduced Time-to-Interactive by 40% through code-splitting and streaming SSR. Mentoring 3 junior engineers."
+                },
+                {
+                    role: "Full-Stack Developer",
+                    company: "Stripe",
+                    start_date: "2019-07",
+                    end_date: "2022-02",
+                    description: "Built internal tooling and merchant-facing integrations in React and Go. Owned the invoicing module: design, implementation, testing, and on-call."
+                },
+                {
+                    role: "Software Engineer",
+                    company: "Shopify",
+                    start_date: "2017-06",
+                    end_date: "2019-06",
+                    description: "Worked on the Storefront APIs team, expanding GraphQL schema coverage and improving SDK developer experience."
+                }
+            ]
+        }), 1);
+
+        insertBlock.run('cv', 'timeline', JSON.stringify({
+            title: "Education",
+            items: [
+                {
+                    role: "B.Sc. Computer Science",
+                    company: "University of Waterloo",
+                    start_date: "2013-09",
+                    end_date: "2017-04",
+                    description: "Specialization in Distributed Systems. Dean's Honor List. Capstone: real-time collaborative code editor (WebRTC + CRDT)."
+                }
+            ]
+        }), 2);
+
+        // ── Contacts page ──────────────────────────────────────────────────────
+        insertBlock.run('contacts', 'contact', JSON.stringify({
+            email: "alex@example.com",
+            github: "https://github.com/alexrivera",
+            linkedin: "https://linkedin.com/in/alexrivera",
+            website: "https://alexrivera.dev"
+        }), 0);
+
+        console.log('Seeded example content into default pages');
+    }
+
     // Runs AFTER Step 3 so that profile and section_visibility rows are guaranteed to exist.
     // Creates a Default dataset on every install (fresh or existing) so the Open modal is never empty.
     try {
