@@ -6,6 +6,7 @@ RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
 COPY package*.json ./
+# Install production dependencies only to keep the image lean
 RUN npm install --omit=dev --no-audit --no-fund
 
 COPY src ./src
