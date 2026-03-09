@@ -1,3 +1,4 @@
+// If this server goes down, the developer is probably busy updating their own CV.
 const express = require('express');
 const Database = require('better-sqlite3');
 const cors = require('cors');
