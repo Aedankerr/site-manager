@@ -156,69 +156,61 @@
     .sidebar-backdrop { display: none !important; }
   }
 
-  /* ── Section-type picker cards (Wix-style) ─────────── */
-  .section-type-card {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    border-radius: 0.75rem;
-    border: 2px solid #e2e8f0;
-    background: #fff;
-    cursor: pointer;
-    transition: border-color .15s, box-shadow .15s, transform .1s;
-    overflow: hidden;
+  /* ── Wix-style section picker ────────────────────────── */
+  :root { --picker-scale: 0.35; }
+
+  .picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 540px) { .picker-grid { grid-template-columns: 1fr; } }
+
+  .picker-card {
+    text-align: left; border-radius: 12px; overflow: hidden;
+    border: 2px solid #e2e8f0; background: #fff; cursor: pointer;
+    transition: border-color .18s, box-shadow .18s;
   }
-  .dark .section-type-card { background: #1e293b; border-color: #334155; }
-  .section-type-card:hover { border-color: #6366f1; box-shadow: 0 4px 16px rgba(99,102,241,.15); transform: translateY(-2px); }
+  .dark .picker-card { background: #1e293b; border-color: #334155; }
+  .picker-card:hover { border-color: #6366f1; box-shadow: 0 8px 28px rgba(99,102,241,.22); }
 
-  .section-type-preview {
-    background: #f1f5f9;
-    padding: 14px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 80px;
+  /* The visible thumbnail box */
+  .picker-preview { height: 175px; overflow: hidden; position: relative; background: #f1f5f9; }
+  .dark .picker-preview { background: #0f172a; }
+
+  /* Scale the inner full-size render down to fit */
+  .picker-preview-scaled {
+    transform-origin: top left;
+    transform: scale(var(--picker-scale));
+    width: calc(100% / var(--picker-scale));
+    pointer-events: none;
+    font-family: system-ui, -apple-system, sans-serif;
   }
-  .dark .section-type-preview { background: #0f172a; }
 
-  .section-type-meta {
-    padding: 10px 12px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
+  /* Hover overlay */
+  .picker-overlay {
+    position: absolute; inset: 0;
+    background: rgba(15, 23, 42, 0.52);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity .2s;
   }
-  .section-type-name { font-size: .8125rem; font-weight: 600; color: #1e293b; line-height: 1.2; }
-  .dark .section-type-name { color: #e2e8f0; }
-  .section-type-desc { font-size: .7rem; color: #94a3b8; line-height: 1.4; }
+  .picker-card:hover .picker-overlay { opacity: 1; }
+  .picker-overlay-btn {
+    background: #6366f1; color: #fff;
+    font-size: 1rem; font-weight: 700;
+    padding: 11px 28px; border-radius: 9px;
+    box-shadow: 0 4px 14px rgba(99,102,241,.45);
+    letter-spacing: .01em;
+  }
 
-  /* Mini layout preview elements */
-  .preview-bar { height: 5px; border-radius: 99px; background: #cbd5e1; }
-  .dark .preview-bar { background: #334155; }
-  .preview-bar-wide { width: 72px; }
-  .preview-bar-medium { width: 50px; }
-  .preview-pill { height: 16px; width: 40px; border-radius: 99px; background: #6366f1; }
+  /* Card label area */
+  .picker-card-info { padding: 11px 14px 13px; border-top: 1px solid #f1f5f9; }
+  .dark .picker-card-info { border-color: #334155; }
+  .picker-card-name { display: block; font-size: .8125rem; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+  .dark .picker-card-name { color: #e2e8f0; }
+  .picker-card-desc { display: block; font-size: .7rem; color: #94a3b8; line-height: 1.45; }
 
-  /* Hero preview */
-  .preview-hero-bg { background: #6366f1; border-radius: 6px; padding: 10px 12px; width: 100%; display: flex; flex-direction: column; align-items: flex-start; }
-  .preview-hero-bg .preview-bar { background: rgba(255,255,255,.7); }
-
-  /* Projects grid preview */
-  .preview-grid-3 { display: flex; gap: 5px; width: 100%; }
-  .preview-card { flex: 1; height: 50px; border-radius: 5px; background: #e2e8f0; }
-  .dark .preview-card { background: #1e293b; border: 1px solid #334155; }
-
-  /* Timeline preview */
-  .preview-timeline { display: flex; flex-direction: column; gap: 6px; width: 100%; padding-left: 10px; border-left: 2px solid #6366f1; }
-  .preview-tl-item { height: 10px; border-radius: 99px; background: #e2e8f0; }
-  .preview-tl-item:nth-child(1) { width: 80%; }
-  .preview-tl-item:nth-child(2) { width: 60%; }
-  .preview-tl-item:nth-child(3) { width: 70%; }
-  .dark .preview-tl-item { background: #334155; }
-
-  /* Contact preview */
-  .preview-contact { display: flex; flex-direction: column; gap: 5px; width: 100%; }
-  .preview-contact-row { display: flex; align-items: center; gap: 6px; }
-  .preview-contact-icon { width: 14px; height: 14px; border-radius: 50%; background: #6366f1; flex-shrink: 0; }
+  /* Preview section outer wrappers — extracted from inline styles */
+  .prev-hero { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 72px 56px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .prev-projects { padding: 52px 48px; background: #f8fafc; }
+  .prev-timeline { padding: 52px 48px; background: white; }
+  .prev-contact { padding: 52px 48px; background: #f8fafc; text-align: center; }
 </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
@@ -344,86 +336,144 @@
         <div id="pageEditorSections" class="space-y-4"></div>
         <div id="pageEditorEmpty" class="hidden text-center py-10 text-slate-400 text-sm">No sections yet — add one below.</div>
 
-        <!-- Inline section picker (Wix-style visual cards) -->
+        <!-- Wix-style section picker with realistic scaled previews -->
         <div id="addSectionPicker" class="hidden mt-6">
           <div class="flex items-center justify-between mb-4">
             <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Add a section</p>
-            <button onclick="toggleAddSectionPicker()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" title="Close">
+            <button onclick="toggleAddSectionPicker()" class="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Close">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
-          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="picker-grid">
 
-            <!-- Hero -->
-            <button onclick="addPageSection('hero')" class="section-type-card group text-left">
-              <div class="section-type-preview">
-                <!-- Mini hero layout preview -->
-                <div class="preview-hero-bg">
-                  <div class="preview-bar preview-bar-wide" style="margin-bottom:4px"></div>
-                  <div class="preview-bar preview-bar-medium" style="margin-bottom:8px;opacity:.6"></div>
-                  <div class="preview-pill"></div>
+            <!-- ── Hero ────────────────────────────────────── -->
+            <button onclick="addPageSection('hero')" class="picker-card">
+              <div class="picker-preview">
+                <div class="picker-preview-scaled">
+                <div class="prev-hero">
+                    <div style="color:white;font-size:3.25rem;font-weight:800;line-height:1.1;margin-bottom:16px">Welcome to My Site</div>
+                    <div style="color:rgba(255,255,255,.78);font-size:1.1rem;line-height:1.6;max-width:520px;margin-bottom:32px">A short description about what you do and what makes you unique</div>
+                    <div style="display:flex;gap:14px;justify-content:center">
+                      <span style="background:white;color:#6366f1;padding:13px 30px;border-radius:8px;font-weight:700;font-size:1rem">Get Started</span>
+                      <span style="background:transparent;color:white;padding:13px 30px;border-radius:8px;font-weight:600;font-size:1rem;border:2px solid rgba(255,255,255,.5)">Learn More</span>
+                    </div>
+                  </div>
                 </div>
+                <div class="picker-overlay"><span class="picker-overlay-btn">+ Add</span></div>
               </div>
-              <div class="section-type-meta">
-                <span class="section-type-name">Hero</span>
-                <span class="section-type-desc">Full-width banner with headline, tagline and a call-to-action button</span>
+              <div class="picker-card-info">
+                <span class="picker-card-name">Hero</span>
+                <span class="picker-card-desc">Full-width banner with headline, tagline and call-to-action buttons</span>
               </div>
             </button>
 
-            <!-- Projects Grid -->
-            <button onclick="addPageSection('projects_grid')" class="section-type-card group text-left">
-              <div class="section-type-preview">
-                <!-- Mini 3-column card grid preview -->
-                <div class="preview-grid-3">
-                  <div class="preview-card"></div>
-                  <div class="preview-card"></div>
-                  <div class="preview-card"></div>
+            <!-- ── Projects Grid ─────────────────────────── -->
+            <button onclick="addPageSection('projects_grid')" class="picker-card">
+              <div class="picker-preview">
+                <div class="picker-preview-scaled">
+                <div class="prev-projects">
+                    <div style="font-size:2rem;font-weight:700;color:#1e293b;margin-bottom:6px">Projects</div>
+                    <div style="color:#64748b;font-size:.95rem;margin-bottom:32px">A selection of my recent work</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
+                      <div style="background:white;border-radius:10px;padding:22px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+                        <div style="font-size:.95rem;font-weight:700;color:#1e293b;margin-bottom:8px">Portfolio Site</div>
+                        <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-bottom:5px;width:90%"></div>
+                        <div style="height:6px;border-radius:4px;background:#e2e8f0;width:65%"></div>
+                        <div style="margin-top:16px;display:flex;gap:6px">
+                          <span style="background:#ede9fe;color:#6366f1;font-size:.75rem;padding:3px 10px;border-radius:99px;font-weight:600">React</span>
+                          <span style="background:#ede9fe;color:#6366f1;font-size:.75rem;padding:3px 10px;border-radius:99px;font-weight:600">Node</span>
+                        </div>
+                      </div>
+                      <div style="background:white;border-radius:10px;padding:22px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+                        <div style="font-size:.95rem;font-weight:700;color:#1e293b;margin-bottom:8px">API Dashboard</div>
+                        <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-bottom:5px;width:80%"></div>
+                        <div style="height:6px;border-radius:4px;background:#e2e8f0;width:50%"></div>
+                        <div style="margin-top:16px;display:flex;gap:6px">
+                          <span style="background:#ede9fe;color:#6366f1;font-size:.75rem;padding:3px 10px;border-radius:99px;font-weight:600">Python</span>
+                        </div>
+                      </div>
+                      <div style="background:white;border-radius:10px;padding:22px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+                        <div style="font-size:.95rem;font-weight:700;color:#1e293b;margin-bottom:8px">Mobile App</div>
+                        <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-bottom:5px;width:75%"></div>
+                        <div style="height:6px;border-radius:4px;background:#e2e8f0;width:55%"></div>
+                        <div style="margin-top:16px;display:flex;gap:6px">
+                          <span style="background:#ede9fe;color:#6366f1;font-size:.75rem;padding:3px 10px;border-radius:99px;font-weight:600">Swift</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                <div class="picker-overlay"><span class="picker-overlay-btn">+ Add</span></div>
               </div>
-              <div class="section-type-meta">
-                <span class="section-type-name">Projects Grid</span>
-                <span class="section-type-desc">Showcase work in a responsive card grid with links and tech tags</span>
+              <div class="picker-card-info">
+                <span class="picker-card-name">Projects Grid</span>
+                <span class="picker-card-desc">Showcase work in a responsive card grid with links and tech stack tags</span>
               </div>
             </button>
 
-            <!-- Timeline -->
-            <button onclick="addPageSection('timeline')" class="section-type-card group text-left">
-              <div class="section-type-preview">
-                <!-- Mini timeline preview -->
-                <div class="preview-timeline">
-                  <div class="preview-tl-item"></div>
-                  <div class="preview-tl-item"></div>
-                  <div class="preview-tl-item"></div>
+            <!-- ── Timeline ───────────────────────────────── -->
+            <button onclick="addPageSection('timeline')" class="picker-card">
+              <div class="picker-preview">
+                <div class="picker-preview-scaled">
+                <div class="prev-timeline">
+                    <div style="font-size:2rem;font-weight:700;color:#1e293b;margin-bottom:32px">Experience</div>
+                    <div style="border-left:3px solid #6366f1;padding-left:24px;display:flex;flex-direction:column;gap:28px">
+                      <div style="display:flex;gap:14px;align-items:flex-start">
+                        <div style="width:13px;height:13px;border-radius:50%;background:#6366f1;flex-shrink:0;margin-top:3px;margin-left:-30px"></div>
+                        <div>
+                          <div style="font-size:1rem;font-weight:700;color:#1e293b">Senior Developer <span style="color:#64748b;font-weight:400">@ Acme Corp</span></div>
+                          <div style="font-size:.85rem;color:#94a3b8;margin-top:4px">Jan 2022 – Present</div>
+                          <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-top:10px;width:85%"></div>
+                          <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-top:6px;width:65%"></div>
+                        </div>
+                      </div>
+                      <div style="display:flex;gap:14px;align-items:flex-start">
+                        <div style="width:13px;height:13px;border-radius:50%;background:#c7d2fe;flex-shrink:0;margin-top:3px;margin-left:-30px"></div>
+                        <div>
+                          <div style="font-size:1rem;font-weight:700;color:#1e293b">Frontend Engineer <span style="color:#64748b;font-weight:400">@ Startup X</span></div>
+                          <div style="font-size:.85rem;color:#94a3b8;margin-top:4px">Mar 2020 – Dec 2021</div>
+                          <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-top:10px;width:72%"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                <div class="picker-overlay"><span class="picker-overlay-btn">+ Add</span></div>
               </div>
-              <div class="section-type-meta">
-                <span class="section-type-name">Timeline</span>
-                <span class="section-type-desc">Chronological list of roles, companies and dates for experience or education</span>
+              <div class="picker-card-info">
+                <span class="picker-card-name">Timeline</span>
+                <span class="picker-card-desc">Chronological list of roles, companies and dates for experience or education</span>
               </div>
             </button>
 
-            <!-- Contact -->
-            <button onclick="addPageSection('contact')" class="section-type-card group text-left">
-              <div class="section-type-preview">
-                <!-- Mini contact icons preview -->
-                <div class="preview-contact">
-                  <div class="preview-contact-row">
-                    <div class="preview-contact-icon"></div>
-                    <div class="preview-bar preview-bar-medium" style="flex:1"></div>
-                  </div>
-                  <div class="preview-contact-row">
-                    <div class="preview-contact-icon"></div>
-                    <div class="preview-bar preview-bar-wide" style="flex:1"></div>
-                  </div>
-                  <div class="preview-contact-row">
-                    <div class="preview-contact-icon"></div>
-                    <div class="preview-bar" style="flex:1;width:auto"></div>
+            <!-- ── Contact ────────────────────────────────── -->
+            <button onclick="addPageSection('contact')" class="picker-card">
+              <div class="picker-preview">
+                <div class="picker-preview-scaled">
+                <div class="prev-contact">
+                    <div style="font-size:2rem;font-weight:700;color:#1e293b;margin-bottom:8px">Get in Touch</div>
+                    <div style="color:#64748b;font-size:.95rem;margin-bottom:36px">I'd love to hear from you</div>
+                    <div style="display:flex;flex-direction:column;gap:14px;max-width:360px;margin:0 auto">
+                      <div style="display:flex;align-items:center;gap:14px;background:white;padding:15px 22px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+                        <div style="width:24px;height:24px;border-radius:50%;background:#6366f1;flex-shrink:0"></div>
+                        <span style="color:#1e293b;font-size:.95rem">hello@example.com</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:14px;background:white;padding:15px 22px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+                        <div style="width:24px;height:24px;border-radius:50%;background:#1e293b;flex-shrink:0"></div>
+                        <span style="color:#1e293b;font-size:.95rem">github.com/username</span>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:14px;background:white;padding:15px 22px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+                        <div style="width:24px;height:24px;border-radius:50%;background:#0077b5;flex-shrink:0"></div>
+                        <span style="color:#1e293b;font-size:.95rem">linkedin.com/in/username</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
+                <div class="picker-overlay"><span class="picker-overlay-btn">+ Add</span></div>
               </div>
-              <div class="section-type-meta">
-                <span class="section-type-name">Contact</span>
-                <span class="section-type-desc">Email, GitHub, LinkedIn and website links in a clean icon list</span>
+              <div class="picker-card-info">
+                <span class="picker-card-name">Contact</span>
+                <span class="picker-card-desc">Email, GitHub, LinkedIn and website links in a clean icon list</span>
               </div>
             </button>
 
