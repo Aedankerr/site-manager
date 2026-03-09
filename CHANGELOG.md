@@ -4,6 +4,23 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.18.0] - 2026-03-09
+
+### Added
+- **Multi-site management**: New `managed_sites` database table and full CRUD API (`GET/POST/PUT/DELETE /api/managed-sites`). Each site stores id, name, slug, description, type (cv/portfolio/landing-page/static-site/custom), visibility (private/preview/public), status (draft/published/archived), custom domain, public URL, and monitoring configuration.
+- **Site duplication**: `POST /api/managed-sites/:id/duplicate` creates a copy of any site with a unique slug.
+- **Site status check**: `POST /api/managed-sites/:id/check` pings the site's monitoring URL and stores the result (status, response time, last checked).
+- **All Sites panel** in the admin manager sidebar: lists all managed sites as cards with status indicator dots (green/red/grey), type and status badges, public URL, and per-site action buttons (check, duplicate, edit, delete).
+- **Create/Edit Site modal** with fields for name, slug (auto-filled from name), description, type, visibility, public URL, custom domain, and per-site monitoring configuration (enable toggle, monitored URL, SSL check).
+- **Site search/filter** — filter the sites list by name, slug, or description.
+- **Uptime Kuma integration**: `Settings → Monitoring` panel lets you configure the URL and API key of a self-hosted [Uptime Kuma](https://github.com/louislam/uptime-kuma) instance. These settings (`kuma_url`, `kuma_api_key`) are stored in the `site_settings` table and surfaced via the existing `/api/site` endpoint.
+- **`docker-compose.monitoring.yml`**: Ready-to-use compose file that starts Uptime Kuma alongside site-manager. Maps Kuma to port 3013 with a local `./uptime-kuma-data` volume.
+- Backend tests for all new `/api/managed-sites` endpoints (11 new test cases).
+
+### Changed
+- Manager sidebar reorganised: **Sites** group (All Sites) added above the existing Pages group.
+- `showSection` helper updated to include the new `sectionSites` panel.
+
 ## [1.17.0] - 2026-03-09
 
 ### Added
