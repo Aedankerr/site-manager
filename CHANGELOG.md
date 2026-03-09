@@ -4,6 +4,21 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.17.0] - 2026-03-09
+
+### Added
+- **Profiles** section: save named snapshots of your CV data, switch between them, set one as the public-facing default, and import a JSON file directly as a profile without touching the live database.
+- **Custom CSS** section: add any CSS that is injected into the public CV page on every request — lets users fully customise the look of their site.
+- `POST /api/datasets/from-json` — import a `.json` file as a named profile without overwriting live CV data. The file is read into memory and stored as a dataset; it is not kept on the server.
+
+### Changed
+- Removed the block-based page editor in favour of a simpler **inline page editor**: every section on a page is always visible and directly editable — no modals, no drag-and-drop. Pages (Home, Projects, Contact) are now listed under a **Pages** nav group.
+- Sidebar reorganised into three groups: **Pages**, **Site** (CV Profiles, Custom CSS, Media), and **Tools** (Uptime, Settings). Logo now shows "Website Builder" sub-label.
+- Admin app now opens on the Home page editor instead of a placeholder on login.
+- JSON import description clarified: the file is read into memory and not stored on the server; data is written directly to the database, replacing existing entries.
+- Removed the "Import CV from HTML" import option (the "save page as HTML and re-upload" workflow) to simplify the Settings import panel.
+- Media library JS simplified: removed picker-modal code that was only used by the old block editors.
+
 ## [1.16.3] - 2026-03-08
 
 ### Changed
