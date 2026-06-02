@@ -17,6 +17,7 @@ This is a CV / Resume management system with an editable theme, persistent datab
 
 ## Features
 
+- **Template/demo exports**: Includes a standalone technical dossier example under `examples/aedan-technical-dossier/` for theme/layout reference.
 - **7 Sections**: About, Timeline (auto-generated), Experience, Certifications, Education, Skills, Projects
 - **Custom Sections**: Add your own sections with different layout possibilities
 - **Full CRUD**: Add, edit, delete any item
@@ -29,6 +30,17 @@ This is a CV / Resume management system with an editable theme, persistent datab
 - **Auto-Generated Timeline**: Timeline automatically builds from your experiences
 - **ATS Optimized**: Schema.org markup, semantic HTML, hidden keywords for job site parsing
 - **SEO Ready**: Dynamic robots.txt and sitemap.xml for the public site
+
+## Static template/demo export
+
+The repository includes a standalone static dossier export in [`examples/aedan-technical-dossier/`](examples/aedan-technical-dossier/). It is useful as a theme/layout reference or as a starting point for exported resume pages without replacing the main installable Site Manager app.
+
+```bash
+cd examples/aedan-technical-dossier
+python3 -m http.server 8080
+```
+
+Then open `http://localhost:8080/index.html`.
 
 ## Quick Start (Docker)
 

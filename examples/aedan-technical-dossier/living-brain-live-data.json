@@ -1,0 +1,31 @@
+{
+  "updated": "2026-06-01T21:35:44.700482+00:00",
+  "nodes": [
+    {
+      "id": "live_feed_enabled",
+      "label": "Live feed enabled",
+      "type": "artifact",
+      "workspace": "resume_ws",
+      "weight": 1.1,
+      "detail": "This node came from living-brain-live-data.json. Add more nodes there and the map will pick them up automatically."
+    },
+    {
+      "id": "live_live_test_node",
+      "label": "Live test node",
+      "type": "memory",
+      "workspace": "resume_ws",
+      "weight": 1.0,
+      "detail": "Test node added by helper script. Browser map should show it within 2.5 seconds."
+    }
+  ],
+  "links": [
+    [
+      "brain_graph",
+      "live_feed_enabled"
+    ],
+    [
+      "resume_ws",
+      "live_live_test_node"
+    ]
+  ]
+}
