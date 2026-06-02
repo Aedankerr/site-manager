@@ -10,6 +10,8 @@ This is a CV / Resume management system with an editable theme, persistent datab
   <img width="600" alt="Technical dossier template preview" src="examples/technical-dossier-template/technical-dossier-preview.svg" />
 </p>
 
+Live GitHub Pages demo: <https://aedankerr.github.io/site-manager/>
+
 ## Features
 
 - **Template/demo exports**: Includes a standalone generic technical dossier template under `examples/technical-dossier-template/` for theme/layout reference.
