@@ -2,17 +2,17 @@
 [![CI](https://github.com/Aedankerr/site-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Aedankerr/site-manager/actions/workflows/ci.yml)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20NC-blue.svg)](LICENSE.txt)
 
-This is a CV / Resume management system with an editable theme, persistent database storage, and Docker deployment ready for Unraid.  
+This is a CV / Resume management system with an editable theme, persistent database storage, and Docker deployment ready for Unraid.
 
-<img width="600"  alt="cv1" src="https://github.com/user-attachments/assets/6e20de1e-2001-4097-9844-2aeb611bc53e" />  
+## Preview
 
-<img width="600"  alt="cv2" src="https://github.com/user-attachments/assets/339cec06-2c6b-4024-99dd-5d97f2960478" />  
+<p>
+  <img width="600" alt="Technical dossier static export preview" src="examples/aedan-technical-dossier/technical-dossier-preview.svg" />
+</p>
 
-<img width="600"  alt="cv3" src="https://github.com/user-attachments/assets/5f10edb5-a81e-4715-9d4b-90e8a154de72" />  
-
-<img width="600"  alt="cv4" src="https://github.com/user-attachments/assets/285c131d-2e9b-44e6-abfa-bb45b51ee530" />  
-
-
+<p>
+  <img width="600" alt="Living memory map interface preview" src="examples/aedan-technical-dossier/living-brain-interface-preview.svg" />
+</p>
 
 
 ## Features
