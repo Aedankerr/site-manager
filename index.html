@@ -1,70 +1,46 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="GitHub Pages demo for the Site Manager technical dossier template." />
+  <meta name="description" content="GitHub Pages demo for the Site Manager multi-page technical dossier template." />
   <title>Site Manager — GitHub Pages Example</title>
-  <style>
-    :root { --paper:#f4f3ee; --ink:#050505; --muted:#5f5d56; --card:#fbfaf6; --rule:rgba(5,5,5,.18); }
-    * { box-sizing:border-box; }
-    body {
-      margin:0; color:var(--ink); background:
-      linear-gradient(90deg, rgba(5,5,5,.04) 1px, transparent 1px) 0 0 / 32px 32px,
-      linear-gradient(rgba(5,5,5,.03) 1px, transparent 1px) 0 0 / 32px 32px,
-      var(--paper);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height:1.55;
-    }
-    .wrap { width:min(1120px, calc(100% - 32px)); margin:0 auto; }
-    header { padding:72px 0 36px; border-bottom:2px solid var(--ink); }
-    .eyebrow { font:700 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
-    h1 { margin:18px 0 12px; font-size:clamp(44px,8vw,92px); line-height:.94; letter-spacing:-.07em; }
-    .lead { max-width:790px; font-size:clamp(19px,2.4vw,27px); margin:0; color:#25231f; }
-    main { padding:34px 0 72px; display:grid; grid-template-columns:1.05fr .95fr; gap:24px; align-items:start; }
-    .card { border:2px solid var(--ink); border-radius:20px; background:rgba(251,250,246,.88); padding:24px; box-shadow:8px 8px 0 #050505; }
-    .preview { width:100%; border:2px solid var(--ink); border-radius:18px; background:#111; display:block; }
-    h2 { margin:0 0 14px; font-size:26px; letter-spacing:-.04em; }
-    p { color:#302f2b; }
-    .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:22px; }
-    a.button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 16px; border:2px solid var(--ink); border-radius:999px; color:inherit; text-decoration:none; font-weight:750; background:var(--card); }
-    a.button.primary { background:#050505; color:#f4f3ee; }
-    ul { margin:12px 0 0; padding-left:20px; color:#302f2b; }
-    code { background:#e4dfd1; border:1px solid var(--rule); border-radius:8px; padding:2px 6px; }
-    footer { border-top:2px solid var(--ink); padding:28px 0; color:var(--muted); font-size:14px; }
-    @media (max-width:820px){ main{grid-template-columns:1fr;} .card{box-shadow:5px 5px 0 #050505;} }
-  </style>
+  <link rel="stylesheet" href="assets/site-style.css" />
 </head>
 <body>
-  <header>
+  <header class="topbar">
     <div class="wrap">
-      <div class="eyebrow">GitHub Pages demo</div>
-      <h1>Site Manager</h1>
-      <p class="lead">A static example site for the technical dossier template. Use this as a lightweight public preview while the full Site Manager app remains Docker/database backed.</p>
-      <div class="actions">
-        <a class="button primary" href="template/">Open template demo</a>
-        <a class="button" href="https://github.com/Aedankerr/site-manager">View repository</a>
-      </div>
+      <a class="brand" href="index.html">Site Manager</a>
+      <nav aria-label="Demo pages">
+        <a href="index.html" aria-current="page">Demo</a>
+        <a href="template/index.html">Template Home</a>
+        <a href="template/cv.html">CV</a>
+        <a href="template/projects.html">Projects</a>
+        <a href="template/contact.html">Contact</a>
+      </nav>
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="card">
-      <h2>What this page demonstrates</h2>
-      <p>This GitHub Pages site hosts a standalone static export from the repository. It does not need Node.js, SQLite, Docker, or the public/read-only server.</p>
-      <ul>
-        <li>Version-controlled static preview</li>
-        <li>Generic placeholder resume/dossier content</li>
-        <li>Safe public demo with no private contact details</li>
-        <li>Separate from the installable Site Manager application</li>
-      </ul>
-    </section>
-
-    <section class="card">
-      <h2>Template preview</h2>
-      <img class="preview" src="assets/technical-dossier-preview.svg" alt="Technical dossier template preview" />
+  <div class="hero">
+    <div class="wrap">
+      <div class="eyebrow">GitHub Pages demo</div>
+      <h1>Site Manager</h1>
+      <p class="subtitle">A multi-page static example for the technical dossier template. This uses the same shared style code as the template pages.</p>
       <div class="actions">
-        <a class="button primary" href="template/">Launch static template</a>
+        <a class="button primary" href="template/index.html">Open template home</a>
+        <a class="button" href="https://github.com/Aedankerr/site-manager">View repository</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <section>
+      <h2>What this page demonstrates</h2>
+      <p class="note">The public example now has multiple pages: Home, CV, Projects, and Contact. Every page uses the same shared stylesheet so future template changes stay consistent.</p>
+      <div class="page-menu" aria-label="Template pages">
+        <a class="page-card" href="template/index.html"><strong>Home</strong><span>Reusable landing page with placeholder profile positioning.</span></a>
+        <a class="page-card" href="template/cv.html"><strong>CV</strong><span>Experience, skills, certifications, and education.</span></a>
+        <a class="page-card" href="template/projects.html"><strong>Projects</strong><span>Portfolio and proof-of-work cards.</span></a>
       </div>
     </section>
   </main>
