@@ -7,17 +7,12 @@ This is a CV / Resume management system with an editable theme, persistent datab
 ## Preview
 
 <p>
-  <img width="600" alt="Technical dossier static export preview" src="examples/aedan-technical-dossier/technical-dossier-preview.svg" />
+  <img width="600" alt="Technical dossier template preview" src="examples/technical-dossier-template/technical-dossier-preview.svg" />
 </p>
-
-<p>
-  <img width="600" alt="Living memory map interface preview" src="examples/aedan-technical-dossier/living-brain-interface-preview.svg" />
-</p>
-
 
 ## Features
 
-- **Template/demo exports**: Includes a standalone technical dossier example under `examples/aedan-technical-dossier/` for theme/layout reference.
+- **Template/demo exports**: Includes a standalone generic technical dossier template under `examples/technical-dossier-template/` for theme/layout reference.
 - **7 Sections**: About, Timeline (auto-generated), Experience, Certifications, Education, Skills, Projects
 - **Custom Sections**: Add your own sections with different layout possibilities
 - **Full CRUD**: Add, edit, delete any item
@@ -33,10 +28,10 @@ This is a CV / Resume management system with an editable theme, persistent datab
 
 ## Static template/demo export
 
-The repository includes a standalone static dossier export in [`examples/aedan-technical-dossier/`](examples/aedan-technical-dossier/). It is useful as a theme/layout reference or as a starting point for exported resume pages without replacing the main installable Site Manager app.
+The repository includes a standalone static dossier template in [`examples/technical-dossier-template/`](examples/technical-dossier-template/). It is useful as a theme/layout reference or as a starting point for exported resume pages without replacing the main installable Site Manager app.
 
 ```bash
-cd examples/aedan-technical-dossier
+cd examples/technical-dossier-template
 python3 -m http.server 8080
 ```
 
