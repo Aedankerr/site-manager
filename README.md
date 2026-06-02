@@ -139,12 +139,14 @@ Once it is listed:
 
 ### Method 2: Custom Unraid XML templates
 
-The repository already includes Unraid template XML files under [`unraid/`](unraid/):
+The repository includes Community Apps-style template files under [`templates/`](templates/) plus a legacy direct-install mirror under [`unraid/`](unraid/):
 
-- [`unraid/unraid-site-manager-admin.xml`](unraid/unraid-site-manager-admin.xml)
-- [`unraid/unraid-site-manager-public.xml`](unraid/unraid-site-manager-public.xml)
+- [`templates/site-manager.xml`](templates/site-manager.xml) — Admin template for Community Apps submission
+- [`templates/site-manager-public.xml`](templates/site-manager-public.xml) — Public read-only template for Community Apps submission
+- [`unraid/unraid-site-manager-admin.xml`](unraid/unraid-site-manager-admin.xml) — legacy direct-install mirror
+- [`unraid/unraid-site-manager-public.xml`](unraid/unraid-site-manager-public.xml) — legacy direct-install mirror
 
-Follow the detailed custom-template instructions in [`docs/getting-started/unraid.md`](docs/getting-started/unraid.md).
+Follow the detailed custom-template and Community Apps submission notes in [`docs/getting-started/unraid.md`](docs/getting-started/unraid.md).
 
 ### Method 3: Docker Compose Manager Plugin
 

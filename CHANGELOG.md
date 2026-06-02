@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 
 ### Changed
 - Clarified Unraid installation docs: Community Apps listing is planned but not published yet, custom XML templates are the current Unraid install path, and the old placeholder Apps screenshot/search text was removed.
+- Added Community Apps-style submission files (`ca_profile.xml`, `templates/site-manager.xml`, and `templates/site-manager-public.xml`) plus documentation for manual template install and future Community Apps submission.
 
 ## [1.17.0] - 2026-03-09
 

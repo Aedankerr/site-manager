@@ -42,7 +42,12 @@ The repository includes working Unraid XML templates, but Site Manager is not li
 > Skip this step once the templates are published to the Community Apps store.
 
 1. In the Unraid UI, go to **Apps → Settings → Template Repositories**.
-2. Add the following URL:
+2. Add one of the template repository URLs:
+   ```
+   https://github.com/Aedankerr/site-manager/tree/main/templates
+   ```
+
+   Legacy mirror path, kept for direct installs:
    ```
    https://github.com/Aedankerr/site-manager/tree/main/unraid
    ```
@@ -244,6 +249,30 @@ To expose the public CV to the internet while keeping the admin internal:
    - **Hostname**: `cv.yourdomain.com`
    - **Service**: `http://[UNRAID-IP]:3011`
 3. Do **not** expose port 3010 publicly. Optionally add a Cloudflare Access application on `admin.yourdomain.com` pointing to port 3010 for remote admin access.
+
+---
+
+## Publishing to Unraid Community Apps
+
+The repository now includes a Community Apps-style submission layout:
+
+- [`ca_profile.xml`](../../ca_profile.xml) — repository/profile metadata for Community Apps.
+- [`templates/site-manager.xml`](../../templates/site-manager.xml) — Admin Docker template.
+- [`templates/site-manager-public.xml`](../../templates/site-manager-public.xml) — Public read-only Docker template.
+
+To submit once the project is eligible:
+
+1. Open Community Applications on your Unraid server.
+2. Go to the submit flow at `/submit` in the Unraid web UI.
+3. Provide the repository URL:
+   ```text
+   https://github.com/Aedankerr/site-manager
+   ```
+4. Run **Validate** and **Scan**.
+5. Fix any validation feedback in `ca_profile.xml` or `templates/*.xml`.
+6. Submit for Community Apps review.
+
+Important: the official Community Apps starter notes that public submissions must use an OSI-approved open-source license. This repository currently uses **PolyForm Noncommercial 1.0.0**, so public CA acceptance may require a license decision before submission.
 
 ---
 

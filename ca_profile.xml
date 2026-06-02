@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<CommunityApplications>
+  <Profile>
+Site Manager provides Docker-ready CV, resume, and portfolio site management for Unraid. The repository maintains two Docker templates:
+
+- Site Manager (Admin): full editing interface for managing content, themes, imports, uploads, and settings.
+- Site Manager (Public): read-only public interface intended for Cloudflare Tunnel or reverse-proxy exposure.
+
+Install the Admin template first, then install the Public template only if you want a separate read-only public container. Both containers must use the same AppData and Uploads paths.
+  </Profile>
+  <Icon>https://raw.githubusercontent.com/Aedankerr/site-manager/main/icon.png</Icon>
+  <WebPage>https://github.com/Aedankerr/site-manager</WebPage>
+</CommunityApplications>
