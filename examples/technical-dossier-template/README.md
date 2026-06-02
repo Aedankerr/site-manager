@@ -14,8 +14,12 @@ It intentionally contains **placeholder content only**. Do not commit real perso
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | Standalone generic technical resume/dossier page. |
-| `technical-dossier-preview.svg` | Generated preview image for the standalone dossier page. |
+| `index.html` | Multi-page landing page for the generic technical dossier. |
+| `cv.html` | CV page with experience, skills, certifications, and education sections. |
+| `projects.html` | Project/portfolio proof-of-work page. |
+| `contact.html` | Privacy-safe placeholder contact page. |
+| `assets/site-style.css` | Shared stylesheet used by every page in the template and GitHub Pages demo. |
+| `technical-dossier-preview.svg` | Generated preview image for the dossier template. |
 | `resume-page-maintenance-check.py` | Lightweight checker for stale pages and broken local references. |
 
 ## Run locally

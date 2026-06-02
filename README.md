@@ -37,7 +37,7 @@ cd examples/technical-dossier-template
 python3 -m http.server 8080
 ```
 
-Then open `http://localhost:8080/index.html`.
+Then open `http://localhost:8080/index.html`. The static demo includes `index.html`, `cv.html`, `projects.html`, and `contact.html`, all using the same shared `assets/site-style.css` file.
 
 ## Quick Start (Docker)
 
@@ -139,12 +139,10 @@ Once it is listed:
 
 ### Method 2: Custom Unraid XML templates
 
-The repository includes Community Apps-style template files under [`templates/`](templates/) plus a legacy direct-install mirror under [`unraid/`](unraid/):
+The repository includes current Unraid/Community Apps template files under [`templates/`](templates/):
 
-- [`templates/site-manager.xml`](templates/site-manager.xml) — Admin template for Community Apps submission
-- [`templates/site-manager-public.xml`](templates/site-manager-public.xml) — Public read-only template for Community Apps submission
-- [`unraid/unraid-site-manager-admin.xml`](unraid/unraid-site-manager-admin.xml) — legacy direct-install mirror
-- [`unraid/unraid-site-manager-public.xml`](unraid/unraid-site-manager-public.xml) — legacy direct-install mirror
+- [`templates/site-manager.xml`](templates/site-manager.xml) — Admin template for Community Apps submission and direct template installs
+- [`templates/site-manager-public.xml`](templates/site-manager-public.xml) — Public read-only template for Community Apps submission and direct template installs
 
 Follow the detailed custom-template and Community Apps submission notes in [`docs/getting-started/unraid.md`](docs/getting-started/unraid.md).
 

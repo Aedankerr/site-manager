@@ -456,7 +456,7 @@
                     <div style="display:flex;flex-direction:column;gap:14px;max-width:360px;margin:0 auto">
                       <div style="display:flex;align-items:center;gap:14px;background:white;padding:15px 22px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
                         <div style="width:24px;height:24px;border-radius:50%;background:#6366f1;flex-shrink:0"></div>
-                        <span style="color:#1e293b;font-size:.95rem">hello@example.com</span>
+                        <span style="color:#1e293b;font-size:.95rem">hello@example.invalid</span>
                       </div>
                       <div style="display:flex;align-items:center;gap:14px;background:white;padding:15px 22px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
                         <div style="width:24px;height:24px;border-radius:50%;background:#1e293b;flex-shrink:0"></div>
@@ -884,7 +884,7 @@ function buildInlineEditor(type, c, id) {
 
   if (type === 'contact') return `
     <div><label class="block text-xs font-medium text-slate-500 mb-1">Email</label>
-    <input id="${p}email" type="email" value="${escAttr(c.email||'')}" placeholder="hello@example.com" class="field"></div>
+    <input id="${p}email" type="email" value="${escAttr(c.email||'')}" placeholder="hello@example.invalid" class="field"></div>
     <div><label class="block text-xs font-medium text-slate-500 mb-1">GitHub</label>
     <input id="${p}github" type="url" value="${escAttr(c.github||'')}" placeholder="https://github.com/username" class="field"></div>
     <div><label class="block text-xs font-medium text-slate-500 mb-1">LinkedIn</label>

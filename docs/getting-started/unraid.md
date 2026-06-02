@@ -42,14 +42,9 @@ The repository includes working Unraid XML templates, but Site Manager is not li
 > Skip this step once the templates are published to the Community Apps store.
 
 1. In the Unraid UI, go to **Apps → Settings → Template Repositories**.
-2. Add one of the template repository URLs:
+2. Add the template repository URL:
    ```
    https://github.com/Aedankerr/site-manager/tree/main/templates
-   ```
-
-   Legacy mirror path, kept for direct installs:
-   ```
-   https://github.com/Aedankerr/site-manager/tree/main/unraid
    ```
 3. Click **Save** and let the apps list refresh.
 
@@ -169,7 +164,7 @@ Use this when the admin interface is behind a Cloudflare Tunnel:
 |---|---|
 | `SESSION_SECRET` | A long random string |
 | `ADMIN_TRUST_CLOUDFLARE_ACCESS` | `true` |
-| `ADMIN_ALLOWED_EMAILS` | Comma-separated list of your email(s), e.g. `you@example.com` |
+| `ADMIN_ALLOWED_EMAILS` | Comma-separated list of your email(s), e.g. `you@example.invalid` |
 | `COOKIE_SECURE` | `true` |
 
 The container trusts the `Cf-Access-Authenticated-User-Email` header injected by Cloudflare Access and grants access only to emails in the allowlist.

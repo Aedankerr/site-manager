@@ -827,7 +827,7 @@ if (!PUBLIC_ONLY) {
         }), 1);
 
         insertBlock.run('home', 'contact', JSON.stringify({
-            email: "alex@example.com",
+            email: "alex@example.invalid",
             github: "https://github.com/alexrivera",
             linkedin: "https://linkedin.com/in/alexrivera",
             website: "https://alexrivera.dev"
@@ -941,7 +941,7 @@ if (!PUBLIC_ONLY) {
 
         // ── Contacts page ──────────────────────────────────────────────────────
         insertBlock.run('contacts', 'contact', JSON.stringify({
-            email: "alex@example.com",
+            email: "alex@example.invalid",
             github: "https://github.com/alexrivera",
             linkedin: "https://linkedin.com/in/alexrivera",
             website: "https://alexrivera.dev"
