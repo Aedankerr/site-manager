@@ -28,9 +28,16 @@ Both the Admin and Public containers must share **the same** `data` and `uploads
 
 ---
 
-## Method 1 — Community Apps XML Template
+## Method 1 — Community Apps / Custom XML Templates
 
-### 1a. Add the Custom Template Repository
+### 1a. Current status
+
+The repository includes working Unraid XML templates, but Site Manager is not listed in the public Community Apps catalog yet.
+
+- **Current install path:** add the repository templates manually.
+- **Future install path:** install **Site Manager (Admin)** and **Site Manager (Public)** directly from the Unraid **Apps** tab once the listing is published.
+
+### 1b. Add the Custom Template Repository
 
 > Skip this step once the templates are published to the Community Apps store.
 
@@ -41,7 +48,7 @@ Both the Admin and Public containers must share **the same** `data` and `uploads
    ```
 3. Click **Save** and let the apps list refresh.
 
-### 1b. Install the Admin Container
+### 1c. Install the Admin Container
 
 1. Go to **Apps** and search for **site-manager**.
 2. Click **Install** on the **Site Manager (Admin)** template.
@@ -63,7 +70,7 @@ Both the Admin and Public containers must share **the same** `data` and `uploads
 
 4. Click **Apply**.
 
-### 1c. Install the Public Container
+### 1d. Install the Public Container
 
 1. Search for **site-manager-public** in Apps.
 2. Click **Install** on the **Site Manager (Public)** template.

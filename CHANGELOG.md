@@ -4,6 +4,11 @@ All notable changes to CV Manager will be documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Clarified Unraid installation docs: Community Apps listing is planned but not published yet, custom XML templates are the current Unraid install path, and the old placeholder Apps screenshot/search text was removed.
+
 ## [1.17.0] - 2026-03-09
 
 ### Added

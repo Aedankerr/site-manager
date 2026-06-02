@@ -124,16 +124,29 @@ The sitemap.xml and robots.txt are automatically generated with the correct doma
 
 ## Unraid Deployment
 
-### Method 1: Install from Unraid Apps
+### Method 1: Install from Unraid Apps *(planned)*
 
-1. In the Apps tab, look for "cv manager". 
-2. Install site-manager first then site-manager-public
+Site Manager is intended to be installable from the Unraid **Apps** tab, but the Community Apps listing is not available yet.
 
-<img width="800" height="357" alt="Screenshot 2026-02-01 at 06 14 29" src="https://github.com/user-attachments/assets/e6358881-86fb-4338-b4e9-367d3020cc7a" />
+Once it is listed:
 
+1. In the Unraid **Apps** tab, search for **Site Manager**.
+2. Install **Site Manager (Admin)** first.
+3. Install **Site Manager (Public)** second if you want a separate read-only public container.
+4. Use the same AppData and Uploads paths for both containers so they share the same database and images.
 
+> Until the Community Apps listing is published, use Method 2 or the custom XML templates documented in [`docs/getting-started/unraid.md`](docs/getting-started/unraid.md).
 
-### Method 2: Docker Compose Manager Plugin
+### Method 2: Custom Unraid XML templates
+
+The repository already includes Unraid template XML files under [`unraid/`](unraid/):
+
+- [`unraid/unraid-site-manager-admin.xml`](unraid/unraid-site-manager-admin.xml)
+- [`unraid/unraid-site-manager-public.xml`](unraid/unraid-site-manager-public.xml)
+
+Follow the detailed custom-template instructions in [`docs/getting-started/unraid.md`](docs/getting-started/unraid.md).
+
+### Method 3: Docker Compose Manager Plugin
 
 1. Install the "Docker Compose Manager" plugin from Community Apps
 2. Create a new stack with the `docker-compose.yml` content
