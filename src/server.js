@@ -784,7 +784,7 @@ if (!PUBLIC_ONLY) {
         { slug: 'home', title: 'Home', sort_order: 0 },
         { slug: 'projects', title: 'Projects', sort_order: 1 },
         { slug: 'cv', title: 'CV', sort_order: 2 },
-        { slug: 'contacts', title: 'Contacts', sort_order: 3 },
+        { slug: 'contacts', title: 'Contact', sort_order: 3 },
     ];
     defaultPages.forEach(p => {
         db.prepare('INSERT OR IGNORE INTO pages (slug, title, sort_order) VALUES (?, ?, ?)').run(p.slug, p.title, p.sort_order);
@@ -799,8 +799,8 @@ if (!PUBLIC_ONLY) {
 
         // ── Home page ──────────────────────────────────────────────────────────
         insertBlock.run('home', 'hero', JSON.stringify({
-            title: "Hi, I'm Alex Rivera",
-            subtitle: "Full-stack developer building fast, accessible web experiences. Open to new opportunities.",
+            title: "Hi, I'm Your Name",
+            subtitle: "Use this space to introduce yourself, your work, and what visitors can find on your site.",
             primary_button_text: "See My Work",
             primary_button_link: "/projects",
             background_image: ""
@@ -810,33 +810,33 @@ if (!PUBLIC_ONLY) {
             title: "Recent Experience",
             items: [
                 {
-                    role: "Senior Frontend Engineer",
-                    company: "Vercel",
-                    start_date: "2022-03",
+                    role: "Current or Recent Role",
+                    company: "Example Company",
+                    start_date: "2024-01",
                     end_date: "",
-                    description: "Leading UI performance initiatives across the dashboard, reducing Time-to-Interactive by 40%. Championing design-system adoption across 6 product teams."
+                    description: "Replace this with a short summary of your most recent role, responsibilities, and impact."
                 },
                 {
-                    role: "Full-Stack Developer",
-                    company: "Stripe",
-                    start_date: "2019-07",
-                    end_date: "2022-02",
-                    description: "Built internal tooling and merchant-facing integrations in React and Go. Owned the invoicing module end-to-end."
+                    role: "Previous Role",
+                    company: "Previous Company",
+                    start_date: "2021-01",
+                    end_date: "2023-12",
+                    description: "Replace this with another role, project, or milestone that helps tell your story."
                 }
             ]
         }), 1);
 
         insertBlock.run('home', 'contact', JSON.stringify({
-            email: "alex@example.invalid",
-            github: "https://github.com/alexrivera",
-            linkedin: "https://linkedin.com/in/alexrivera",
-            website: "https://alexrivera.dev"
+            email: "",
+            github: "",
+            linkedin: "",
+            website: ""
         }), 2);
 
         // ── Projects page ──────────────────────────────────────────────────────
         insertBlock.run('projects', 'hero', JSON.stringify({
             title: "Projects",
-            subtitle: "A selection of things I've built — from open-source tools to production apps.",
+            subtitle: "Add projects, case studies, or portfolio pieces you want visitors to explore.",
             primary_button_text: "",
             primary_button_link: "",
             background_image: ""
@@ -846,45 +846,45 @@ if (!PUBLIC_ONLY) {
             title: "",
             projects: [
                 {
-                    name: "Logship",
-                    description: "Real-time log aggregation pipeline handling 50k events/s. Built with Go, Kafka, and a React dashboard.",
-                    link: "https://github.com/alexrivera/logship",
+                    name: "Example Project One",
+                    description: "Replace this with a short description of a project, achievement, or portfolio piece.",
+                    link: "",
                     tech_stack: ["Go", "Kafka", "React", "PostgreSQL"],
                     image: ""
                 },
                 {
-                    name: "FormKit Pro",
-                    description: "Headless form-builder library for React with schema-driven validation, conditional fields, and multi-step flows.",
-                    link: "https://github.com/alexrivera/formkit-pro",
+                    name: "Example Project Two",
+                    description: "Describe what you built, why it mattered, and the technologies or skills involved.",
+                    link: "",
                     tech_stack: ["TypeScript", "React", "Zod"],
                     image: ""
                 },
                 {
-                    name: "PocketCV",
-                    description: "Self-hosted resume manager (this very app!). Generates a clean public CV page from a SQLite database.",
-                    link: "https://github.com/alexrivera/pocketcv",
+                    name: "Example Project Three",
+                    description: "Use this slot for another project, certification, case study, or homelab build.",
+                    link: "",
                     tech_stack: ["Node.js", "Express", "SQLite", "Tailwind"],
                     image: ""
                 },
                 {
-                    name: "Dispatch",
-                    description: "Lightweight webhook relay with retries, failure queues, and a simple dashboard for monitoring delivery status.",
-                    link: "https://github.com/alexrivera/dispatch",
+                    name: "Example Project Four",
+                    description: "Add outcomes, links, screenshots, or details that make this project useful to readers.",
+                    link: "",
                     tech_stack: ["Go", "Redis", "Docker"],
                     image: ""
                 },
                 {
-                    name: "Inkdrop Theme Pack",
-                    description: "Collection of 12 high-contrast and low-contrast editor themes for the Inkdrop note-taking app. 2k+ installs.",
-                    link: "https://github.com/alexrivera/inkdrop-themes",
+                    name: "Example Project Five",
+                    description: "Replace this with optional extra work, community contributions, or side projects.",
+                    link: "",
                     tech_stack: ["CSS"],
                     image: ""
                 },
                 {
-                    name: "OSS Contributions",
-                    description: "Regular contributor to Next.js docs, Radix UI accessibility layer, and the Remix router. View all on GitHub.",
-                    link: "https://github.com/alexrivera",
-                    tech_stack: ["Various"],
+                    name: "Example Project Six",
+                    description: "Use this card for open-source work, writing, talks, or anything else worth highlighting.",
+                    link: "",
+                    tech_stack: ["Add your stack"],
                     image: ""
                 }
             ]
@@ -893,7 +893,7 @@ if (!PUBLIC_ONLY) {
         // ── CV page ────────────────────────────────────────────────────────────
         insertBlock.run('cv', 'hero', JSON.stringify({
             title: "Curriculum Vitae",
-            subtitle: "Alex Rivera · Full-Stack Engineer · San Francisco, CA",
+            subtitle: "Your Name · Your Role · Your Location",
             primary_button_text: "Download PDF",
             primary_button_link: "#",
             background_image: ""
@@ -903,25 +903,25 @@ if (!PUBLIC_ONLY) {
             title: "Work Experience",
             items: [
                 {
-                    role: "Senior Frontend Engineer",
-                    company: "Vercel",
-                    start_date: "2022-03",
+                    role: "Current or Recent Role",
+                    company: "Example Company",
+                    start_date: "2024-01",
                     end_date: "",
-                    description: "Leading UI performance initiatives across the dashboard. Reduced Time-to-Interactive by 40% through code-splitting and streaming SSR. Mentoring 3 junior engineers."
+                    description: "Replace this with measurable achievements, responsibilities, tools, and outcomes from this role."
                 },
                 {
-                    role: "Full-Stack Developer",
-                    company: "Stripe",
-                    start_date: "2019-07",
-                    end_date: "2022-02",
-                    description: "Built internal tooling and merchant-facing integrations in React and Go. Owned the invoicing module: design, implementation, testing, and on-call."
+                    role: "Previous Role",
+                    company: "Previous Company",
+                    start_date: "2021-01",
+                    end_date: "2023-12",
+                    description: "Replace this with another role summary. Keep it concrete and outcome-focused."
                 },
                 {
-                    role: "Software Engineer",
-                    company: "Shopify",
-                    start_date: "2017-06",
-                    end_date: "2019-06",
-                    description: "Worked on the Storefront APIs team, expanding GraphQL schema coverage and improving SDK developer experience."
+                    role: "Earlier Role",
+                    company: "Earlier Company",
+                    start_date: "2019-01",
+                    end_date: "2020-12",
+                    description: "Replace this with earlier work, volunteering, study, or a relevant milestone."
                 }
             ]
         }), 1);
@@ -930,21 +930,21 @@ if (!PUBLIC_ONLY) {
             title: "Education",
             items: [
                 {
-                    role: "B.Sc. Computer Science",
-                    company: "University of Waterloo",
-                    start_date: "2013-09",
-                    end_date: "2017-04",
-                    description: "Specialization in Distributed Systems. Dean's Honor List. Capstone: real-time collaborative code editor (WebRTC + CRDT)."
+                    role: "Education, Certification, or Training",
+                    company: "Institution or Provider",
+                    start_date: "2018-01",
+                    end_date: "2018-12",
+                    description: "Replace this with your degree, certification details, training notes, or achievements."
                 }
             ]
         }), 2);
 
         // ── Contacts page ──────────────────────────────────────────────────────
         insertBlock.run('contacts', 'contact', JSON.stringify({
-            email: "alex@example.invalid",
-            github: "https://github.com/alexrivera",
-            linkedin: "https://linkedin.com/in/alexrivera",
-            website: "https://alexrivera.dev"
+            email: "",
+            github: "",
+            linkedin: "",
+            website: ""
         }), 0);
 
         console.log('Seeded example content into default pages');
