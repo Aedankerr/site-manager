@@ -43,6 +43,12 @@ describe('Frontend files', () => {
             assert.ok(content.includes('--admin-paper: #f4f3ee'), 'admin theme should use the attached paper tone');
             assert.ok(content.includes('rgba(var(--admin-grid-rgb), .025)'), 'admin grid should be softened to low-opacity dots');
             assert.ok(content.includes('radial-gradient(circle'), 'admin background should use dotmatrix dots, not harsh full grid lines');
+            assert.ok(content.includes('Final dossier compatibility overrides'), 'admin CSS should end with overrides that beat old Tailwind/picker styles');
+            assert.ok(content.includes('main > div[id^="section"] > div'), 'admin sections should use dossier-width content sheets');
+            assert.ok(content.includes('main h1,'), 'admin page titles should be restyled globally for the dossier UI');
+            assert.ok(content.includes('.picker-preview-scaled { font-family: var(--admin-font-sans) !important; }'), 'section picker previews should use dossier typography');
+            assert.ok(content.includes('.prev-hero { background: var(--admin-ink) !important;'), 'section picker hero preview should not use the old purple gradient');
+            assert.ok(content.includes('.field:focus{border-color:var(--admin-ink);box-shadow:0 0 0 2px rgba(var(--admin-grid-rgb),.10);'), 'runtime field styles should use dossier focus styling');
             assert.ok(!content.includes('linear-gradient(var(--dot-matrix-border) 1px'), 'admin background should not use the harsh line grid');
             assert.ok(!content.includes('--color-brand: #6366f1'), 'default purple brand should be removed from admin CSS');
         });
