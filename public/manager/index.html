@@ -1144,14 +1144,18 @@ function buildInlineEditor(type, c, id) {
     <input id="${p}bg" type="text" value="${escAttr(c.background_image||'')}" placeholder="/uploads/image.jpg — copy a URL from Media" class="field"></div>`;
 
   if (type === 'contact') return `
-    <div><label class="block text-xs font-medium text-slate-500 mb-1">Email</label>
-    <input id="${p}email" type="email" value="${escAttr(c.email||'')}" placeholder="hello@example.invalid" class="field"></div>
-    <div><label class="block text-xs font-medium text-slate-500 mb-1">GitHub</label>
-    <input id="${p}github" type="url" value="${escAttr(c.github||'')}" placeholder="https://github.com/username" class="field"></div>
-    <div><label class="block text-xs font-medium text-slate-500 mb-1">LinkedIn</label>
-    <input id="${p}linkedin" type="url" value="${escAttr(c.linkedin||'')}" placeholder="https://linkedin.com/in/username" class="field"></div>
-    <div><label class="block text-xs font-medium text-slate-500 mb-1">Website</label>
-    <input id="${p}website" type="url" value="${escAttr(c.website||'')}" placeholder="https://yoursite.com" class="field"></div>`;
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Section Kicker</label>
+    <input id="${p}kicker" type="text" value="${escAttr(c.kicker||'')}" placeholder="04 / contact" class="field"></div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Section Title</label>
+    <input id="${p}title" type="text" value="${escAttr(c.title||'')}" placeholder="Referee enquiry." class="field"></div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Referee Card Title</label>
+    <input id="${p}referee_title" type="text" value="${escAttr(c.referee_title||'')}" placeholder="Referees available on request." class="field"></div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Referee Summary</label>
+    <textarea id="${p}referee_summary" rows="3" class="field resize-none" placeholder="For privacy, referee details are not published directly...">${escHtml(c.referee_summary||'')}</textarea></div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Tags</label>
+    <input id="${p}referee_tags" type="text" value="${escAttr(Array.isArray(c.referee_tags)?c.referee_tags.join(', '):(c.referee_tags||''))}" placeholder="private by default, professional, on request" class="field"></div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Enquiry Email</label>
+    <input id="${p}enquiry_email" type="email" value="${escAttr(c.enquiry_email||c.email||'')}" placeholder="hello@example.invalid" class="field"></div>`;
 
   if (type === 'projects_grid') {
     const projects = c.projects || [];
@@ -1243,8 +1247,12 @@ function collectPageSectionContent(blockId, type) {
     background_image: g(`${p}bg`),
   };
   if (type === 'contact') return {
-    email: g(`${p}email`), github: g(`${p}github`),
-    linkedin: g(`${p}linkedin`), website: g(`${p}website`),
+    kicker: g(`${p}kicker`),
+    title: g(`${p}title`),
+    referee_title: g(`${p}referee_title`),
+    referee_summary: g(`${p}referee_summary`),
+    referee_tags: g(`${p}referee_tags`).split(',').map(s => s.trim()).filter(Boolean),
+    enquiry_email: g(`${p}enquiry_email`),
   };
   if (type === 'projects_grid') {
     const projects = [];
@@ -1312,7 +1320,14 @@ async function addPageSection(type) {
     hero: { title: '', subtitle: '', primary_button_text: '', primary_button_link: '', background_image: '' },
     projects_grid: { title: 'Projects', projects: [] },
     timeline: { title: 'Experience', items: [] },
-    contact: { email: '', github: '', linkedin: '', website: '' },
+    contact: {
+      kicker: '04 / contact',
+      title: 'Referee enquiry.',
+      referee_title: 'Referees available on request.',
+      referee_summary: 'For privacy, referee details are not published directly. Send the role, company, hiring stage, and what you need confirmed.',
+      referee_tags: ['private by default', 'professional', 'on request'],
+      enquiry_email: '',
+    },
   };
   try {
     await api(`/api/pages/${state.currentPage}/blocks`, { method: 'POST', body: { type, content: defaults[type] || {} } });

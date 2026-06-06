@@ -347,6 +347,107 @@
     font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     text-transform:uppercase;
   }
+  body.theme-github-pages-dossier .section.wrap {
+    max-width:1100px;
+    margin:0 auto;
+    padding:clamp(48px,8vw,96px) 24px;
+  }
+  body.theme-github-pages-dossier .section-title {
+    display:grid;
+    grid-template-columns:minmax(140px,220px) 1fr;
+    gap:clamp(18px,4vw,48px);
+    align-items:end;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:18px;
+    margin-bottom:24px;
+  }
+  body.theme-github-pages-dossier .section-title code,
+  body.theme-github-pages-dossier .form-card label {
+    font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  body.theme-github-pages-dossier .section-title code { color:var(--muted); }
+  body.theme-github-pages-dossier .section-title h2 {
+    font-size:clamp(34px,5vw,72px);
+    line-height:.92;
+    letter-spacing:-.06em;
+    text-transform:uppercase;
+  }
+  body.theme-github-pages-dossier .referee {
+    display:grid;
+    grid-template-columns:minmax(0,.9fr) minmax(280px,1.1fr);
+    gap:18px;
+    align-items:stretch;
+  }
+  body.theme-github-pages-dossier .form-card {
+    background:rgba(var(--white-rgb),.84);
+    border:2px solid var(--ink);
+    padding:clamp(18px,3vw,28px);
+    box-shadow:0 10px 26px rgba(var(--grid-rgb),.10);
+  }
+  body.theme-github-pages-dossier .form-card h3 {
+    font-size:clamp(24px,3vw,40px);
+    line-height:1;
+    letter-spacing:-.045em;
+    text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  body.theme-github-pages-dossier .form-card p {
+    color:var(--text-soft);
+    line-height:1.7;
+    margin-bottom:18px;
+  }
+  body.theme-github-pages-dossier .tags { display:flex; flex-wrap:wrap; gap:8px; }
+  body.theme-github-pages-dossier .tag {
+    display:inline-flex;
+    border:1px solid var(--rule-strong);
+    background:var(--paper);
+    color:var(--ink);
+    padding:5px 9px;
+    font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size:11px;
+    text-transform:uppercase;
+  }
+  body.theme-github-pages-dossier .form-card form,
+  body.theme-github-pages-dossier form.form-card { display:grid; gap:12px; }
+  body.theme-github-pages-dossier .form-card label { display:grid; gap:7px; color:var(--muted); }
+  body.theme-github-pages-dossier .form-card input,
+  body.theme-github-pages-dossier .form-card select,
+  body.theme-github-pages-dossier .form-card textarea {
+    width:100%;
+    border:1px solid var(--rule-strong);
+    background:rgba(var(--paper-rgb),.58);
+    color:var(--ink);
+    padding:11px 12px;
+    font:14px/1.45 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    border-radius:0;
+  }
+  body.theme-github-pages-dossier .form-card textarea { min-height:118px; resize:vertical; }
+  body.theme-github-pages-dossier .form-card input:focus,
+  body.theme-github-pages-dossier .form-card select:focus,
+  body.theme-github-pages-dossier .form-card textarea:focus {
+    outline:none;
+    border-color:var(--ink);
+    box-shadow:0 0 0 2px rgba(var(--grid-rgb),.10);
+  }
+  body.theme-github-pages-dossier .stamp.primary {
+    justify-self:start;
+    border:2px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    box-shadow:4px 4px 0 var(--ink);
+    padding:12px 18px;
+    font:700 12px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    text-transform:uppercase;
+    cursor:pointer;
+  }
+  body.theme-github-pages-dossier .stamp.primary:hover { transform:translate(1px,1px); box-shadow:3px 3px 0 var(--ink); }
+  @media(max-width:760px){
+    body.theme-github-pages-dossier .section-title,
+    body.theme-github-pages-dossier .referee { grid-template-columns:1fr; }
+  }
 
   /* Fade-up animation */
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
@@ -646,26 +747,33 @@ function timelineItem(it) {
 
 // ── Contact
 function renderContact(c) {
-  const links = [
-    c.email    && { href: `mailto:${c.email}`,  label: 'Email',    icon: emailIcon(),    value: c.email },
-    c.github   && { href: c.github,             label: 'GitHub',   icon: githubIcon(),   value: c.github },
-    c.linkedin && { href: c.linkedin,           label: 'LinkedIn', icon: linkedinIcon(), value: c.linkedin },
-    c.website  && { href: c.website,            label: 'Website',  icon: globeIcon(),    value: c.website },
-  ].filter(Boolean);
+  const title = c.title || 'Referee enquiry.';
+  const kicker = c.kicker || '04 / contact';
+  const refereeTitle = c.referee_title || 'Referees available on request.';
+  const refereeSummary = c.referee_summary || 'For privacy, referee details are not published directly. Send the role, company, hiring stage, and what you need confirmed.';
+  const tagList = Array.isArray(c.referee_tags)
+    ? c.referee_tags
+    : String(c.referee_tags || 'private by default, professional, on request').split(',').map(s => s.trim()).filter(Boolean);
+  const mailTarget = c.enquiry_email || c.email || '';
+  const action = mailTarget ? `mailto:${mailTarget}` : 'mailto:';
 
   return `
-  <section class="max-w-3xl mx-auto px-6 py-16 fade-up">
-    <h2 class="text-3xl font-bold mb-2">Get In Touch</h2>
-    <div class="w-12 h-1 rounded-full mb-10" style="background:var(--brand)"></div>
-    <div class="grid sm:grid-cols-2 gap-4">
-      ${links.map(l => `
-        <a href="${escAttr(l.href)}" target="${l.href.startsWith('mailto') ? '_self' : '_blank'}" rel="noopener" class="contact-card">
-          <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#eef2ff">${l.icon}</div>
-          <div class="min-w-0">
-            <p class="text-xs font-medium text-gray-400">${l.label}</p>
-            <p class="text-sm font-medium truncate">${escHtml(l.value)}</p>
-          </div>
-        </a>`).join('')}
+  <section class="section wrap" id="referees">
+    <div class="section-title"><code>${escHtml(kicker)}</code><h2>${escHtml(title)}</h2></div>
+    <div class="referee">
+      <div class="form-card">
+        <h3>${escHtml(refereeTitle)}</h3>
+        <p>${escHtml(refereeSummary)}</p>
+        ${tagList.length ? `<div class="tags">${tagList.map(tag => `<span class="tag">${escHtml(tag)}</span>`).join('')}</div>` : ''}
+      </div>
+      <form class="form-card" action="${escAttr(action)}" method="post" enctype="text/plain">
+        <label>Name<input name="name" autocomplete="name" required></label>
+        <label>Email<input type="email" name="email" autocomplete="email" required></label>
+        <label>Organisation<input name="organisation"></label>
+        <label>Enquiry type<select name="type"><option>Request referees</option><option>Confirm experience</option><option>Discuss role</option><option>Other</option></select></label>
+        <label>Message<textarea name="message" placeholder="Role title, company, hiring stage, and preferred next step." required></textarea></label>
+        <button class="stamp primary" type="submit">Prepare email</button>
+      </form>
     </div>
   </section>`;
 }

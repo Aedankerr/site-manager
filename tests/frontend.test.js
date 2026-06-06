@@ -161,6 +161,16 @@ describe('Frontend files', () => {
             assert.ok(site.includes('body.classList.add(`theme-${theme}`)'), 'public site should apply theme classes without removing custom CSS support');
             assert.ok(site.includes('applyCustomCss'), 'public site should still apply user custom CSS');
             assert.ok(site.includes('style.id = \'custom-css\''), 'custom CSS should be injected as a separate style tag');
+            assert.ok(site.includes('class="section wrap" id="referees"'), 'public contact section should use the attached referee enquiry layout');
+            assert.ok(site.includes('class="referee"'), 'public contact section should include the two-column referee container');
+            assert.ok(site.includes('class="form-card"'), 'public contact section should use form-card panels');
+            assert.ok(site.includes('Prepare email'), 'public contact form should prepare a mailto enquiry email');
+            assert.ok(site.includes('Organisation'), 'public contact form should include the organisation field from the supplied UI');
+            assert.ok(site.includes('Request referees'), 'public contact form should include enquiry type options');
+            assert.ok(manager.includes('referee_title'), 'admin contact editor should expose referee title as an editable field');
+            assert.ok(manager.includes('referee_summary'), 'admin contact editor should expose referee summary as an editable field');
+            assert.ok(manager.includes('referee_tags'), 'admin contact editor should expose referee tags as editable template data');
+            assert.ok(manager.includes('enquiry_email'), 'admin contact editor should expose the mailto target as editable template data');
             const server = fs.readFileSync(path.join(ROOT, 'src', 'server.js'), 'utf8');
             assert.ok(server.includes("'site_theme', 'github-pages-dossier'"), 'fresh installs should default to the technical dossier theme');
 
