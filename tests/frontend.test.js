@@ -161,6 +161,16 @@ describe('Frontend files', () => {
             assert.ok(site.includes('body.classList.add(`theme-${theme}`)'), 'public site should apply theme classes without removing custom CSS support');
             assert.ok(site.includes('applyCustomCss'), 'public site should still apply user custom CSS');
             assert.ok(site.includes('style.id = \'custom-css\''), 'custom CSS should be injected as a separate style tag');
+            assert.ok(site.includes('class="section wrap employment-section'), 'public timeline should use the attached grouped employment history section layout');
+            assert.ok(site.includes('class="employment-sidebar"'), 'public timeline should include the left explanatory sidebar note from the supplied layout language');
+            assert.ok(site.includes('class="employer-card"'), 'public timeline should group roles into employer cards');
+            assert.ok(site.includes('class="role-row'), 'public timeline should render role rows inside each employer card');
+            assert.ok(site.includes('class="role-marker"'), 'public timeline should include square timeline markers');
+            assert.ok(site.includes('class="timeline-tag"'), 'public timeline should include dossier tag pills for role skills/tags');
+            assert.ok(manager.includes('itl-company-summary'), 'admin timeline editor should expose employer summary for grouped employer cards');
+            assert.ok(manager.includes('itl-tags'), 'admin timeline editor should expose role tags for timeline pills');
+            assert.ok(manager.includes('id="${p}sidebar"'), 'admin timeline editor should expose the employment sidebar note');
+            assert.ok(!site.includes('Epworth' + ' Healthcare'), 'timeline layout must not copy personal employer content from the screenshot');
             assert.ok(site.includes('class="section wrap" id="referees"'), 'public contact section should use the attached referee enquiry layout');
             assert.ok(site.includes('class="referee"'), 'public contact section should include the two-column referee container');
             assert.ok(site.includes('class="form-card"'), 'public contact section should use form-card panels');

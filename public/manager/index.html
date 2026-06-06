@@ -1174,8 +1174,12 @@ function buildInlineEditor(type, c, id) {
   if (type === 'timeline') {
     const items = c.items || [];
     return `
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Section Kicker</label>
+    <input id="${p}kicker" type="text" value="${escAttr(c.kicker||'')}" placeholder="01 / real work" class="field"></div>
     <div><label class="block text-xs font-medium text-slate-500 mb-1">Section Title</label>
-    <input id="${p}title" type="text" value="${escAttr(c.title||'')}" placeholder="Experience" class="field"></div>
+    <input id="${p}title" type="text" value="${escAttr(c.title||'')}" placeholder="Employment History" class="field"></div>
+    <div><label class="block text-xs font-medium text-slate-500 mb-1">Sidebar Note</label>
+    <textarea id="${p}sidebar" rows="3" class="field resize-none" placeholder="Grouped by employer so promotions and acting roles read as progression...">${escHtml(c.sidebar||'')}</textarea></div>
     <div>
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs font-medium text-slate-500">Items</span>
@@ -1219,13 +1223,15 @@ function inlineTimelineRow(it, i) {
     </div>
     <div class="grid grid-cols-2 gap-2">
       <input type="text" class="field itl-role" value="${escAttr(it.role||'')}" placeholder="Role">
-      <input type="text" class="field itl-company" value="${escAttr(it.company||'')}" placeholder="Company">
+      <input type="text" class="field itl-company" value="${escAttr(it.company||'')}" placeholder="Employer / Company">
     </div>
+    <input type="text" class="field itl-company-summary" value="${escAttr(it.company_summary||'')}" placeholder="Employer summary (shown once per employer group)">
     <div class="grid grid-cols-2 gap-2">
       <input type="text" class="field itl-start" value="${escAttr(it.start_date||'')}" placeholder="Start (2020-01)">
       <input type="text" class="field itl-end" value="${escAttr(it.end_date||'')}" placeholder="End (Present)">
     </div>
-    <textarea class="field resize-none itl-desc" rows="2" placeholder="Description">${escHtml(it.description||'')}</textarea>
+    <textarea class="field resize-none itl-desc" rows="2" placeholder="Description. Use one bullet per line with - for bullet lists.">${escHtml(it.description||'')}</textarea>
+    <input type="text" class="field itl-tags" value="${escAttr(Array.isArray(it.tags)?it.tags.join(', '):(it.tags||''))}" placeholder="Tags (comma-separated)">
   </div>`;
 }
 
@@ -1272,12 +1278,14 @@ function collectPageSectionContent(blockId, type) {
       items.push({
         role: row.querySelector('.itl-role')?.value || '',
         company: row.querySelector('.itl-company')?.value || '',
+        company_summary: row.querySelector('.itl-company-summary')?.value || '',
         start_date: row.querySelector('.itl-start')?.value || '',
         end_date: row.querySelector('.itl-end')?.value || '',
         description: row.querySelector('.itl-desc')?.value || '',
+        tags: (row.querySelector('.itl-tags')?.value || '').split(',').map(s => s.trim()).filter(Boolean),
       });
     });
-    return { title: g(`${p}title`), items };
+    return { kicker: g(`${p}kicker`), title: g(`${p}title`), sidebar: g(`${p}sidebar`), items };
   }
   return {};
 }
@@ -1319,7 +1327,12 @@ async function addPageSection(type) {
   const defaults = {
     hero: { title: '', subtitle: '', primary_button_text: '', primary_button_link: '', background_image: '' },
     projects_grid: { title: 'Projects', projects: [] },
-    timeline: { title: 'Experience', items: [] },
+    timeline: {
+      kicker: '01 / real work',
+      title: 'Employment History',
+      sidebar: 'Grouped by employer so promotions and acting roles read as progression instead of separate disconnected jobs.',
+      items: [],
+    },
     contact: {
       kicker: '04 / contact',
       title: 'Referee enquiry.',

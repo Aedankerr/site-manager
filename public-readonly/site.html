@@ -432,6 +432,111 @@
     border-color:var(--ink);
     box-shadow:0 0 0 2px rgba(var(--grid-rgb),.10);
   }
+  body.theme-github-pages-dossier .employment-section {
+    display:grid;
+    grid-template-columns:160px minmax(0,1fr);
+    gap:clamp(20px,4vw,40px);
+  }
+  body.theme-github-pages-dossier .employment-section .section-title {
+    grid-column:1 / -1;
+    margin-bottom:0;
+  }
+  body.theme-github-pages-dossier .employment-sidebar {
+    font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size:11px;
+    line-height:1.7;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  body.theme-github-pages-dossier .employer-stack { display:grid; gap:12px; }
+  body.theme-github-pages-dossier .employer-card {
+    border:2px solid var(--ink);
+    background:rgba(var(--white-rgb),.72);
+  }
+  body.theme-github-pages-dossier .employer-head {
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:16px;
+    align-items:end;
+    padding:20px 18px;
+    border-bottom:2px solid var(--ink);
+  }
+  body.theme-github-pages-dossier .employer-head h3 {
+    font-size:clamp(22px,2.2vw,30px);
+    line-height:1;
+    letter-spacing:-.045em;
+  }
+  body.theme-github-pages-dossier .employer-summary {
+    color:var(--text-soft);
+    margin-top:8px;
+    line-height:1.55;
+  }
+  body.theme-github-pages-dossier .employer-range,
+  body.theme-github-pages-dossier .role-date {
+    font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size:11px;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    white-space:nowrap;
+    color:var(--muted);
+  }
+  body.theme-github-pages-dossier .role-row {
+    display:grid;
+    grid-template-columns:125px 22px minmax(0,1fr);
+    gap:10px;
+    padding:20px 18px;
+    border-bottom:1px solid var(--rule);
+  }
+  body.theme-github-pages-dossier .role-row:last-child { border-bottom:0; }
+  body.theme-github-pages-dossier .role-rail { position:relative; display:flex; justify-content:center; }
+  body.theme-github-pages-dossier .role-rail::before {
+    content:"";
+    position:absolute;
+    top:0;
+    bottom:-20px;
+    width:1px;
+    background:var(--rule-strong);
+  }
+  body.theme-github-pages-dossier .role-row:last-child .role-rail::before { bottom:0; }
+  body.theme-github-pages-dossier .role-marker {
+    position:relative;
+    z-index:1;
+    width:18px;
+    height:18px;
+    border:2px solid var(--ink);
+    background:var(--paper);
+    margin-top:3px;
+  }
+  body.theme-github-pages-dossier .role-row:first-of-type .role-marker { background:var(--ink); }
+  body.theme-github-pages-dossier .role-title {
+    font-size:clamp(18px,2vw,24px);
+    line-height:1.05;
+    letter-spacing:-.04em;
+    margin-bottom:8px;
+  }
+  body.theme-github-pages-dossier .role-desc {
+    color:var(--text-soft);
+    line-height:1.6;
+  }
+  body.theme-github-pages-dossier .role-desc ul { margin:.5rem 0 0 1.2rem; }
+  body.theme-github-pages-dossier .timeline-tags { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+  body.theme-github-pages-dossier .timeline-tag {
+    border:1px solid var(--rule-strong);
+    background:var(--paper);
+    color:var(--ink);
+    padding:5px 8px;
+    font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size:10px;
+    text-transform:uppercase;
+  }
+  @media(max-width:860px){
+    body.theme-github-pages-dossier .employment-section { grid-template-columns:1fr; }
+    body.theme-github-pages-dossier .employment-sidebar { max-width:34rem; }
+    body.theme-github-pages-dossier .role-row { grid-template-columns:1fr; }
+    body.theme-github-pages-dossier .role-rail { display:none; }
+    body.theme-github-pages-dossier .employer-head { grid-template-columns:1fr; }
+  }
   body.theme-github-pages-dossier .stamp.primary {
     justify-self:start;
     border:2px solid var(--ink);
@@ -722,27 +827,87 @@ function projectCard(p) {
 // ── Timeline
 function renderTimeline(c) {
   const items = c.items || [];
+  const title = c.title || 'Employment History';
+  const kicker = c.kicker || '01 / real work';
+  const sidebar = c.sidebar || 'Grouped by employer so promotions and acting roles read as progression instead of separate disconnected jobs.';
+  const groups = groupTimelineByEmployer(items);
   return `
-  <section class="max-w-3xl mx-auto px-6 py-16 fade-up">
-    ${c.title ? `<h2 class="text-3xl font-bold mb-2">${escHtml(c.title)}</h2><div class="w-12 h-1 rounded-full mb-10" style="background:var(--brand)"></div>` : ''}
-    <div class="space-y-10">
-      ${items.map(it => timelineItem(it)).join('')}
+  <section class="section wrap employment-section fade-up">
+    <div class="section-title"><code>${escHtml(kicker)}</code><h2>${escHtml(title)}</h2></div>
+    <aside class="employment-sidebar">${escHtml(sidebar)}</aside>
+    <div class="employer-stack">
+      ${groups.map(group => employerCard(group)).join('')}
     </div>
   </section>`;
 }
 
-function timelineItem(it) {
-  const period = [it.start_date, it.end_date].filter(Boolean).join(' – ') || '';
+function groupTimelineByEmployer(items) {
+  const groups = [];
+  for (const item of items) {
+    const employer = item.company || 'Organisation';
+    let group = groups.find(g => g.company === employer);
+    if (!group) {
+      group = { company: employer, items: [] };
+      groups.push(group);
+    }
+    group.items.push(item);
+  }
+  return groups;
+}
+
+function employerCard(group) {
+  const range = employerRange(group.items);
+  const summary = group.items.find(it => it.company_summary)?.company_summary || '';
   return `
-  <div class="relative pl-8 border-l-2 border-indigo-100">
-    <div class="absolute w-3 h-3 rounded-full left-[-7px] top-1.5" style="background:var(--brand)"></div>
-    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1">
-      ${it.role ? `<h3 class="font-semibold text-base">${escHtml(it.role)}</h3>` : ''}
-      ${it.company ? `<span class="text-sm font-medium text-indigo-600">${escHtml(it.company)}</span>` : ''}
+  <article class="employer-card">
+    <header class="employer-head">
+      <div>
+        <h3>${escHtml(group.company)}</h3>
+        ${summary ? `<p class="employer-summary">${escHtml(summary)}</p>` : ''}
+      </div>
+      ${range ? `<span class="employer-range">${escHtml(range)}</span>` : ''}
+    </header>
+    <div class="role-list">
+      ${group.items.map((it, index) => timelineItem(it, index)).join('')}
     </div>
-    ${period ? `<p class="text-xs text-gray-400 mb-2">${escHtml(period)}</p>` : ''}
-    ${it.description ? `<p class="text-sm text-gray-600 leading-relaxed">${escHtml(it.description)}</p>` : ''}
+  </article>`;
+}
+
+function employerRange(items) {
+  const starts = items.map(it => it.start_date).filter(Boolean);
+  const ends = items.map(it => it.end_date).filter(Boolean);
+  if (!starts.length && !ends.length) return '';
+  const start = starts[starts.length - 1] || '';
+  const end = ends[0] || '';
+  return [start, end].filter(Boolean).join(' – ');
+}
+
+function timelineItem(it, index = 0) {
+  const period = [it.start_date, it.end_date].filter(Boolean).join(' – ') || '';
+  const tags = Array.isArray(it.tags)
+    ? it.tags
+    : String(it.tags || '').split(',').map(s => s.trim()).filter(Boolean);
+  return `
+  <div class="role-row${index === 0 ? ' current-role' : ''}">
+    <div class="role-date">${escHtml(period)}</div>
+    <div class="role-rail"><span class="role-marker"></span></div>
+    <div class="role-body">
+      ${it.role ? `<h3 class="role-title">${escHtml(it.role)}</h3>` : ''}
+      ${it.description ? `<div class="role-desc">${formatTimelineDescription(it.description)}</div>` : ''}
+      ${tags.length ? `<div class="timeline-tags">${tags.map(tag => `<span class="timeline-tag">${escHtml(tag)}</span>`).join('')}</div>` : ''}
+    </div>
   </div>`;
+}
+
+function formatTimelineDescription(description) {
+  const text = String(description || '').trim();
+  if (!text) return '';
+  const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+  const bullets = lines.filter(line => /^[-*•]\s+/.test(line)).map(line => line.replace(/^[-*•]\s+/, ''));
+  if (bullets.length && bullets.length === lines.length) {
+    return `<ul>${bullets.map(line => `<li>${escHtml(line)}</li>`).join('')}</ul>`;
+  }
+  return lines.map(line => `<p>${escHtml(line.replace(/^[-*•]\s+/, ''))}</p>`).join('');
 }
 
 // ── Contact
