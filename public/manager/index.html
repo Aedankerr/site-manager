@@ -20,6 +20,7 @@
     --admin-rule-strong: rgba(5,5,5,.34);
     --admin-white: #fbfaf6;
     --admin-grid-rgb: 5,5,5;
+    --admin-paper-rgb: 244,243,238;
     --admin-card-rgb: 251,250,246;
     --admin-font-sans: "IBM Plex Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --admin-font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -34,6 +35,29 @@
     --color-brand-dark: var(--admin-ink);
     --color-brand-light: var(--admin-muted);
     --sidebar-w: 220px;
+  }
+
+  html[data-theme="dark"] {
+    --admin-paper: #080808;
+    --admin-ink: #f4f3ee;
+    --admin-muted: #a4a4a0;
+    --admin-soft: #1a1a1a;
+    --admin-rule: rgba(244,243,238,.18);
+    --admin-rule-strong: rgba(244,243,238,.38);
+    --admin-white: #101010;
+    --admin-grid-rgb: 244,243,238;
+    --admin-paper-rgb: 8,8,8;
+    --admin-card-rgb: 16,16,16;
+    --dot-matrix-black: var(--admin-ink);
+    --dot-matrix-grid: var(--admin-rule);
+    --dot-matrix-text: var(--admin-ink);
+    --dot-matrix-accent: var(--admin-ink);
+    --dot-matrix-bg: var(--admin-paper);
+    --dot-matrix-card: var(--admin-white);
+    --dot-matrix-border: var(--admin-rule-strong);
+    --color-brand: var(--admin-ink);
+    --color-brand-dark: var(--admin-ink);
+    --color-brand-light: var(--admin-muted);
   }
 
   * { box-sizing: border-box; }
@@ -56,7 +80,7 @@
   .wrap { width: min(1260px, calc(100% - 36px)); margin: 0 auto; }
   .topbar {
     border-bottom: 2px solid var(--admin-ink);
-    background: rgba(244,243,238,.92);
+    background: rgba(var(--admin-paper-rgb), .92);
     position: sticky;
     top: 0;
     z-index: 20;
@@ -115,6 +139,48 @@
   .stamp.primary { background:var(--admin-ink); color:var(--admin-paper); }
   .stamp:hover { transform:translate(1px, 1px); box-shadow:3px 3px 0 var(--admin-ink); }
   .hero-actions { display:flex; flex-wrap:wrap; gap:8px; margin:18px auto 0; }
+  .hero { padding:24px 0 18px; }
+  .dossier {
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) 340px;
+    border:2px solid var(--admin-ink);
+    background:rgba(var(--admin-card-rgb), .92);
+    min-height:300px;
+    box-shadow:0 10px 26px rgba(var(--admin-grid-rgb), .10);
+  }
+  .hero-main {
+    padding:clamp(22px, 3vw, 34px);
+    border-right:2px solid var(--admin-ink);
+    position:relative;
+    display:grid;
+    align-content:center;
+  }
+  .file-label {
+    font-family:var(--admin-font-mono);
+    font-size:11px;
+    text-transform:uppercase;
+    display:inline-grid;
+    grid-auto-flow:column;
+    gap:10px;
+    align-items:center;
+    margin-bottom:20px;
+  }
+  .file-label::before { content:""; width:28px; height:8px; background:var(--admin-ink); display:inline-block; }
+  .sublead { margin:18px 0 0; max-width:760px; font-size:clamp(15.5px, 1.35vw, 18px); line-height:1.5; color:var(--admin-muted); }
+  .side-sheet { display:grid; grid-template-rows:112px 1fr auto; background:var(--admin-paper); }
+  .photo-box { border-bottom:2px solid var(--admin-ink); padding:12px; display:grid; place-items:center; }
+  .portrait-placeholder {
+    width:100%; height:100%; border:2px dashed var(--admin-rule-strong); display:grid; place-items:center; text-align:center;
+    font-family:var(--admin-font-mono); color:var(--admin-muted); font-size:10px; text-transform:uppercase;
+    background:repeating-linear-gradient(-45deg, rgba(var(--admin-grid-rgb),.05), rgba(var(--admin-grid-rgb),.05) 8px, transparent 8px, transparent 16px);
+  }
+  .facts { padding:0; margin:0; list-style:none; }
+  .facts li { display:grid; grid-template-columns:82px 1fr; gap:10px; border-bottom:1px solid var(--admin-rule); padding:10px 13px; }
+  .facts b { font-family:var(--admin-font-mono); font-size:10px; text-transform:uppercase; color:var(--admin-muted); }
+  .facts span { font-size:13px; line-height:1.35; }
+  .availability { border-top:2px solid var(--admin-ink); padding:12px 13px; display:grid; gap:6px; font-family:var(--admin-font-mono); font-size:11px; text-transform:uppercase; }
+  .led { width:8px; height:8px; border-radius:50%; background:var(--admin-ink); display:inline-block; margin-right:8px; }
+  @media (max-width: 860px) { .dossier { grid-template-columns:1fr; } .hero-main { border-right:0; border-bottom:2px solid var(--admin-ink); } }
   .theme-switcher {
     position: fixed;
     right: 18px;
@@ -623,10 +689,30 @@
     <!-- ── Page Editor (inline — no modals, no drag-and-drop) ─── -->
     <div id="sectionPage" class="hidden px-6 py-6">
       <div class="max-w-2xl mx-auto">
-        <div class="mb-6">
-          <h1 id="pageEditorTitle" class="text-xl font-semibold"></h1>
-          <p class="text-sm text-slate-500 mt-0.5">Edit your page content directly — changes save per section</p>
-        </div>
+        <section class="hero wrap admin-editor-dossier" aria-label="admin page dossier">
+          <div class="dossier">
+            <div class="hero-main">
+              <div class="file-label">Editing dossier</div>
+              <h1 id="pageEditorTitle" class="text-xl font-semibold"></h1>
+              <h2 class="sublead">Edit your page content directly — changes save per section.</h2>
+              <div class="hero-actions">
+                <a class="stamp primary" href="/" target="_blank" rel="noopener">View public site</a>
+                <button class="stamp" type="button" onclick="toggleAddSectionPicker()">Add section</button>
+                <button class="stamp" type="button" onclick="selectSection('settings')">Settings</button>
+              </div>
+            </div>
+            <aside class="side-sheet" aria-label="admin editor facts">
+              <div class="photo-box"><div class="portrait-placeholder">page editor<br>live content</div></div>
+              <ul class="facts">
+                <li><b>Mode</b><span>Admin editor</span></li>
+                <li><b>Status</b><span>Authenticated</span></li>
+                <li><b>Target</b><span id="pageEditorFactTarget">Home</span></li>
+                <li><b>Output</b><span>Static public site</span></li>
+              </ul>
+              <div class="availability"><span><i class="led"></i> system active</span><span>self hosted</span></div>
+            </aside>
+          </div>
+        </section>
         <div id="pageEditorSections" class="space-y-4"></div>
         <div id="pageEditorEmpty" class="hidden text-center py-10 text-slate-400 text-sm">No sections yet — add one below.</div>
 
@@ -986,7 +1072,7 @@ const state = {
   pageBlocks: [],
   profiles: [],
   mediaFiles: [],
-  theme: localStorage.getItem('smTheme') || 'light',
+  theme: localStorage.getItem('site-theme-mode') || localStorage.getItem('smTheme') || 'light',
 };
 
 // ═══════════════════════════════════════════════════════
@@ -999,7 +1085,8 @@ function applyTheme(t) {
   document.querySelectorAll('[data-admin-theme-button]').forEach(btn => {
     btn.setAttribute('aria-pressed', btn.dataset.adminThemeButton === state.theme ? 'true' : 'false');
   });
-  localStorage.setItem('smTheme', state.theme);
+  localStorage.setItem('site-theme-mode', state.theme);
+  localStorage.removeItem('smTheme');
 }
 function setAdminTheme(t) { applyTheme(t); }
 function toggleTheme() { applyTheme(state.theme === 'dark' ? 'light' : 'dark'); }
@@ -1079,6 +1166,8 @@ function selectPage(slug) {
   document.getElementById('pageEditorTitle').textContent = label;
   const pageTitleEl = document.getElementById('mobilePageTitle');
   if (pageTitleEl) pageTitleEl.textContent = label;
+  const pageFactEl = document.getElementById('pageEditorFactTarget');
+  if (pageFactEl) pageFactEl.textContent = label;
   loadPageEditor(slug);
   closeSidebar();
 }

@@ -61,7 +61,15 @@ describe('Frontend files', () => {
             assert.ok(content.includes('class="wrap topbar-inner"'), 'admin topbar should use the source wrap/topbar-inner structure');
             assert.ok(content.includes('class="identity"'), 'admin should use the source identity component');
             assert.ok(content.includes('class="theme-switcher"'), 'admin should expose the source light/dark theme switcher');
+            assert.ok(content.includes('site-theme-mode'), 'admin should share the same light/dark persistence key as the public page');
+            assert.ok(content.includes('html[data-theme="dark"]'), 'admin should use the same data-theme dark-mode hook as the public page');
+            assert.ok(content.includes('--admin-paper: #080808'), 'admin dark mode should use the same dark paper token as public');
             assert.ok(content.includes('class="stamp'), 'admin action controls should use stamp-style buttons');
+            assert.ok(content.includes('class="hero wrap admin-editor-dossier"'), 'admin page editor should use the source dossier hero layout');
+            assert.ok(content.includes('class="dossier"'), 'admin page editor should render the same dossier container as public');
+            assert.ok(content.includes('class="side-sheet"'), 'admin page editor should render the same side-sheet metadata panel as public');
+            assert.ok(content.includes('class="file-label"'), 'admin page editor should render the same file-label marker as public');
+            assert.ok(content.includes('pageEditorFactTarget'), 'admin side-sheet should update to the current edited page');
             assert.ok(content.includes('id="adminNav"'), 'admin nav should be horizontal topbar navigation');
             assert.ok(!content.includes('id="sidebar"'), 'admin should not render the old fixed left sidebar');
             assert.ok(!content.includes('mobile-topbar'), 'admin should not render the old separate mobile sidebar topbar');
