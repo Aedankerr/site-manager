@@ -16,6 +16,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 - Added missing Admin XML `PORT` / `PUBLIC_PORT` variables and documented how to detect stale containers that still log `3000/3001` or `/app/data/cv.db`.
 - Updated Dockerfile, Docker Compose examples, installer script, and README port/database defaults away from the old fork values (`3000/3001`, `/app/data/cv.db`) to current Site Manager values (`3010/3011`, `/app/data/site.db`).
 - Removed the old seeded portfolio/demo block code entirely; fresh installs now create empty Home, Projects, CV, and Contact page shells instead of fake person/example content.
+- Reapplied the public-site visual style to empty fresh-install pages with a styled starter shell instead of a blank "No content yet" message.
 
 ## [1.17.0] - 2026-03-09
 

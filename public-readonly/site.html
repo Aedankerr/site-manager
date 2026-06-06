@@ -224,6 +224,13 @@
   .spinner { display:flex; align-items:center; justify-content:center; padding:8rem 0; }
   .spinner div { width:2rem; height:2rem; border:2px solid var(--brand); border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite; }
 
+  /* Empty page shell: keeps fresh installs styled without seeded demo content */
+  .empty-page-shell { min-height:420px; display:flex; align-items:center; background:linear-gradient(135deg,#eef2ff 0%,#fff 100%); }
+  .empty-page-card { max-width:42rem; margin:0 auto; padding:2rem; border:1px solid #e0e7ff; border-radius:1.5rem; background:rgba(255,255,255,.86); box-shadow:0 20px 45px rgba(79,70,229,.10); text-align:center; }
+  .empty-page-kicker { display:inline-flex; align-items:center; gap:.5rem; margin-bottom:1rem; padding:.35rem .75rem; border-radius:9999px; background:#e0e7ff; color:#4338ca; font-size:.75rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+  .empty-page-title { font-size:2rem; line-height:1.15; font-weight:700; letter-spacing:-.025em; color:#111827; margin-bottom:.75rem; }
+  .empty-page-text { color:#6b7280; font-size:1rem; line-height:1.7; max-width:34rem; margin:0 auto; }
+
   /* Fade-up animation */
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
   .fade-up { animation:fadeUp .45s ease both; }
@@ -386,7 +393,7 @@ async function loadPage(slug) {
   try {
     const blocks = await fetch(`/api/pages/${slug}/blocks`).then(r => r.json());
     if (!blocks.length) {
-      content.innerHTML = '<div class="max-w-2xl mx-auto px-6 py-32 text-center text-gray-400">No content yet.</div>';
+      content.innerHTML = renderEmptyPage(slug);
       return;
     }
     content.innerHTML = blocks.map(b => renderBlock(b)).join('');
@@ -397,6 +404,18 @@ async function loadPage(slug) {
   } catch (err) {
     content.innerHTML = '<div class="max-w-2xl mx-auto px-6 py-32 text-center text-gray-400">Failed to load content.</div>';
   }
+}
+
+function renderEmptyPage(slug) {
+  const pageName = ({ home: 'Home', projects: 'Projects', cv: 'CV', contacts: 'Contact' }[slug]) || 'Page';
+  return `
+  <section class="empty-page-shell px-6 py-24 fade-up">
+    <div class="empty-page-card">
+      <div class="empty-page-kicker">${escHtml(pageName)}</div>
+      <h1 class="empty-page-title">Start building this page</h1>
+      <p class="empty-page-text">This page is intentionally empty on a fresh install. Open the admin interface, add sections, and publish your own content when you are ready.</p>
+    </div>
+  </section>`;
 }
 
 // ═══════════════════════════════════════════════════════

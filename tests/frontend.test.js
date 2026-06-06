@@ -115,6 +115,15 @@ describe('Frontend files', () => {
             const file = path.join(ROOT, 'Dockerfile');
             assert.ok(fs.existsSync(file), 'Dockerfile should exist');
         });
+
+        it('public site renders an empty page with the correct styled shell', () => {
+            const file = path.join(ROOT, 'public-readonly', 'site.html');
+            const content = fs.readFileSync(file, 'utf8');
+
+            assert.ok(content.includes('function renderEmptyPage'), 'site renderer should have a dedicated styled empty-page renderer');
+            assert.ok(content.includes('empty-page-shell'), 'empty page should use the shared public-site shell styles');
+            assert.ok(content.includes('Start building this page'), 'empty page should guide users without fake portfolio content');
+        });
     });
 
     describe('i18n translation files', () => {
