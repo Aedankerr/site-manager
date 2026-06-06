@@ -50,6 +50,100 @@
     font-family: var(--admin-font-sans);
   }
 
+
+
+  /* Exact dossier app shell shared with public renderer */
+  .wrap { width: min(1260px, calc(100% - 36px)); margin: 0 auto; }
+  .topbar {
+    border-bottom: 2px solid var(--admin-ink);
+    background: rgba(244,243,238,.92);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(10px);
+  }
+  .topbar-inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    min-height: 62px;
+    gap: 20px;
+  }
+  .identity { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  .identity strong { font-size:20px; letter-spacing:-.04em; text-transform:uppercase; }
+  .identity span { font-family:var(--admin-font-mono); font-size:12px; color:var(--admin-muted); }
+  #adminNav { display:flex; gap:1px; border:1px solid var(--admin-ink); background:var(--admin-ink); overflow-x:auto; }
+  #adminNav .nav-item,
+  #adminNav button.nav-item {
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    border:0;
+    border-right:1px solid var(--admin-ink);
+    border-bottom:0;
+    background:var(--admin-paper);
+    color:var(--admin-ink);
+    padding:10px 12px;
+    min-height:38px;
+    box-shadow:none;
+    font-family:var(--admin-font-mono);
+    font-size:12px;
+    font-weight:500;
+    text-transform:uppercase;
+    white-space:nowrap;
+    cursor:pointer;
+  }
+  #adminNav .nav-item:hover,
+  #adminNav .nav-item.active { background:var(--admin-ink); color:var(--admin-paper); }
+  #adminNav .nav-item.active::before { display:none; }
+  #app { min-height:100vh; }
+  #app > main { width:min(1260px, calc(100% - 36px)); margin:0 auto; padding:24px 0 48px; overflow:visible; }
+  .stamp {
+    display:inline-flex;
+    min-height:38px;
+    align-items:center;
+    padding:0 12px;
+    border:2px solid var(--admin-ink);
+    background:var(--admin-paper);
+    color:var(--admin-ink);
+    font-family:var(--admin-font-mono);
+    font-size:11px;
+    text-transform:uppercase;
+    box-shadow:4px 4px 0 var(--admin-ink);
+    cursor:pointer;
+  }
+  .stamp.primary { background:var(--admin-ink); color:var(--admin-paper); }
+  .stamp:hover { transform:translate(1px, 1px); box-shadow:3px 3px 0 var(--admin-ink); }
+  .hero-actions { display:flex; flex-wrap:wrap; gap:8px; margin:18px auto 0; }
+  .theme-switcher {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 40;
+    display: flex;
+    gap: 0;
+    border: 2px solid var(--admin-ink);
+    background: var(--admin-ink);
+    box-shadow: 0 8px 20px rgba(0,0,0,.12);
+  }
+  .theme-switcher button {
+    min-height:42px;
+    border:0;
+    border-right:1px solid var(--admin-ink);
+    background:var(--admin-paper);
+    color:var(--admin-ink);
+    padding:0 12px;
+    box-shadow:none;
+    font-family:var(--admin-font-mono);
+    font-size:11px;
+    text-transform:uppercase;
+  }
+  .theme-switcher button[aria-pressed="true"] { background:var(--admin-ink); color:var(--admin-paper); outline:1px solid var(--admin-paper); outline-offset:-4px; }
+  @media (max-width: 900px) {
+    .topbar-inner { grid-template-columns:1fr; align-items:start; padding:12px 0; }
+    #adminNav { width:100%; }
+  }
+
   /* Drag ghost */
   .sortable-ghost { opacity: .35; }
   .sortable-drag  { opacity: 1; box-shadow: 2px 2px 0 var(--dot-matrix-accent); }
@@ -102,8 +196,8 @@
 
   /* ── Mobile responsive layout ── */
 
-  /* Mobile top bar — hidden on desktop */
-  .mobile-topbar {
+  /* Admin mobile header — hidden on desktop */
+  .admin-mobile-header {
     display: none;
     align-items: center;
     gap: 12px;
@@ -115,7 +209,7 @@
     z-index: 30;
     flex-shrink: 0;
   }
-  .mobile-topbar-title {
+  .admin-mobile-header-title {
     font-size: .9rem;
     font-weight: 600;
     color: var(--dot-matrix-text);
@@ -135,7 +229,7 @@
 
   @media (max-width: 767px) {
     /* Show mobile top bar, hide form-row grids */
-    .mobile-topbar { display: flex; }
+    .admin-mobile-header { display: flex; }
 
     /* App wrapper stacks vertically */
     #app { flex-direction: column !important; }
@@ -235,7 +329,7 @@
   #loginView,
   #app,
   main,
-  .mobile-topbar {
+  .admin-mobile-header {
     background-color: transparent !important;
     color: var(--admin-ink) !important;
     font-family: var(--admin-font-sans) !important;
@@ -293,7 +387,7 @@
 
   @media (min-width: 768px) {
     /* Always show sidebar on desktop, never show mobile topbar */
-    .mobile-topbar { display: none !important; }
+    .admin-mobile-header { display: none !important; }
     #sidebar { transform: none !important; position: relative !important; }
     .sidebar-backdrop { display: none !important; }
   }
@@ -468,21 +562,6 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
 
-<!-- ── Mobile top bar ────────────────────────────────── -->
-<div class="mobile-topbar" id="mobileTopbar">
-  <button onclick="toggleSidebar()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0" aria-label="Open menu">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-  </button>
-  <span class="mobile-topbar-title" id="mobilePageTitle">Site Manager</span>
-  <button onclick="toggleTheme()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0" aria-label="Toggle theme">
-    <svg id="mobileThemeIconSun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-    <svg id="mobileThemeIconMoon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-  </button>
-</div>
-
-<!-- ── Sidebar backdrop (mobile only) ─────────────────── -->
-<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
-
 <!-- ── Login Overlay ─────────────────────────────────── -->
 <div id="loginOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm hidden">
   <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
@@ -507,77 +586,39 @@
 </div>
 
 <!-- ── App Shell ─────────────────────────────────────── -->
-<div id="app" class="hidden flex h-screen overflow-hidden">
-
-  <!-- Sidebar -->
-  <aside id="sidebar" class="flex flex-col w-[220px] bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex-shrink-0">
-    <!-- Logo -->
-    <div class="flex items-center gap-2.5 px-4 py-4 border-b border-slate-100 dark:border-slate-800">
-      <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center flex-shrink-0">
-        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 004 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
-      </div>
-      <div>
-        <span class="font-semibold text-sm block leading-tight">Site Manager</span>
-        <span class="text-[10px] text-slate-400 leading-tight">Website Builder</span>
-      </div>
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a href="#" class="identity" onclick="selectPage('home'); return false;">
+        <strong>Site Manager</strong>
+        <span>Website Builder</span>
+      </a>
+      <nav aria-label="admin navigation" id="adminNav">
+        <button class="nav-item" onclick="selectPage('home')" id="nav-home">Home</button>
+        <button class="nav-item" onclick="selectPage('projects')" id="nav-projects">Projects</button>
+        <button class="nav-item" onclick="selectPage('contacts')" id="nav-contacts">Contact</button>
+        <button class="nav-item" onclick="selectSection('profiles')" id="nav-profiles">CV Profiles</button>
+        <button class="nav-item" onclick="selectSection('customcss')" id="nav-customcss">Custom CSS</button>
+        <button class="nav-item" onclick="selectSection('media')" id="nav-media">Media</button>
+        <button class="nav-item" onclick="selectSection('uptime')" id="nav-uptime">Uptime</button>
+        <button class="nav-item" onclick="selectSection('settings')" id="nav-settings">Settings</button>
+        <button class="nav-item" onclick="logout()">Sign out</button>
+      </nav>
     </div>
+  </header>
 
-    <!-- Nav -->
-    <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
-      <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-1.5 mt-1">Pages</p>
-      <div class="nav-item" onclick="selectPage('home')" id="nav-home">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-        Home
-      </div>
-      <div class="nav-item" onclick="selectPage('projects')" id="nav-projects">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-        Projects
-      </div>
-      <div class="nav-item" onclick="selectPage('contacts')" id="nav-contacts">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-        Contact
-      </div>
+  <div class="wrap hero-actions" aria-label="admin actions">
+    <a class="stamp primary" href="/" target="_blank" rel="noopener">View public site</a>
+    <button class="stamp" type="button" onclick="selectSection('settings')">Site settings</button>
+  </div>
 
-      <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-1.5 mt-4">Site</p>
-      <div class="nav-item" onclick="selectSection('profiles')" id="nav-profiles">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-        CV Profiles
-      </div>
-      <div class="nav-item" onclick="selectSection('customcss')" id="nav-customcss">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-        Custom CSS
-      </div>
-      <div class="nav-item" onclick="selectSection('media')" id="nav-media">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        Media
-      </div>
-
-      <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-1.5 mt-4">Tools</p>
-      <div class="nav-item" onclick="selectSection('uptime')" id="nav-uptime">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-        Uptime
-      </div>
-      <div class="nav-item" onclick="selectSection('settings')" id="nav-settings">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
-        Settings
-      </div>
-    </nav>
-
-    <!-- Bottom bar -->
-    <div class="px-3 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-      <button onclick="logout()" class="nav-item flex-1 text-slate-400 hover:text-red-500">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-        Sign out
-      </button>
-      <button onclick="toggleTheme()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0" title="Toggle theme">
-        <svg id="themeIconSun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        <svg id="themeIconMoon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-      </button>
-    </div>
-  </aside>
+  <div class="theme-switcher" aria-label="theme switcher">
+    <button type="button" data-admin-theme-button="light" aria-pressed="true" onclick="setAdminTheme('light')">Light</button>
+    <button type="button" data-admin-theme-button="dark" aria-pressed="false" onclick="setAdminTheme('dark')">Dark</button>
+  </div>
 
   <!-- Main area -->
-  <main class="flex-1 overflow-y-auto">
+  <main>
 
     <!-- ── Page Editor (inline — no modals, no drag-and-drop) ─── -->
     <div id="sectionPage" class="hidden px-6 py-6">
@@ -952,30 +993,21 @@ const state = {
 //  THEME
 // ═══════════════════════════════════════════════════════
 function applyTheme(t) {
-  state.theme = t;
-  document.documentElement.classList.toggle('dark', t === 'dark');
-  document.getElementById('themeIconSun').classList.toggle('hidden', t !== 'dark');
-  document.getElementById('themeIconMoon').classList.toggle('hidden', t === 'dark');
-  document.getElementById('mobileThemeIconSun').classList.toggle('hidden', t !== 'dark');
-  document.getElementById('mobileThemeIconMoon').classList.toggle('hidden', t === 'dark');
-  localStorage.setItem('smTheme', t);
+  state.theme = t === 'dark' ? 'dark' : 'light';
+  document.documentElement.classList.toggle('dark', state.theme === 'dark');
+  document.documentElement.dataset.theme = state.theme;
+  document.querySelectorAll('[data-admin-theme-button]').forEach(btn => {
+    btn.setAttribute('aria-pressed', btn.dataset.adminThemeButton === state.theme ? 'true' : 'false');
+  });
+  localStorage.setItem('smTheme', state.theme);
 }
+function setAdminTheme(t) { applyTheme(t); }
 function toggleTheme() { applyTheme(state.theme === 'dark' ? 'light' : 'dark'); }
 applyTheme(state.theme);
 
-// ── Mobile sidebar toggle
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebarBackdrop');
-  const isOpen = sidebar.classList.toggle('open');
-  backdrop.classList.toggle('open', isOpen);
-  document.body.style.overflow = isOpen ? 'hidden' : '';
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarBackdrop').classList.remove('open');
-  document.body.style.overflow = '';
-}
+// ── Legacy sidebar helpers are no-ops now that admin uses the dossier topbar shell.
+function toggleSidebar() {}
+function closeSidebar() { document.body.style.overflow = ''; }
 
 // ═══════════════════════════════════════════════════════
 //  API HELPERS
@@ -1045,7 +1077,8 @@ function selectPage(slug) {
   showSection('sectionPage');
   const label = { home: 'Home', projects: 'Projects', contacts: 'Contact' }[slug] || slug;
   document.getElementById('pageEditorTitle').textContent = label;
-  document.getElementById('mobilePageTitle').textContent = label;
+  const pageTitleEl = document.getElementById('mobilePageTitle');
+  if (pageTitleEl) pageTitleEl.textContent = label;
   loadPageEditor(slug);
   closeSidebar();
 }
@@ -1056,7 +1089,8 @@ function selectSection(name) {
   setActiveNav('nav-' + name);
   showSection('section' + name.charAt(0).toUpperCase() + name.slice(1));
   const label = { profiles: 'CV Profiles', customcss: 'Custom CSS', media: 'Media', uptime: 'Uptime', settings: 'Settings' }[name] || name;
-  document.getElementById('mobilePageTitle').textContent = label;
+  const pageTitleEl = document.getElementById('mobilePageTitle');
+  if (pageTitleEl) pageTitleEl.textContent = label;
   if (name === 'profiles') loadProfiles();
   if (name === 'customcss') loadCustomCSS();
   if (name === 'media') loadMedia();

@@ -53,6 +53,21 @@ describe('Frontend files', () => {
             assert.ok(!content.includes('--color-brand: #6366f1'), 'default purple brand should be removed from admin CSS');
         });
 
+        it('uses the same dossier topbar shell as the public site instead of the old sidebar app shell', () => {
+            const file = path.join(ROOT, 'public', 'manager', 'index.html');
+            const content = fs.readFileSync(file, 'utf8');
+
+            assert.ok(content.includes('class="topbar"'), 'admin should use the source topbar component');
+            assert.ok(content.includes('class="wrap topbar-inner"'), 'admin topbar should use the source wrap/topbar-inner structure');
+            assert.ok(content.includes('class="identity"'), 'admin should use the source identity component');
+            assert.ok(content.includes('class="theme-switcher"'), 'admin should expose the source light/dark theme switcher');
+            assert.ok(content.includes('class="stamp'), 'admin action controls should use stamp-style buttons');
+            assert.ok(content.includes('id="adminNav"'), 'admin nav should be horizontal topbar navigation');
+            assert.ok(!content.includes('id="sidebar"'), 'admin should not render the old fixed left sidebar');
+            assert.ok(!content.includes('mobile-topbar'), 'admin should not render the old separate mobile sidebar topbar');
+            assert.ok(!content.includes('id="mobileMenu"'), 'admin should not render a second legacy nav shell');
+        });
+
         it('shared scripts.js exists', () => {
             const file = path.join(ROOT, 'public', 'shared', 'scripts.js');
             assert.ok(fs.existsSync(file), 'public/shared/scripts.js should exist');
