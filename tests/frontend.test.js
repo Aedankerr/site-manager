@@ -124,6 +124,21 @@ describe('Frontend files', () => {
             assert.ok(content.includes('empty-page-shell'), 'empty page should use the shared public-site shell styles');
             assert.ok(content.includes('Start building this page'), 'empty page should guide users without fake portfolio content');
         });
+
+        it('supports selectable built-in public site themes while preserving custom CSS', () => {
+            const manager = fs.readFileSync(path.join(ROOT, 'public', 'manager', 'index.html'), 'utf8');
+            const site = fs.readFileSync(path.join(ROOT, 'public-readonly', 'site.html'), 'utf8');
+
+            assert.ok(manager.includes('settingSiteTheme'), 'settings UI should include a public site theme selector');
+            assert.ok(manager.includes('github-pages-dossier'), 'settings UI should expose the GitHub Pages dossier theme');
+            assert.ok(manager.includes('customCssInput'), 'custom CSS editor should remain available');
+
+            assert.ok(site.includes('applySiteTheme'), 'public site should apply the selected built-in theme');
+            assert.ok(site.includes('theme-github-pages-dossier'), 'public site should include the GitHub Pages dossier theme class');
+            assert.ok(site.includes('body.classList.add(`theme-${theme}`)'), 'public site should apply theme classes without removing custom CSS support');
+            assert.ok(site.includes('applyCustomCss'), 'public site should still apply user custom CSS');
+            assert.ok(site.includes('style.id = \'custom-css\''), 'custom CSS should be injected as a separate style tag');
+        });
     });
 
     describe('i18n translation files', () => {

@@ -789,6 +789,7 @@ if (!PUBLIC_ONLY) {
     defaultPages.forEach(p => {
         db.prepare('INSERT OR IGNORE INTO pages (slug, title, sort_order) VALUES (?, ?, ?)').run(p.slug, p.title, p.sort_order);
     });
+    db.prepare("INSERT OR IGNORE INTO site_settings (key, value) VALUES ('site_theme', 'default')").run();
 
     console.log('Created empty default website pages');
 

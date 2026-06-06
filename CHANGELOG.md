@@ -17,6 +17,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 - Updated Dockerfile, Docker Compose examples, installer script, and README port/database defaults away from the old fork values (`3000/3001`, `/app/data/cv.db`) to current Site Manager values (`3010/3011`, `/app/data/site.db`).
 - Removed the old seeded portfolio/demo block code entirely; fresh installs now create empty Home, Projects, CV, and Contact page shells instead of fake person/example content.
 - Reapplied the public-site visual style to empty fresh-install pages with a styled starter shell instead of a blank "No content yet" message.
+- Added a Public Site Style selector with a GitHub Pages dossier theme option while preserving Custom CSS as a separate override layer.
 
 ## [1.17.0] - 2026-03-09
 

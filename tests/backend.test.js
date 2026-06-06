@@ -107,6 +107,13 @@ describe('Backend API', () => {
             assert.ok(Array.isArray(data));
         });
 
+        it('GET /api/site includes default public site theme', async () => {
+            const res = await fetch(`${BASE_URL}/api/site`);
+            assert.strictEqual(res.status, 200);
+            const data = await res.json();
+            assert.strictEqual(data.site_theme, 'default');
+        });
+
         it('GET /api/sections returns object', async () => {
             const res = await fetch(`${BASE_URL}/api/sections`);
             assert.strictEqual(res.status, 200);
