@@ -57,6 +57,8 @@ The repository includes working Unraid XML templates, but Site Manager is not li
    | Field | Default | Notes |
    |---|---|---|
    | **Admin WebUI Port** | `3010` | The host port for the admin interface |
+   | **Admin Port (internal)** | `3010` | Environment variable `PORT`; logs should show admin listening on `3010` |
+   | **Public Port (internal)** | `3011` | Environment variable `PUBLIC_PORT`; logs should show public listening on `3011` |
    | **AppData** | `/mnt/user/appdata/site-manager/data` | Must match the Public container |
    | **Uploads** | `/mnt/user/appdata/site-manager/uploads` | Must match the Public container |
    | **DB Path** | `/app/data/site.db` | Leave as default |
@@ -182,9 +184,19 @@ Data directory: /app/data
 Database path: /app/data/site.db
 Running in ADMIN mode (read-write)
 Database opened successfully
-Admin server listening on port 3010
-Public server listening on port 3011
+CV Manager v1.17.0 (Admin) running at http://localhost:3010
+CV Manager (Public Read-Only) running at http://localhost:3011
 ```
+
+If your logs instead show `localhost:3000`, `localhost:3001`, or `Database path: /app/data/cv.db`, the container is not using the current template variables. Edit the container, switch to advanced view if needed, and set:
+
+| Variable | Value |
+|---|---|
+| `PORT` | `3010` |
+| `PUBLIC_PORT` | `3011` |
+| `DB_PATH` | `/app/data/site.db` |
+
+Then apply/recreate the container.
 
 ### Test the Admin Interface
 

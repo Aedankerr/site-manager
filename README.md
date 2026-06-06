@@ -130,6 +130,8 @@ Site Manager has Community Apps-compatible XML templates in this repo, but the p
 
 The templates are suitable for Unraid **7.3.1**: they include a minimum supported version of `6.9` and do not set a maximum version cap.
 
+Expected Unraid container logs show the admin server on `localhost:3010`, the public server on `localhost:3011`, and `Database path: /app/data/site.db`. If logs show `3000/3001` or `/app/data/cv.db`, refresh/reapply the current XML template variables.
+
 To add it to Community Apps, submit this repository from the Unraid Community Applications submit flow:
 
 ```text
