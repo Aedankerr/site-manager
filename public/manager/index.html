@@ -5,29 +5,49 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Site Manager</title>
 <link rel="stylesheet" href="/manager/tailwind.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="/manager/sortable.min.js"></script>
 <style>
-  /* Dotmatrix minimalist theme for admin UI */
+  /* Technical dossier admin theme — restrained dotmatrix inspired by the public style picker */
   :root {
-    --dot-matrix-black: #0d0d0d;
-    --dot-matrix-grid: #e0e0e0;
-    --dot-matrix-text: #1a1a1a;
-    --dot-matrix-accent: #000000;
-    --dot-matrix-bg: #fcfcfc;
-    --dot-matrix-card: #ffffff;
-    --dot-matrix-border: #333333;
+    --admin-paper: #f4f3ee;
+    --admin-ink: #050505;
+    --admin-muted: #595959;
+    --admin-soft: #deddd7;
+    --admin-rule: rgba(5,5,5,.16);
+    --admin-rule-strong: rgba(5,5,5,.34);
+    --admin-white: #fbfaf6;
+    --admin-grid-rgb: 5,5,5;
+    --admin-card-rgb: 251,250,246;
+    --admin-font-sans: "IBM Plex Sans", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --admin-font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+    --dot-matrix-black: var(--admin-ink);
+    --dot-matrix-grid: var(--admin-rule);
+    --dot-matrix-text: var(--admin-ink);
+    --dot-matrix-accent: var(--admin-ink);
+    --dot-matrix-bg: var(--admin-paper);
+    --dot-matrix-card: var(--admin-white);
+    --dot-matrix-border: var(--admin-rule-strong);
+    --color-brand: var(--admin-ink);
+    --color-brand-dark: var(--admin-ink);
+    --color-brand-light: var(--admin-muted);
     --sidebar-w: 220px;
   }
 
   * { box-sizing: border-box; }
 
-  /* Grid background pattern */
+  /* Tamed dotmatrix background: low-opacity dots instead of harsh full grid lines */
   body {
-    background-color: var(--dot-matrix-bg);
+    background-color: var(--admin-paper);
     background-image:
-      linear-gradient(var(--dot-matrix-border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--dot-matrix-border) 1px, transparent 1px);
-    background-size: 24px 24px;
+      radial-gradient(circle, rgba(var(--admin-grid-rgb), .025) 1px, transparent 1px),
+      radial-gradient(circle, rgba(var(--admin-grid-rgb), .018) 1px, transparent 1px);
+    background-position: 0 0, 16px 16px;
+    background-size: 32px 32px;
+    color: var(--admin-ink);
+    font-family: var(--admin-font-sans);
   }
 
   /* Drag ghost */
@@ -206,10 +226,70 @@
 
   /* Section headers */
   .section-header {
-    border-left: 4px solid var(--dot-matrix-accent);
+    border-left: 4px solid var(--admin-ink);
     padding-left: 12px;
     margin-bottom: 16px;
   }
+
+  /* Admin dossier override layer for Tailwind utility-heavy markup */
+  #loginView,
+  #app,
+  main,
+  .mobile-topbar {
+    background-color: transparent !important;
+    color: var(--admin-ink) !important;
+    font-family: var(--admin-font-sans) !important;
+  }
+  #sidebar,
+  .bg-white,
+  .dark\:bg-slate-900,
+  .dark\:bg-slate-800,
+  .dark\:bg-slate-700 {
+    background: rgba(var(--admin-card-rgb), .92) !important;
+    color: var(--admin-ink) !important;
+  }
+  #sidebar,
+  .border-r,
+  .border-b,
+  .border-t,
+  .border,
+  .border-slate-100,
+  .border-slate-200,
+  .dark\:border-slate-700,
+  .dark\:border-slate-800 {
+    border-color: var(--admin-rule) !important;
+  }
+  #sidebar { border-right: 2px solid var(--admin-ink) !important; backdrop-filter: blur(10px); }
+  .bg-brand,
+  .hover\:bg-brand-dark:hover,
+  .focus\:ring-brand:focus,
+  .progress-fill { background: var(--admin-ink) !important; }
+  .text-brand,
+  .hover\:text-brand:hover,
+  .nav-item:hover { color: var(--admin-ink) !important; }
+  .border-brand,
+  .hover\:border-brand:hover,
+  .focus\:ring-brand:focus { border-color: var(--admin-ink) !important; }
+  .rounded-lg,
+  .rounded-xl,
+  .rounded-2xl,
+  input,
+  select,
+  textarea,
+  button { border-radius: 0 !important; }
+  .shadow-sm,
+  .shadow,
+  .shadow-lg { box-shadow: 0 10px 26px rgba(var(--admin-grid-rgb), .08) !important; }
+  .text-slate-400,
+  .text-slate-500,
+  .text-slate-600,
+  .dark\:text-slate-400,
+  .dark\:text-slate-300 { color: var(--admin-muted) !important; }
+  .picker-card { border-color: var(--admin-rule) !important; background: rgba(var(--admin-card-rgb), .92) !important; border-radius: 0 !important; box-shadow: none !important; }
+  .picker-card:hover { border-color: var(--admin-ink) !important; box-shadow: 0 10px 26px rgba(var(--admin-grid-rgb), .10) !important; }
+  .picker-preview { background: rgba(var(--admin-grid-rgb), .035) !important; }
+  .picker-select { background: var(--admin-ink) !important; color: var(--admin-paper) !important; border-radius: 0 !important; }
+  .prev-hero { background: var(--admin-ink) !important; color: var(--admin-paper) !important; }
 
   @media (min-width: 768px) {
     /* Always show sidebar on desktop, never show mobile topbar */
@@ -669,8 +749,8 @@
           <div class="p-5">
             <label class="block text-sm font-medium mb-1.5">Public Site Style</label>
             <select id="settingSiteTheme" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-              <option value="default">Default — clean modern</option>
-              <option value="github-pages-dossier">GitHub Pages dossier — paper grid / bold cards</option>
+              <option value="default">Clean modern — legacy light style</option>
+              <option value="github-pages-dossier">Technical dossier — attached resume layout</option>
             </select>
             <p class="text-xs text-slate-500 mt-2">Choose a built-in style for the public site. Custom CSS remains available and is applied separately.</p>
           </div>

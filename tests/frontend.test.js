@@ -35,6 +35,18 @@ describe('Frontend files', () => {
             assert.ok(fs.existsSync(file), 'public/manager/sortable.min.js should exist');
         });
 
+        it('uses a restrained technical dossier admin theme instead of harsh purple/dense grid styling', () => {
+            const file = path.join(ROOT, 'public', 'manager', 'index.html');
+            const content = fs.readFileSync(file, 'utf8');
+
+            assert.ok(content.includes('Technical dossier admin theme'), 'admin CSS should document the dossier-inspired theme');
+            assert.ok(content.includes('--admin-paper: #f4f3ee'), 'admin theme should use the attached paper tone');
+            assert.ok(content.includes('rgba(var(--admin-grid-rgb), .025)'), 'admin grid should be softened to low-opacity dots');
+            assert.ok(content.includes('radial-gradient(circle'), 'admin background should use dotmatrix dots, not harsh full grid lines');
+            assert.ok(!content.includes('linear-gradient(var(--dot-matrix-border) 1px'), 'admin background should not use the harsh line grid');
+            assert.ok(!content.includes('--color-brand: #6366f1'), 'default purple brand should be removed from admin CSS');
+        });
+
         it('shared scripts.js exists', () => {
             const file = path.join(ROOT, 'public', 'shared', 'scripts.js');
             assert.ok(fs.existsSync(file), 'public/shared/scripts.js should exist');
@@ -132,12 +144,30 @@ describe('Frontend files', () => {
             assert.ok(manager.includes('settingSiteTheme'), 'settings UI should include a public site theme selector');
             assert.ok(manager.includes('github-pages-dossier'), 'settings UI should expose the GitHub Pages dossier theme');
             assert.ok(manager.includes('customCssInput'), 'custom CSS editor should remain available');
+            assert.ok(manager.includes('Technical dossier — attached resume layout'), 'settings UI should describe the dossier theme as the attached layout style');
 
             assert.ok(site.includes('applySiteTheme'), 'public site should apply the selected built-in theme');
             assert.ok(site.includes('theme-github-pages-dossier'), 'public site should include the GitHub Pages dossier theme class');
+            assert.ok(site.includes('--paper:#f4f3ee'), 'dossier theme should use the attached paper tone');
+            assert.ok(site.includes('--grid-rgb:5,5,5'), 'dossier theme should use the attached grid variable');
+            assert.ok(site.includes('IBM Plex Sans'), 'dossier theme should use the attached typography stack');
+            assert.ok(site.includes('box-shadow:0 10px 26px rgba(var(--grid-rgb),.10)'), 'dossier theme should use the attached softer dossier card shadow');
             assert.ok(site.includes('body.classList.add(`theme-${theme}`)'), 'public site should apply theme classes without removing custom CSS support');
             assert.ok(site.includes('applyCustomCss'), 'public site should still apply user custom CSS');
             assert.ok(site.includes('style.id = \'custom-css\''), 'custom CSS should be injected as a separate style tag');
+            const server = fs.readFileSync(path.join(ROOT, 'src', 'server.js'), 'utf8');
+            assert.ok(server.includes("'site_theme', 'github-pages-dossier'"), 'fresh installs should default to the technical dossier theme');
+
+            const forbiddenPersonalContent = [
+                'Aedan' + ' Kerr',
+                'Epworth' + ' Healthcare',
+                'Melbourne' + ', Australia',
+                'Technical Dossier' + '</title>',
+            ];
+            for (const snippet of forbiddenPersonalContent) {
+                assert.ok(!site.includes(snippet), `public template should not copy personal attached-resume content: ${snippet}`);
+                assert.ok(!manager.includes(snippet), `admin template should not copy personal attached-resume content: ${snippet}`);
+            }
         });
     });
 

@@ -5,8 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Loading…</title>
 <meta name="description" content="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* Self-contained site CSS — no external CDN required */
+  /* Site CSS with optional external IBM Plex fonts for the technical dossier theme */
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root { --brand: #6366f1; --brand-dark: #4f46e5; }
   html { scroll-behavior: smooth; }
@@ -231,36 +234,119 @@
   .empty-page-title { font-size:2rem; line-height:1.15; font-weight:700; letter-spacing:-.025em; color:#111827; margin-bottom:.75rem; }
   .empty-page-text { color:#6b7280; font-size:1rem; line-height:1.7; max-width:34rem; margin:0 auto; }
 
-  /* Built-in theme: GitHub Pages technical dossier demo style */
+  /* Built-in theme: Technical dossier style from the attached resume layout */
   body.theme-github-pages-dossier {
     --brand:#050505;
     --brand-dark:#050505;
     --paper:#f4f3ee;
     --ink:#050505;
-    --muted:#5f5d56;
-    --card:#fbfaf6;
+    --muted:#595959;
+    --soft:#deddd7;
+    --rule:rgba(5,5,5,.16);
+    --rule-strong:rgba(5,5,5,.34);
+    --white:#fbfaf6;
+    --grid-rgb:5,5,5;
+    --paper-rgb:244,243,238;
+    --white-rgb:251,250,246;
+    --text-soft:#30302c;
     background:
-      linear-gradient(90deg, rgba(5,5,5,.04) 1px, transparent 1px) 0 0 / 32px 32px,
-      linear-gradient(rgba(5,5,5,.03) 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(90deg, rgba(var(--grid-rgb),.04) 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(rgba(var(--grid-rgb),.03) 1px, transparent 1px) 0 0 / 32px 32px,
       var(--paper);
     color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing:-.006em;
   }
   body.theme-github-pages-dossier nav,
-  body.theme-github-pages-dossier footer { border-color:var(--ink); border-width:2px; background:rgba(244,243,238,.92); box-shadow:none; }
-  body.theme-github-pages-dossier #siteName { color:var(--ink) !important; font-weight:800; letter-spacing:-.04em; }
+  body.theme-github-pages-dossier footer {
+    border-color:var(--ink);
+    border-width:2px;
+    background:rgba(var(--paper-rgb),.92);
+    box-shadow:none;
+    backdrop-filter:blur(10px);
+  }
+  body.theme-github-pages-dossier #siteName {
+    color:var(--ink) !important;
+    font-weight:800;
+    letter-spacing:-.04em;
+    text-transform:uppercase;
+  }
+  body.theme-github-pages-dossier .nav-link {
+    font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size:12px;
+    text-transform:uppercase;
+  }
   body.theme-github-pages-dossier .nav-link.active,
-  body.theme-github-pages-dossier .nav-link:hover { color:var(--ink); text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:5px; }
+  body.theme-github-pages-dossier .nav-link:hover {
+    color:var(--ink);
+    text-decoration:underline;
+    text-decoration-thickness:2px;
+    text-underline-offset:5px;
+  }
   body.theme-github-pages-dossier .hero,
-  body.theme-github-pages-dossier .empty-page-shell { background:transparent; border-bottom:2px solid var(--ink); }
+  body.theme-github-pages-dossier .empty-page-shell {
+    background:transparent;
+    border-bottom:2px solid var(--ink);
+    min-height:390px;
+  }
+  body.theme-github-pages-dossier .hero > .max-w-5xl,
+  body.theme-github-pages-dossier .empty-page-card {
+    border:2px solid var(--ink);
+    background:rgba(var(--white-rgb),.92);
+    box-shadow:0 10px 26px rgba(var(--grid-rgb),.10);
+  }
+  body.theme-github-pages-dossier .hero > .max-w-5xl { padding:clamp(22px,3vw,34px); }
   body.theme-github-pages-dossier .hero-title,
-  body.theme-github-pages-dossier .empty-page-title { font-size:clamp(44px,8vw,96px); line-height:.92; letter-spacing:-.07em; }
+  body.theme-github-pages-dossier .empty-page-title {
+    font-size:clamp(34px,4.8vw,64px);
+    line-height:.92;
+    letter-spacing:-.055em;
+    text-transform:uppercase;
+  }
+  body.theme-github-pages-dossier .hero-subtitle,
+  body.theme-github-pages-dossier .empty-page-text,
+  body.theme-github-pages-dossier .proj-desc {
+    color:var(--text-soft);
+  }
+  body.theme-github-pages-dossier .section-heading {
+    border-bottom:2px solid var(--ink);
+    padding-bottom:10px;
+    letter-spacing:-.045em;
+    text-transform:uppercase;
+  }
+  body.theme-github-pages-dossier .section-bar { display:none; }
+  body.theme-github-pages-dossier .btn-primary,
+  body.theme-github-pages-dossier .proj-link {
+    border:2px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:0;
+    box-shadow:4px 4px 0 var(--ink);
+    font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size:12px;
+    text-transform:uppercase;
+  }
+  body.theme-github-pages-dossier .btn-primary:hover,
+  body.theme-github-pages-dossier .proj-link:hover { transform:translate(1px,1px); box-shadow:3px 3px 0 var(--ink); }
   body.theme-github-pages-dossier .proj-card,
-  body.theme-github-pages-dossier .empty-page-card,
-  body.theme-github-pages-dossier .contact-card { background:rgba(251,250,246,.9); border:2px solid var(--ink); border-radius:18px; box-shadow:8px 8px 0 #050505; }
+  body.theme-github-pages-dossier .contact-card {
+    background:rgba(var(--white-rgb),.72);
+    border:2px solid var(--ink);
+    border-radius:0;
+    box-shadow:none;
+  }
   body.theme-github-pages-dossier .proj-card:hover,
-  body.theme-github-pages-dossier .contact-card:hover { transform:translate(-2px,-2px); box-shadow:10px 10px 0 #050505; background:rgba(251,250,246,.95); }
+  body.theme-github-pages-dossier .contact-card:hover { transform:translateY(-2px); box-shadow:0 10px 26px rgba(var(--grid-rgb),.10); background:rgba(var(--white-rgb),.92); }
+  body.theme-github-pages-dossier .proj-placeholder { background:repeating-linear-gradient(-45deg, rgba(var(--grid-rgb),.05), rgba(var(--grid-rgb),.05) 8px, transparent 8px, transparent 16px); }
   body.theme-github-pages-dossier .tech-pill,
-  body.theme-github-pages-dossier .empty-page-kicker { background:#111; color:#f4f3ee; border-radius:10px; }
+  body.theme-github-pages-dossier .empty-page-kicker {
+    border:1px solid var(--rule-strong);
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:0;
+    font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    text-transform:uppercase;
+  }
 
   /* Fade-up animation */
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
