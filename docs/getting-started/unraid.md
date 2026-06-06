@@ -8,7 +8,7 @@ This guide walks you through installing, configuring, and verifying **Site Manag
 
 | Requirement | Notes |
 |---|---|
-| Unraid 6.9+ | Earlier versions may work but are untested |
+| Unraid 7.3.1 | Current target/test version. Templates set `<MinVer>6.9</MinVer>` and intentionally do **not** set `<MaxVer>`, so Unraid 7.3.1 is not excluded. |
 | Community Apps plugin | For Method 1 (template install) |
 | Docker Compose Manager plugin | For Method 2 (compose install) |
 | Unraid terminal access | SSH or the built-in terminal (`Tools → Terminal`) |
@@ -278,6 +278,7 @@ This repository is structured so it can be submitted to Unraid Community Apps:
 - [x] Docker templates live under `templates/`.
 - [x] Each Docker template has a `<Repository>` tag.
 - [x] Each Docker template has a raw GitHub `<TemplateURL>` pointing at its own XML file.
+- [x] Templates include `<MinVer>6.9</MinVer>` and no `<MaxVer>`, so Unraid 7.3.1 is allowed.
 - [x] Icons resolve from raw GitHub URLs.
 - [x] Admin and Public templates use separate container names and ports.
 - [x] Public template mounts shared appdata/uploads read-only.

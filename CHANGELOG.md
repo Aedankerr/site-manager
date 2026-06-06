@@ -12,6 +12,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 - Expanded the static dossier template and GitHub Pages demo to multiple pages (`index`, `cv`, `projects`, `contact`) using one shared stylesheet.
 - Removed the old `unraid/` XML mirror so Unraid template installs point at the current `templates/` XML files only.
 - Clarified the Unraid Apps state as "ready to submit, not published yet" and added a concrete Community Apps submit checklist while removing placeholder email-address text from the guide.
+- Added Unraid template version metadata: `<MinVer>6.9</MinVer>` with no `<MaxVer>`, keeping Unraid 7.3.1 eligible.
 
 ## [1.17.0] - 2026-03-09
 

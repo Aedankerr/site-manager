@@ -19,6 +19,7 @@ Default ports: Admin 3010, Public 3011.</Overview>
   <Project>https://github.com/Aedankerr/site-manager</Project>
   <ReadMe>https://raw.githubusercontent.com/Aedankerr/site-manager/main/README.md</ReadMe>
   <Category>Productivity: Tools:</Category>
+  <MinVer>6.9</MinVer>
   <License>PolyForm Noncommercial 1.0.0</License>
   <TemplateURL>https://raw.githubusercontent.com/Aedankerr/site-manager/main/templates/site-manager-public.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/Aedankerr/site-manager/main/icon-public.png</Icon>

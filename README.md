@@ -128,6 +128,8 @@ The sitemap.xml and robots.txt are automatically generated with the correct doma
 
 Site Manager has Community Apps-compatible XML templates in this repo, but the public Unraid **Apps** listing is not published yet.
 
+The templates are suitable for Unraid **7.3.1**: they include a minimum supported version of `6.9` and do not set a maximum version cap.
+
 To add it to Community Apps, submit this repository from the Unraid Community Applications submit flow:
 
 ```text

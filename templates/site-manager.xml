@@ -19,6 +19,7 @@ TIP: Install Site Manager (Public) as a second read-only container on port 3011 
   <Project>https://github.com/Aedankerr/site-manager</Project>
   <ReadMe>https://raw.githubusercontent.com/Aedankerr/site-manager/main/README.md</ReadMe>
   <Category>Productivity: Tools:</Category>
+  <MinVer>6.9</MinVer>
   <License>PolyForm Noncommercial 1.0.0</License>
   <TemplateURL>https://raw.githubusercontent.com/Aedankerr/site-manager/main/templates/site-manager.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/Aedankerr/site-manager/main/icon.png</Icon>
