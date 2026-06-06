@@ -81,6 +81,28 @@ describe('Frontend files', () => {
             assert.ok(fs.existsSync(file), 'src/server.js should exist');
         });
 
+        it('does not seed fake portfolio page content on fresh installs', () => {
+            const file = path.join(ROOT, 'src', 'server.js');
+            const content = fs.readFileSync(file, 'utf8');
+
+            const forbiddenSeedSnippets = [
+                'insert' + 'Block.run(',
+                'Seed example ' + 'blocks into default pages',
+                'Seeded example ' + 'content into default pages',
+                "Hi, I'm " + 'Your Name',
+                'Example ' + 'Project',
+                'Your Name' + ' · Your Role',
+                'Alex' + ' Rivera',
+                'Ver' + 'cel',
+                'Str' + 'ipe',
+                'alex' + 'rivera',
+            ];
+
+            for (const snippet of forbiddenSeedSnippets) {
+                assert.ok(!content.includes(snippet), `server.js should not contain seeded portfolio snippet: ${snippet}`);
+            }
+        });
+
         it('package.json has required fields', () => {
             const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
             assert.ok(pkg.name, 'should have name');

@@ -15,7 +15,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 - Added Unraid template version metadata: `<MinVer>6.9</MinVer>` with no `<MaxVer>`, keeping Unraid 7.3.1 eligible.
 - Added missing Admin XML `PORT` / `PUBLIC_PORT` variables and documented how to detect stale containers that still log `3000/3001` or `/app/data/cv.db`.
 - Updated Dockerfile, Docker Compose examples, installer script, and README port/database defaults away from the old fork values (`3000/3001`, `/app/data/cv.db`) to current Site Manager values (`3010/3011`, `/app/data/site.db`).
-- Replaced person-specific seeded demo content (`Alex Rivera`, example companies, and placeholder contacts) with neutral template placeholders for fresh installs.
+- Removed the old seeded portfolio/demo block code entirely; fresh installs now create empty Home, Projects, CV, and Contact page shells instead of fake person/example content.
 
 ## [1.17.0] - 2026-03-09
 
