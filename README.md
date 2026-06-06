@@ -124,9 +124,15 @@ The sitemap.xml and robots.txt are automatically generated with the correct doma
 
 ## Unraid Deployment
 
-### Method 1: Install from Unraid Apps *(planned)*
+### Method 1: Install from Unraid Apps *(ready to submit, not published yet)*
 
-Site Manager is intended to be installable from the Unraid **Apps** tab, but the Community Apps listing is not available yet.
+Site Manager has Community Apps-compatible XML templates in this repo, but the public Unraid **Apps** listing is not published yet.
+
+To add it to Community Apps, submit this repository from the Unraid Community Applications submit flow:
+
+```text
+https://github.com/Aedankerr/site-manager
+```
 
 Once it is listed:
 

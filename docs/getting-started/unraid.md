@@ -164,7 +164,7 @@ Use this when the admin interface is behind a Cloudflare Tunnel:
 |---|---|
 | `SESSION_SECRET` | A long random string |
 | `ADMIN_TRUST_CLOUDFLARE_ACCESS` | `true` |
-| `ADMIN_ALLOWED_EMAILS` | Comma-separated list of your email(s), e.g. `you@example.invalid` |
+| `ADMIN_ALLOWED_EMAILS` | Optional comma-separated Cloudflare Access allowlist. Leave blank to allow any authenticated Cloudflare Access user. |
 | `COOKIE_SECURE` | `true` |
 
 The container trusts the `Cf-Access-Authenticated-User-Email` header injected by Cloudflare Access and grants access only to emails in the allowlist.
@@ -249,25 +249,41 @@ To expose the public CV to the internet while keeping the admin internal:
 
 ## Publishing to Unraid Community Apps
 
-The repository now includes a Community Apps-style submission layout:
+This repository is structured so it can be submitted to Unraid Community Apps:
 
-- [`ca_profile.xml`](../../ca_profile.xml) — repository/profile metadata for Community Apps.
-- [`templates/site-manager.xml`](../../templates/site-manager.xml) — Admin Docker template.
-- [`templates/site-manager-public.xml`](../../templates/site-manager-public.xml) — Public read-only Docker template.
+- [`ca_profile.xml`](../../ca_profile.xml) — Community Apps repository/profile metadata.
+- [`templates/site-manager.xml`](../../templates/site-manager.xml) — Site Manager Admin Docker template.
+- [`templates/site-manager-public.xml`](../../templates/site-manager-public.xml) — Site Manager Public read-only Docker template.
 
-To submit once the project is eligible:
+### Submit the listing
 
-1. Open Community Applications on your Unraid server.
-2. Go to the submit flow at `/submit` in the Unraid web UI.
-3. Provide the repository URL:
+1. Open the Unraid web UI on your server.
+2. Open **Apps / Community Applications**.
+3. Open the Community Apps submit page. If your UI exposes the direct route, use:
+   ```text
+   /submit
+   ```
+4. Enter this repository URL:
    ```text
    https://github.com/Aedankerr/site-manager
    ```
-4. Run **Validate** and **Scan**.
-5. Fix any validation feedback in `ca_profile.xml` or `templates/*.xml`.
-6. Submit for Community Apps review.
+5. Run **Validate**.
+6. Run **Scan**.
+7. Fix any reported issues in `ca_profile.xml` or `templates/*.xml`.
+8. Submit for Community Apps review.
 
-Important: the official Community Apps starter notes that public submissions must use an OSI-approved open-source license. This repository currently uses **PolyForm Noncommercial 1.0.0**, so public CA acceptance may require a license decision before submission.
+### Pre-submit checklist
+
+- [x] `ca_profile.xml` exists at the repository root.
+- [x] Docker templates live under `templates/`.
+- [x] Each Docker template has a `<Repository>` tag.
+- [x] Each Docker template has a raw GitHub `<TemplateURL>` pointing at its own XML file.
+- [x] Icons resolve from raw GitHub URLs.
+- [x] Admin and Public templates use separate container names and ports.
+- [x] Public template mounts shared appdata/uploads read-only.
+- [x] No personal email addresses are included in the templates or this guide.
+
+Important: Community Apps public review may require an OSI-approved open-source license. This repository currently uses **PolyForm Noncommercial 1.0.0**, so the reviewer may ask for a license change or clarification before accepting the public listing.
 
 ---
 

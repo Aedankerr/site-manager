@@ -11,6 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 - Added Community Apps-style submission files (`ca_profile.xml`, `templates/site-manager.xml`, and `templates/site-manager-public.xml`) plus documentation for manual template install and future Community Apps submission.
 - Expanded the static dossier template and GitHub Pages demo to multiple pages (`index`, `cv`, `projects`, `contact`) using one shared stylesheet.
 - Removed the old `unraid/` XML mirror so Unraid template installs point at the current `templates/` XML files only.
+- Clarified the Unraid Apps state as "ready to submit, not published yet" and added a concrete Community Apps submit checklist while removing placeholder email-address text from the guide.
 
 ## [1.17.0] - 2026-03-09
 
