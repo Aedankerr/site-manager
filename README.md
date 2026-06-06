@@ -66,8 +66,8 @@ mkdir -p /mnt/user/appdata/site-manager/data/uploads
 docker-compose up -d --build
 
 # Access at:
-# - http://localhost:3000 (Admin - full edit access)
-# - http://localhost:3001 (Public - read-only)
+# - http://localhost:3010 (Admin - full edit access)
+# - http://localhost:3011 (Public - read-only)
 ```
 
 ### Manual Option 2: Docker Compose with Named Volume
@@ -86,8 +86,8 @@ docker build -t site-manager .
 # Run with persistent data
 docker run -d \
   --name site-manager \
-  -p 3000:3000 \
-  -p 3001:3001 \
+  -p 3010:3010 \
+  -p 3011:3011 \
   -v /mnt/user/appdata/site-manager/data:/app/data \
   --restart unless-stopped \
   site-manager
@@ -97,10 +97,10 @@ docker run -d \
 
 | Port | Mode | Description |
 |------|------|-------------|
-| 3000 | Admin | Full edit access, toolbar, all controls |
-| 3001 | Public | Read-only, no toolbar, no edit buttons, security hardened |
+| 3010 | Admin | Full edit access, toolbar, all controls |
+| 3011 | Public | Read-only, no toolbar, no edit buttons, security hardened |
 
-### Public Server Security Features (Port 3001)
+### Public Server Security Features (Port 3011)
 
 - **GET-only**: All POST/PUT/DELETE requests blocked
 - **Rate limiting**: 60 requests/minute per IP
@@ -112,12 +112,12 @@ docker run -d \
 
 ### Cloudflare Tunnel Setup
 
-Point your CF tunnel to port 3001 for public access:
+Point your CF tunnel to port 3011 for public access:
 ```yaml
 # In your cloudflared config
 ingress:
   - hostname: cv.yourdomain.com
-    service: http://site-manager:3001
+    service: http://site-manager:3011
 ```
 
 The sitemap.xml and robots.txt are automatically generated with the correct domain based on the incoming request headers.

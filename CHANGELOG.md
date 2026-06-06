@@ -14,6 +14,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/), versioning follo
 - Clarified the Unraid Apps state as "ready to submit, not published yet" and added a concrete Community Apps submit checklist while removing placeholder email-address text from the guide.
 - Added Unraid template version metadata: `<MinVer>6.9</MinVer>` with no `<MaxVer>`, keeping Unraid 7.3.1 eligible.
 - Added missing Admin XML `PORT` / `PUBLIC_PORT` variables and documented how to detect stale containers that still log `3000/3001` or `/app/data/cv.db`.
+- Updated Dockerfile, Docker Compose examples, installer script, and README port/database defaults away from the old fork values (`3000/3001`, `/app/data/cv.db`) to current Site Manager values (`3010/3011`, `/app/data/site.db`).
 
 ## [1.17.0] - 2026-03-09
 

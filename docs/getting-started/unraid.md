@@ -188,7 +188,7 @@ CV Manager v1.17.0 (Admin) running at http://localhost:3010
 CV Manager (Public Read-Only) running at http://localhost:3011
 ```
 
-If your logs instead show `localhost:3000`, `localhost:3001`, or `Database path: /app/data/cv.db`, the container is not using the current template variables. Edit the container, switch to advanced view if needed, and set:
+If your logs instead show `localhost:3000`, `localhost:3001`, or `Database path: /app/data/cv.db`, the container is using old fork defaults or stale template variables. Force-update the Docker image, then edit the container, switch to advanced view if needed, and set:
 
 | Variable | Value |
 |---|---|
