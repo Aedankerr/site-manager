@@ -46,8 +46,8 @@ describe('Frontend files', () => {
             assert.ok(content.includes('Final dossier compatibility overrides'), 'admin CSS should end with overrides that beat old Tailwind/picker styles');
             assert.ok(content.includes('main > div[id^="section"] > div'), 'admin sections should use dossier-width content sheets');
             assert.ok(content.includes('main h1,'), 'admin page titles should be restyled globally for the dossier UI');
-            assert.ok(content.includes('.picker-preview-scaled { font-family: var(--admin-font-sans) !important; }'), 'section picker previews should use dossier typography');
-            assert.ok(content.includes('.prev-hero { background: var(--admin-ink) !important;'), 'section picker hero preview should not use the old purple gradient');
+            assert.ok(content.includes('.builder-mini-preview'), 'compact section picker preview should use builder mini preview styling');
+            assert.ok(content.includes('.builder-section-option'), 'section picker should use compact list options');
             assert.ok(content.includes('.field:focus{border-color:var(--admin-ink);box-shadow:0 0 0 2px rgba(var(--admin-grid-rgb),.10);'), 'runtime field styles should use dossier focus styling');
             assert.ok(!content.includes('linear-gradient(var(--dot-matrix-border) 1px'), 'admin background should not use the harsh line grid');
             assert.ok(!content.includes('--color-brand: #6366f1'), 'default purple brand should be removed from admin CSS');
@@ -65,15 +65,36 @@ describe('Frontend files', () => {
             assert.ok(content.includes('html[data-theme="dark"]'), 'admin should use the same data-theme dark-mode hook as the public page');
             assert.ok(content.includes('--admin-paper: #080808'), 'admin dark mode should use the same dark paper token as public');
             assert.ok(content.includes('class="stamp'), 'admin action controls should use stamp-style buttons');
-            assert.ok(content.includes('class="hero wrap admin-editor-dossier"'), 'admin page editor should use the source dossier hero layout');
-            assert.ok(content.includes('class="dossier"'), 'admin page editor should render the same dossier container as public');
-            assert.ok(content.includes('class="side-sheet"'), 'admin page editor should render the same side-sheet metadata panel as public');
-            assert.ok(content.includes('class="file-label"'), 'admin page editor should render the same file-label marker as public');
-            assert.ok(content.includes('pageEditorFactTarget'), 'admin side-sheet should update to the current edited page');
             assert.ok(content.includes('id="adminNav"'), 'admin nav should be horizontal topbar navigation');
             assert.ok(!content.includes('id="sidebar"'), 'admin should not render the old fixed left sidebar');
             assert.ok(!content.includes('mobile-topbar'), 'admin should not render the old separate mobile sidebar topbar');
             assert.ok(!content.includes('id="mobileMenu"'), 'admin should not render a second legacy nav shell');
+        });
+
+        it('uses a structural page-builder editor instead of duplicating the public hero in admin', () => {
+            const file = path.join(ROOT, 'public', 'manager', 'index.html');
+            const content = fs.readFileSync(file, 'utf8');
+
+            assert.ok(content.includes('id="sectionPage" class="hidden admin-builder-page"'), 'sectionPage should use the compact admin builder page shell');
+            assert.ok(content.includes('class="builder-shell"'), 'admin editor should render a builder shell');
+            assert.ok(content.includes('class="builder-header"'), 'admin editor should render a compact editing header');
+            assert.ok(content.includes('id="pageEditorTitle">Editing: Home'), 'admin editor title should be a builder title, not public page copy');
+            assert.ok(content.includes('id="pageEditorSectionCount"'), 'builder header should expose section count status');
+            assert.ok(content.includes('id="pageEditorSaveState"'), 'builder header should expose save state status');
+            assert.ok(content.includes('id="pageEditorSections" class="builder-section-list"'), 'real section list should keep the existing pageEditorSections id');
+            assert.ok(content.includes('id="pageEditorEmpty" class="builder-empty hidden"'), 'empty state should keep the existing pageEditorEmpty id');
+            assert.ok(content.includes('id="addSectionPicker" class="builder-add-section hidden"'), 'add-section UI should keep the existing addSectionPicker id');
+            assert.ok(content.includes('class="builder-preview-panel"'), 'admin editor should include the right live preview panel');
+            assert.ok(content.includes('id="builderLivePreview"'), 'live preview should have a stable id');
+            assert.ok(content.includes('id="sectionSearchInput"'), 'compact add-section drawer should include search');
+            assert.ok(content.includes('selectSectionPreview'), 'compact drawer should keep preview selection hooks');
+            assert.ok(content.includes('addSelectedSection ? addSelectedSection() : addPageSection'), 'compact drawer should keep add-section fallback hook');
+            assert.ok(!content.includes('class="hero wrap admin-editor-dossier"'), 'admin editor must not duplicate the public hero/dossier layout');
+            assert.ok(!content.includes('<div class="file-label">Editing dossier</div>'), 'admin editor must not show the old Editing dossier label');
+            assert.ok(!content.includes('id="pageEditorFactTarget"'), 'old public-style dossier fact panel should be removed');
+            assert.ok(!content.includes('picker-card-info'), 'giant 2x2 section picker cards should be replaced');
+            assert.ok(!content.includes('picker-preview-scaled'), 'giant scaled picker previews should be replaced');
+            assert.ok(!content.includes('Welcome to My Site'), 'admin editor should not present generic public-site demo title copy');
         });
 
         it('shared scripts.js exists', () => {

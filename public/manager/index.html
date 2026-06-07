@@ -445,11 +445,6 @@
   .text-slate-600,
   .dark\:text-slate-400,
   .dark\:text-slate-300 { color: var(--admin-muted) !important; }
-  .picker-card { border-color: var(--admin-rule) !important; background: rgba(var(--admin-card-rgb), .92) !important; border-radius: 0 !important; box-shadow: none !important; }
-  .picker-card:hover { border-color: var(--admin-ink) !important; box-shadow: 0 10px 26px rgba(var(--admin-grid-rgb), .10) !important; }
-  .picker-preview { background: rgba(var(--admin-grid-rgb), .035) !important; }
-  .picker-select { background: var(--admin-ink) !important; color: var(--admin-paper) !important; border-radius: 0 !important; }
-  .prev-hero { background: var(--admin-ink) !important; color: var(--admin-paper) !important; }
 
   @media (min-width: 768px) {
     /* Always show sidebar on desktop, never show mobile topbar */
@@ -457,62 +452,6 @@
     #sidebar { transform: none !important; position: relative !important; }
     .sidebar-backdrop { display: none !important; }
   }
-
-  /* ── Wix-style section picker ────────────────────────── */
-  :root { --picker-scale: 0.35; }
-
-  .picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 540px) { .picker-grid { grid-template-columns: 1fr; } }
-
-  .picker-card {
-    text-align: left; border-radius: 12px; overflow: hidden;
-    border: 2px solid #e2e8f0; background: #fff; cursor: pointer;
-    transition: border-color .18s, box-shadow .18s;
-  }
-  .dark .picker-card { background: #1e293b; border-color: #334155; }
-  .picker-card:hover { border-color: var(--admin-ink); box-shadow: 0 10px 26px rgba(var(--admin-grid-rgb), .10); }
-
-  /* The visible thumbnail box */
-  .picker-preview { height: 175px; overflow: hidden; position: relative; background: #f1f5f9; }
-  .dark .picker-preview { background: #0f172a; }
-
-  /* Scale the inner full-size render down to fit */
-  .picker-preview-scaled {
-    transform-origin: top left;
-    transform: scale(var(--picker-scale));
-    width: calc(100% / var(--picker-scale));
-    pointer-events: none;
-    font-family: system-ui, -apple-system, sans-serif;
-  }
-
-  /* Hover overlay */
-  .picker-overlay {
-    position: absolute; inset: 0;
-    background: rgba(15, 23, 42, 0.52);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; transition: opacity .2s;
-  }
-  .picker-card:hover .picker-overlay { opacity: 1; }
-  .picker-overlay-btn {
-    background: var(--admin-ink); color: var(--admin-paper);
-    font-size: 1rem; font-weight: 700;
-    padding: 11px 28px; border-radius: 9px;
-    box-shadow: 4px 4px 0 rgba(var(--admin-grid-rgb), .18);
-    letter-spacing: .01em;
-  }
-
-  /* Card label area */
-  .picker-card-info { padding: 11px 14px 13px; border-top: 1px solid #f1f5f9; }
-  .dark .picker-card-info { border-color: #334155; }
-  .picker-card-name { display: block; font-size: .8125rem; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
-  .dark .picker-card-name { color: #e2e8f0; }
-  .picker-card-desc { display: block; font-size: .7rem; color: #94a3b8; line-height: 1.45; }
-
-  /* Preview section outer wrappers — extracted from inline styles */
-  .prev-hero { background: var(--admin-ink); padding: 72px 56px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-  .prev-projects { padding: 52px 48px; background: #f8fafc; }
-  .prev-timeline { padding: 52px 48px; background: white; }
-  .prev-contact { padding: 52px 48px; background: #f8fafc; text-align: center; }
 
   /* Final dossier compatibility overrides — keep admin UI aligned with the selected public style */
   main > div[id^="section"] {
@@ -566,7 +505,6 @@
   }
   .field:focus{border-color:var(--admin-ink);box-shadow:0 0 0 2px rgba(var(--admin-grid-rgb),.10);outline:none;}
   label,
-  .picker-card-name,
   #sidebar nav p {
     font-family: var(--admin-font-mono) !important;
     letter-spacing: .08em !important;
@@ -587,20 +525,6 @@
     border-color: var(--admin-ink) !important;
     color: var(--admin-paper) !important;
   }
-  .picker-card {
-    background: rgba(var(--admin-card-rgb), .9) !important;
-    border: 2px solid var(--admin-ink) !important;
-    box-shadow: none !important;
-  }
-  .picker-preview {
-    background:
-      radial-gradient(circle, rgba(var(--admin-grid-rgb), .05) 1px, transparent 1px) 0 0 / 22px 22px,
-      var(--admin-paper) !important;
-  }
-  .picker-preview-scaled { font-family: var(--admin-font-sans) !important; }
-  .picker-overlay { background: rgba(var(--admin-grid-rgb), .64) !important; }
-  .picker-overlay-btn,
-  .picker-select,
   button.bg-brand,
   .bg-brand {
     background: var(--admin-ink) !important;
@@ -608,22 +532,360 @@
     border: 2px solid var(--admin-ink) !important;
     box-shadow: 4px 4px 0 rgba(var(--admin-grid-rgb), .18) !important;
   }
-  .prev-hero { background: var(--admin-ink) !important; color: var(--admin-paper) !important; }
-  .prev-projects,
-  .prev-timeline,
-  .prev-contact { background: var(--admin-paper) !important; color: var(--admin-ink) !important; }
-  .prev-hero [style],
-  .prev-projects [style],
-  .prev-timeline [style],
-  .prev-contact [style] {
-    border-radius: 0 !important;
-    box-shadow: none !important;
+
+
+/* ═══════════════════════════ Structural Builder Layout ══════════════════════════ */
+.admin-builder-page {
+  padding: 24px 0 48px;
+}
+
+.builder-shell {
+  width: min(1340px, calc(100% - 48px));
+  max-width: none !important;
+  margin: 0 auto;
+}
+
+.admin-builder-page > .builder-shell {
+  width: min(1340px, calc(100% - 48px)) !important;
+  max-width: none !important;
+}
+
+.builder-header {
+  border: 2px solid var(--admin-ink);
+  background: rgba(var(--admin-card-rgb), .88);
+  padding: 22px;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.builder-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: .95;
+  letter-spacing: -.055em;
+  text-transform: uppercase;
+  color: var(--admin-ink);
+}
+
+.builder-header p {
+  margin: 8px 0 0;
+  color: var(--admin-muted);
+  font-family: var(--admin-font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.builder-status,
+.builder-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.builder-status {
+  margin-top: 14px;
+}
+
+.builder-status span {
+  border: 1px solid var(--admin-rule);
+  background: rgba(var(--admin-card-rgb), .55);
+  padding: 6px 9px;
+  font-family: var(--admin-font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.builder-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 18px;
+  align-items: start;
+}
+
+.builder-main {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.builder-panel,
+.builder-add-section,
+.builder-preview-panel {
+  border: 2px solid var(--admin-ink);
+  background: rgba(var(--admin-card-rgb), .88);
+}
+
+.builder-panel-head {
+  min-height: 52px;
+  border-bottom: 1px solid var(--admin-rule);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.builder-panel-head h2 {
+  margin: 0;
+  font-family: var(--admin-font-mono);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.builder-panel-head p {
+  margin: 4px 0 0;
+  font-family: var(--admin-font-mono);
+  font-size: 11px;
+  color: var(--admin-muted);
+  text-transform: uppercase;
+}
+
+.builder-section-list {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.builder-empty {
+  padding: 36px 16px;
+  text-align: center;
+  color: var(--admin-muted);
+  font-family: var(--admin-font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.builder-add-grid {
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  min-height: 330px;
+}
+
+.builder-add-list {
+  border-right: 2px solid var(--admin-ink);
+  padding: 12px;
+}
+
+.builder-add-list input {
+  margin-bottom: 12px;
+}
+
+.builder-section-option {
+  width: 100%;
+  text-align: left;
+  background: transparent !important;
+  color: var(--admin-ink) !important;
+  border: 1px solid var(--admin-rule) !important;
+  box-shadow: none !important;
+  padding: 12px !important;
+  margin-bottom: 8px;
+}
+
+.builder-section-option strong {
+  display: block;
+  font-family: var(--admin-font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.builder-section-option span {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--admin-font-mono);
+  font-size: 11px;
+  color: var(--admin-muted);
+  text-transform: none;
+}
+
+.builder-section-option.active,
+.builder-section-option:hover {
+  background: var(--admin-ink) !important;
+  color: var(--admin-paper) !important;
+  border-color: var(--admin-ink) !important;
+}
+
+.builder-section-option.active span,
+.builder-section-option:hover span {
+  color: rgba(var(--admin-paper-rgb), .72);
+}
+
+.builder-add-preview {
+  padding: 18px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 14px;
+}
+
+.builder-mini-preview {
+  border: 1px solid var(--admin-ink);
+  background: var(--admin-paper);
+  padding: 22px;
+  display: grid;
+  align-content: center;
+}
+
+.builder-mini-preview h3 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  text-transform: uppercase;
+  letter-spacing: -.04em;
+}
+
+.builder-mini-preview p {
+  margin: 0;
+  color: var(--admin-muted);
+  font-family: var(--admin-font-mono);
+  font-size: 12px;
+}
+
+.builder-preview-lines {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.builder-preview-lines i {
+  display: block;
+  height: 8px;
+  background: var(--admin-soft);
+  border: 1px solid var(--admin-rule);
+}
+
+.builder-preview-lines i.short {
+  width: 62%;
+}
+
+.builder-preview-panel {
+  position: sticky;
+  top: 86px;
+}
+
+.builder-browser-bar {
+  height: 28px;
+  border-bottom: 1px solid var(--admin-ink);
+  background: var(--admin-soft);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+}
+
+.builder-browser-bar span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--admin-muted);
+}
+
+.builder-live-preview {
+  min-height: 420px;
+  background: #080808;
+  color: #f4f3ee;
+  padding: 22px;
+  overflow: hidden;
+}
+
+.builder-preview-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(244,243,238,.4);
+  padding-bottom: 12px;
+  margin-bottom: 34px;
+}
+
+.builder-preview-nav strong {
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.builder-preview-nav small {
+  font-family: var(--admin-font-mono);
+  font-size: 8px;
+  color: #aaa;
+  text-transform: uppercase;
+}
+
+.builder-preview-hero {
+  border: 1px solid rgba(244,243,238,.55);
+  padding: 34px 22px;
+}
+
+.builder-preview-hero small {
+  font-family: var(--admin-font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  color: #aaa;
+}
+
+.builder-preview-hero h3 {
+  font-size: 34px;
+  letter-spacing: -.06em;
+  text-transform: uppercase;
+  margin: 12px 0 8px;
+}
+
+.builder-preview-hero p {
+  font-family: var(--admin-font-mono);
+  font-size: 10px;
+  color: #aaa;
+  text-transform: uppercase;
+}
+
+.builder-preview-hero div {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.builder-preview-hero button {
+  border: 1px solid #f4f3ee !important;
+  background: transparent !important;
+  color: #f4f3ee !important;
+  padding: 7px 10px !important;
+  font-family: var(--admin-font-mono);
+  font-size: 8px;
+  box-shadow: none !important;
+}
+
+@media (max-width: 1100px) {
+  .builder-grid {
+    grid-template-columns: 1fr;
   }
-  .prev-projects [style*="background:white"],
-  .prev-contact [style*="background:white"] {
-    background: rgba(var(--admin-card-rgb), .9) !important;
-    border: 2px solid var(--admin-ink) !important;
+
+  .builder-preview-panel {
+    position: static;
   }
+}
+
+@media (max-width: 760px) {
+  .builder-shell {
+    width: calc(100% - 24px);
+  }
+
+  .builder-header {
+    display: block;
+  }
+
+  .builder-actions {
+    margin-top: 16px;
+  }
+
+  .builder-add-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .builder-add-list {
+    border-right: 0;
+    border-bottom: 2px solid var(--admin-ink);
+  }
+}
+
 </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
@@ -686,183 +948,125 @@
   <!-- Main area -->
   <main>
 
-    <!-- ── Page Editor (inline — no modals, no drag-and-drop) ─── -->
-    <div id="sectionPage" class="hidden px-6 py-6">
-      <div class="max-w-2xl mx-auto">
-        <section class="hero wrap admin-editor-dossier" aria-label="admin page dossier">
-          <div class="dossier">
-            <div class="hero-main">
-              <div class="file-label">Editing dossier</div>
-              <h1 id="pageEditorTitle" class="text-xl font-semibold"></h1>
-              <h2 class="sublead">Edit your page content directly — changes save per section.</h2>
-              <div class="hero-actions">
-                <a class="stamp primary" href="/" target="_blank" rel="noopener">View public site</a>
-                <button class="stamp" type="button" onclick="toggleAddSectionPicker()">Add section</button>
-                <button class="stamp" type="button" onclick="selectSection('settings')">Settings</button>
-              </div>
+    <!-- ── Page Editor (structural builder layout) ─────────────── -->
+    <div id="sectionPage" class="hidden admin-builder-page">
+      <div class="builder-shell">
+
+        <section class="builder-header">
+          <div>
+            <h1 id="pageEditorTitle">Editing: Home</h1>
+            <p>Manage the real sections shown on this page.</p>
+            <div class="builder-status">
+              <span>Public page</span>
+              <span id="pageEditorSectionCount">0 sections</span>
+              <span id="pageEditorSaveState">Saved</span>
             </div>
-            <aside class="side-sheet" aria-label="admin editor facts">
-              <div class="photo-box"><div class="portrait-placeholder">page editor<br>live content</div></div>
-              <ul class="facts">
-                <li><b>Mode</b><span>Admin editor</span></li>
-                <li><b>Status</b><span>Authenticated</span></li>
-                <li><b>Target</b><span id="pageEditorFactTarget">Home</span></li>
-                <li><b>Output</b><span>Static public site</span></li>
-              </ul>
-              <div class="availability"><span><i class="led"></i> system active</span><span>self hosted</span></div>
-            </aside>
+          </div>
+
+          <div class="builder-actions">
+            <a class="stamp" href="/" target="_blank" rel="noopener">View public site</a>
+            <button class="stamp" type="button" onclick="toggleAddSectionPicker()">Add section</button>
+            <button class="stamp primary" type="button" onclick="savePageSections && savePageSections()">Save page</button>
           </div>
         </section>
-        <div id="pageEditorSections" class="space-y-4"></div>
-        <div id="pageEditorEmpty" class="hidden text-center py-10 text-slate-400 text-sm">No sections yet — add one below.</div>
 
-        <!-- Wix-style section picker with realistic scaled previews -->
-        <div id="addSectionPicker" class="hidden mt-6">
-          <div class="flex items-center justify-between mb-4">
-            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Add a section</p>
-            <button onclick="toggleAddSectionPicker()" class="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Close">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-          </div>
-          <div class="picker-grid">
+        <div class="builder-grid">
+          <section class="builder-main">
+            <div class="builder-panel">
+              <div class="builder-panel-head">
+                <h2>Page sections</h2>
+                <p>Drag to reorder. Edit sections inline.</p>
+              </div>
 
-            <!-- ── Hero ────────────────────────────────────── -->
-            <button onclick="addPageSection('hero')" class="picker-card">
-              <div class="picker-preview">
-                <div class="picker-preview-scaled">
-                <div class="prev-hero">
-                    <div style="color:white;font-size:3.25rem;font-weight:800;line-height:1.1;margin-bottom:16px">Welcome to My Site</div>
-                    <div style="color:rgba(255,255,255,.78);font-size:1.1rem;line-height:1.6;max-width:520px;margin-bottom:32px">A short description about what you do and what makes you unique</div>
-                    <div style="display:flex;gap:14px;justify-content:center">
-                      <span style="background:#f4f3ee;color:#050505;padding:13px 30px;border-radius:0;font-weight:700;font-size:1rem;border:2px solid #050505">Get Started</span>
-                      <span style="background:transparent;color:white;padding:13px 30px;border-radius:8px;font-weight:600;font-size:1rem;border:2px solid rgba(255,255,255,.5)">Learn More</span>
+              <div id="pageEditorSections" class="builder-section-list"></div>
+
+              <div id="pageEditorEmpty" class="builder-empty hidden">
+                No sections yet. Add one below.
+              </div>
+            </div>
+
+            <div id="addSectionPicker" class="builder-add-section hidden">
+              <div class="builder-panel-head">
+                <div>
+                  <h2>Add section</h2>
+                  <p>Insert a new section into the current page.</p>
+                </div>
+                <button class="stamp" type="button" onclick="toggleAddSectionPicker()">×</button>
+              </div>
+
+              <div class="builder-add-grid">
+                <aside class="builder-add-list">
+                  <input id="sectionSearchInput" type="search" placeholder="Search sections…" oninput="filterSectionOptions && filterSectionOptions(this.value)">
+
+                  <button class="builder-section-option active" data-section-option="hero" type="button" onclick="selectSectionPreview && selectSectionPreview('hero')">
+                    <strong>Hero</strong>
+                    <span>Title, subtitle and buttons</span>
+                  </button>
+
+                  <button class="builder-section-option" data-section-option="timeline" type="button" onclick="selectSectionPreview && selectSectionPreview('timeline')">
+                    <strong>Timeline</strong>
+                    <span>Roles, education or certifications</span>
+                  </button>
+
+                  <button class="builder-section-option" data-section-option="projects_grid" type="button" onclick="selectSectionPreview && selectSectionPreview('projects_grid')">
+                    <strong>Projects Grid</strong>
+                    <span>Project cards, tags and links</span>
+                  </button>
+
+                  <button class="builder-section-option" data-section-option="contact" type="button" onclick="selectSectionPreview && selectSectionPreview('contact')">
+                    <strong>Contact</strong>
+                    <span>Email and social links</span>
+                  </button>
+                </aside>
+
+                <section class="builder-add-preview">
+                  <div id="sectionPreviewFrame" class="builder-mini-preview">
+                    <h3>Hero</h3>
+                    <p>Header area with title, subtitle and call-to-action buttons.</p>
+                    <div class="builder-preview-lines">
+                      <i></i>
+                      <i class="short"></i>
+                      <i></i>
                     </div>
                   </div>
-                </div>
-                <div class="picker-overlay"><span class="picker-overlay-btn">+ Add</span></div>
-              </div>
-              <div class="picker-card-info">
-                <span class="picker-card-name">Hero</span>
-                <span class="picker-card-desc">Full-width banner with headline, tagline and call-to-action buttons</span>
-              </div>
-            </button>
 
-            <!-- ── Projects Grid ─────────────────────────── -->
-            <button onclick="addPageSection('projects_grid')" class="picker-card">
-              <div class="picker-preview">
-                <div class="picker-preview-scaled">
-                <div class="prev-projects">
-                    <div style="font-size:2rem;font-weight:700;color:#1e293b;margin-bottom:6px">Projects</div>
-                    <div style="color:#64748b;font-size:.95rem;margin-bottom:32px">A selection of my recent work</div>
-                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
-                      <div style="background:white;border-radius:10px;padding:22px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-                        <div style="font-size:.95rem;font-weight:700;color:#1e293b;margin-bottom:8px">Portfolio Site</div>
-                        <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-bottom:5px;width:90%"></div>
-                        <div style="height:6px;border-radius:4px;background:#e2e8f0;width:65%"></div>
-                        <div style="margin-top:16px;display:flex;gap:6px">
-                          <span style="background:#f4f3ee;color:#050505;font-size:.75rem;padding:3px 10px;border-radius:0;font-weight:600;border:1px solid #050505">React</span>
-                          <span style="background:#f4f3ee;color:#050505;font-size:.75rem;padding:3px 10px;border-radius:0;font-weight:600;border:1px solid #050505">Node</span>
-                        </div>
-                      </div>
-                      <div style="background:white;border-radius:10px;padding:22px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-                        <div style="font-size:.95rem;font-weight:700;color:#1e293b;margin-bottom:8px">API Dashboard</div>
-                        <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-bottom:5px;width:80%"></div>
-                        <div style="height:6px;border-radius:4px;background:#e2e8f0;width:50%"></div>
-                        <div style="margin-top:16px;display:flex;gap:6px">
-                          <span style="background:#f4f3ee;color:#050505;font-size:.75rem;padding:3px 10px;border-radius:0;font-weight:600;border:1px solid #050505">Python</span>
-                        </div>
-                      </div>
-                      <div style="background:white;border-radius:10px;padding:22px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-                        <div style="font-size:.95rem;font-weight:700;color:#1e293b;margin-bottom:8px">Mobile App</div>
-                        <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-bottom:5px;width:75%"></div>
-                        <div style="height:6px;border-radius:4px;background:#e2e8f0;width:55%"></div>
-                        <div style="margin-top:16px;display:flex;gap:6px">
-                          <span style="background:#f4f3ee;color:#050505;font-size:.75rem;padding:3px 10px;border-radius:0;font-weight:600;border:1px solid #050505">Swift</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="picker-overlay"><span class="picker-overlay-btn">+ Add</span></div>
+                  <button class="stamp primary" type="button" onclick="addSelectedSection ? addSelectedSection() : addPageSection('hero')">
+                    Add selected section
+                  </button>
+                </section>
               </div>
-              <div class="picker-card-info">
-                <span class="picker-card-name">Projects Grid</span>
-                <span class="picker-card-desc">Showcase work in a responsive card grid with links and tech stack tags</span>
-              </div>
-            </button>
+            </div>
+          </section>
 
-            <!-- ── Timeline ───────────────────────────────── -->
-            <button onclick="addPageSection('timeline')" class="picker-card">
-              <div class="picker-preview">
-                <div class="picker-preview-scaled">
-                <div class="prev-timeline">
-                    <div style="font-size:2rem;font-weight:700;color:#1e293b;margin-bottom:32px">Experience</div>
-                    <div style="border-left:3px solid #050505;padding-left:24px;display:flex;flex-direction:column;gap:28px">
-                      <div style="display:flex;gap:14px;align-items:flex-start">
-                        <div style="width:13px;height:13px;border-radius:0;background:#050505;flex-shrink:0;margin-top:3px;margin-left:-30px"></div>
-                        <div>
-                          <div style="font-size:1rem;font-weight:700;color:#1e293b">Senior Developer <span style="color:#64748b;font-weight:400">@ Acme Corp</span></div>
-                          <div style="font-size:.85rem;color:#94a3b8;margin-top:4px">Jan 2022 – Present</div>
-                          <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-top:10px;width:85%"></div>
-                          <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-top:6px;width:65%"></div>
-                        </div>
-                      </div>
-                      <div style="display:flex;gap:14px;align-items:flex-start">
-                        <div style="width:13px;height:13px;border-radius:0;background:#deddd7;border:1px solid #050505;flex-shrink:0;margin-top:3px;margin-left:-30px"></div>
-                        <div>
-                          <div style="font-size:1rem;font-weight:700;color:#1e293b">Frontend Engineer <span style="color:#64748b;font-weight:400">@ Startup X</span></div>
-                          <div style="font-size:.85rem;color:#94a3b8;margin-top:4px">Mar 2020 – Dec 2021</div>
-                          <div style="height:6px;border-radius:4px;background:#e2e8f0;margin-top:10px;width:72%"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="picker-overlay"><span class="picker-overlay-btn">+ Add</span></div>
-              </div>
-              <div class="picker-card-info">
-                <span class="picker-card-name">Timeline</span>
-                <span class="picker-card-desc">Chronological list of roles, companies and dates for experience or education</span>
-              </div>
-            </button>
+          <aside class="builder-preview-panel">
+            <div class="builder-panel-head">
+              <h2>Current page</h2>
+              <p>Approximate public layout</p>
+            </div>
 
-            <!-- ── Contact ────────────────────────────────── -->
-            <button onclick="addPageSection('contact')" class="picker-card">
-              <div class="picker-preview">
-                <div class="picker-preview-scaled">
-                <div class="prev-contact">
-                    <div style="font-size:2rem;font-weight:700;color:#1e293b;margin-bottom:8px">Get in Touch</div>
-                    <div style="color:#64748b;font-size:.95rem;margin-bottom:36px">I'd love to hear from you</div>
-                    <div style="display:flex;flex-direction:column;gap:14px;max-width:360px;margin:0 auto">
-                      <div style="display:flex;align-items:center;gap:14px;background:white;padding:15px 22px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-                        <div style="width:24px;height:24px;border-radius:0;background:#050505;flex-shrink:0"></div>
-                        <span style="color:#1e293b;font-size:.95rem">hello@example.invalid</span>
-                      </div>
-                      <div style="display:flex;align-items:center;gap:14px;background:white;padding:15px 22px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-                        <div style="width:24px;height:24px;border-radius:50%;background:#1e293b;flex-shrink:0"></div>
-                        <span style="color:#1e293b;font-size:.95rem">github.com/username</span>
-                      </div>
-                      <div style="display:flex;align-items:center;gap:14px;background:white;padding:15px 22px;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-                        <div style="width:24px;height:24px;border-radius:50%;background:#0077b5;flex-shrink:0"></div>
-                        <span style="color:#1e293b;font-size:.95rem">linkedin.com/in/username</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="picker-overlay"><span class="picker-overlay-btn">+ Add</span></div>
-              </div>
-              <div class="picker-card-info">
-                <span class="picker-card-name">Contact</span>
-                <span class="picker-card-desc">Email, GitHub, LinkedIn and website links in a clean icon list</span>
-              </div>
-            </button>
+            <div class="builder-browser-bar">
+              <span></span><span></span><span></span>
+            </div>
 
-          </div>
+            <div id="builderLivePreview" class="builder-live-preview">
+              <div class="builder-preview-nav">
+                <strong>Site</strong>
+                <small>Home Projects CV Contact</small>
+              </div>
+
+              <div class="builder-preview-hero">
+                <small>Personal website builder</small>
+                <h3>Portfolio page</h3>
+                <p>Build a reusable portfolio, CV and project hub.</p>
+                <div>
+                  <button>Projects</button>
+                  <button>CV</button>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
-        <button onclick="toggleAddSectionPicker()" id="addSectionBtn" class="mt-4 flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-400 hover:border-brand hover:text-brand transition-colors w-full justify-center">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          Add Section
-        </button>
+
       </div>
     </div>
 
@@ -1163,11 +1367,9 @@ function selectPage(slug) {
   setActiveNav('nav-' + slug);
   showSection('sectionPage');
   const label = { home: 'Home', projects: 'Projects', contacts: 'Contact' }[slug] || slug;
-  document.getElementById('pageEditorTitle').textContent = label;
+  document.getElementById('pageEditorTitle').textContent = 'Editing: ' + label;
   const pageTitleEl = document.getElementById('mobilePageTitle');
   if (pageTitleEl) pageTitleEl.textContent = label;
-  const pageFactEl = document.getElementById('pageEditorFactTarget');
-  if (pageFactEl) pageFactEl.textContent = label;
   loadPageEditor(slug);
   closeSidebar();
 }
@@ -1205,6 +1407,64 @@ function showSection(id) {
 //  PAGE EDITOR (inline — no modals)
 // ═══════════════════════════════════════════════════════
 const SECTION_LABELS = { hero: 'Hero', projects_grid: 'Projects Grid', timeline: 'Timeline', contact: 'Contact' };
+let selectedSectionType = 'hero';
+const SECTION_PREVIEW_COPY = {
+  hero: ['Hero', 'Header area with title, subtitle and call-to-action buttons.'],
+  timeline: ['Timeline', 'Roles, education, certifications, and dated milestones.'],
+  projects_grid: ['Projects Grid', 'Project cards with tags, summaries, and links.'],
+  contact: ['Contact', 'Email, social links, and referee enquiry information.'],
+};
+
+function updateBuilderStatus(blocks = state.pageBlocks || []) {
+  const count = blocks.length;
+  const countEl = document.getElementById('pageEditorSectionCount');
+  if (countEl) countEl.textContent = `${count} section${count === 1 ? '' : 's'}`;
+  const saveEl = document.getElementById('pageEditorSaveState');
+  if (saveEl) saveEl.textContent = 'Saved';
+}
+
+function setBuilderSaveState(label) {
+  const saveEl = document.getElementById('pageEditorSaveState');
+  if (saveEl) saveEl.textContent = label;
+}
+
+function selectSectionPreview(type) {
+  selectedSectionType = type;
+  document.querySelectorAll('[data-section-option]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sectionOption === type);
+  });
+  const frame = document.getElementById('sectionPreviewFrame');
+  if (!frame) return;
+  const [title, description] = SECTION_PREVIEW_COPY[type] || [SECTION_LABELS[type] || type, 'Insert this section into the current page.'];
+  frame.innerHTML = `
+    <h3>${escHtml(title)}</h3>
+    <p>${escHtml(description)}</p>
+    <div class="builder-preview-lines"><i></i><i class="short"></i><i></i></div>`;
+}
+
+function filterSectionOptions(query) {
+  const q = String(query || '').trim().toLowerCase();
+  document.querySelectorAll('[data-section-option]').forEach(btn => {
+    btn.classList.toggle('hidden', q && !btn.textContent.toLowerCase().includes(q));
+  });
+}
+
+function addSelectedSection() {
+  return addPageSection(selectedSectionType || 'hero');
+}
+
+async function savePageSections() {
+  setBuilderSaveState('Saving');
+  const blocks = state.pageBlocks || [];
+  try {
+    for (const block of blocks) await savePageSection(block.id);
+    setBuilderSaveState('Saved');
+    toast('Page saved');
+  } catch (err) {
+    setBuilderSaveState('Unsaved');
+    toast('Save failed: ' + err.message, 'error');
+  }
+}
 
 async function loadPageEditor(slug) {
   try {
@@ -1217,6 +1477,7 @@ async function loadPageEditor(slug) {
 function renderPageEditor(blocks) {
   const container = document.getElementById('pageEditorSections');
   const empty = document.getElementById('pageEditorEmpty');
+  updateBuilderStatus(blocks);
   if (!blocks.length) {
     container.innerHTML = '';
     empty.classList.remove('hidden');
