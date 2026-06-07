@@ -257,6 +257,19 @@ describe('Frontend files', () => {
             }
         });
 
+        it('keeps form fields readable on focus without black-filled backgrounds', () => {
+            const manager = fs.readFileSync(path.join(ROOT, 'public', 'manager', 'index.html'), 'utf8');
+            const site = fs.readFileSync(path.join(ROOT, 'public-readonly', 'site.html'), 'utf8');
+            for (const content of [manager, site]) {
+                assert.ok(content.includes('input:focus,\ntextarea:focus,\nselect:focus'), 'focused form controls should have explicit readable focus CSS');
+                assert.ok(content.includes('background: #fff !important;'), 'focused form controls should stay white');
+                assert.ok(content.includes('color: #000 !important;'), 'focused form controls should keep black text');
+                assert.ok(content.includes('outline: 3px solid #000;'), 'focus state should use outline');
+                assert.ok(content.includes('button:focus:not(.primary),\n.button:focus:not(.primary)'), 'non-primary focused buttons should not be forced black');
+                assert.ok(!content.includes('*:focus,\ninput:focus,\nbutton:focus'), 'bad global black-fill focus rule must not exist');
+            }
+        });
+
         it('supports repeatable hero/header buttons and custom titled pages', () => {
             const manager = fs.readFileSync(path.join(ROOT, 'public', 'manager', 'index.html'), 'utf8');
             const site = fs.readFileSync(path.join(ROOT, 'public-readonly', 'site.html'), 'utf8');

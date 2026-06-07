@@ -402,6 +402,48 @@ body.theme-density-spacious .hero-main { padding: var(--density-panel); }
   .section-title { grid-template-columns: 1fr; }
   nav { overflow-x: auto; }
 }
+
+
+/* Readable brutalist focus states: outline-only, never black-fill text inputs */
+input,
+textarea,
+select,
+.field {
+  background: #fff;
+  color: #000;
+  border: 2px solid #000;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+.field:focus {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #000 !important;
+  outline: 3px solid #000;
+  outline-offset: 2px;
+}
+
+input::selection,
+textarea::selection,
+.field::selection {
+  background: #000;
+  color: #fff;
+}
+
+button:focus,
+.button:focus {
+  outline: 3px solid #000;
+  outline-offset: 2px;
+}
+
+button:focus:not(.primary),
+.button:focus:not(.primary) {
+  background: inherit;
+  color: inherit;
+}
+
 </style>
 </head>
 <body class="theme-github-pages-dossier">
