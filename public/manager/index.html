@@ -1210,136 +1210,194 @@ button:focus:not(.primary),
 
     <!-- ── Settings ─── -->
     <div id="sectionSettings" class="hidden px-6 py-6">
-      <div class="max-w-2xl mx-auto">
-        <div class="mb-6">
-          <h1 class="text-xl font-semibold">Site Settings</h1>
-          <p class="text-sm text-slate-500 mt-0.5">Configure your website settings</p>
-        </div>
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
-          <div class="p-5">
-            <h2 class="text-sm font-semibold uppercase tracking-wide mb-3">Branding</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium mb-1.5">Site title</label>
-                <input id="settingSiteTitle" type="text" placeholder="SITE" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1.5">Site tagline</label>
-                <input id="settingSiteTagline" type="text" placeholder="self hosted portfolio manager" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-              </div>
-            </div>
-            <div class="mt-5">
-              <div class="flex items-center justify-between mb-2">
-                <label class="block text-sm font-medium">Header buttons</label>
-                <button type="button" onclick="addHeaderButton()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Add button</button>
-              </div>
-              <div id="settingHeaderButtonsList" class="space-y-2"></div>
-              <p class="text-xs text-slate-500 mt-2">Optional extra buttons shown in the public header beside Export PDF.</p>
-            </div>
-            <input id="settingSiteName" type="hidden">
-            <textarea id="settingSiteDesc" class="hidden"></textarea>
+      <div class="max-w-6xl mx-auto">
+        <div class="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-[0.24em] text-slate-500 mb-2">Configuration dossier</p>
+            <h1 class="text-xl font-semibold">Site Settings</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Branding, layout, public pages, theme behaviour, and import tools.</p>
           </div>
-          <div class="p-5">
-            <h2 class="text-sm font-semibold uppercase tracking-wide mb-3">Hero media</h2>
-            <label class="flex items-center gap-2 text-sm font-medium mb-4"><input id="settingHeroMediaEnabled" type="checkbox" class="rounded border-slate-300"> Show hero media</label>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium mb-1.5">Hero media image URL</label>
-                <input id="settingHeroMediaImageUrl" type="url" placeholder="/uploads/logo.png or https://…" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-              </div>
-              <div>
-                <label class="block text-sm font-medium mb-1.5">Hero media alt text</label>
-                <input id="settingHeroMediaAltText" type="text" placeholder="Project graphic" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-              </div>
-              <div class="md:col-span-2">
-                <label class="block text-sm font-medium mb-1.5">Placeholder text</label>
-                <input id="settingHeroMediaPlaceholderText" type="text" placeholder="OPTIONAL LOGO OR PROJECT GRAPHIC" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-              </div>
-            </div>
-          </div>
-          <div class="p-5">
-            <h2 class="text-sm font-semibold uppercase tracking-wide mb-3">Theme Settings</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-              <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowGrid" type="checkbox" class="rounded border-slate-300"> Show grid background</label>
-              <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowHeroMediaPattern" type="checkbox" class="rounded border-slate-300"> Show hero media striped pattern</label>
-              <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowMetadataPanel" type="checkbox" class="rounded border-slate-300"> Show metadata side panel</label>
-              <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowSystemStatus" type="checkbox" class="rounded border-slate-300"> Show system status footer</label>
-            </div>
-            <label class="block text-sm font-medium mb-1.5">Density</label>
-            <select id="settingThemeDensity" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-              <option value="compact">Compact</option>
-              <option value="normal">Normal</option>
-              <option value="spacious">Spacious</option>
-            </select>
-          </div>
-          <div class="p-5">
-            <h2 class="text-sm font-semibold uppercase tracking-wide mb-3">Site structure</h2>
-            <label class="block text-sm font-medium mb-1.5">Site mode</label>
-            <select id="settingSiteStructureMode" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand mb-4">
-              <option value="multi-page">Multi-page</option>
-              <option value="single-page">Single-page</option>
-            </select>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-              <label class="flex items-center gap-2 text-sm"><input id="settingEnabledHome" type="checkbox" class="rounded border-slate-300"> Home</label>
-              <label class="flex items-center gap-2 text-sm"><input id="settingEnabledProjects" type="checkbox" class="rounded border-slate-300"> Projects</label>
-              <label class="flex items-center gap-2 text-sm"><input id="settingEnabledCv" type="checkbox" class="rounded border-slate-300"> CV</label>
-              <label class="flex items-center gap-2 text-sm"><input id="settingEnabledContact" type="checkbox" class="rounded border-slate-300"> Contact</label>
-            </div>
-            <label class="block text-sm font-medium mb-1.5">Single-page ordering</label>
-            <input id="settingSinglePageOrder" type="text" placeholder="home, projects, cv, contact" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-            <p class="text-xs text-slate-500 mt-2">Comma-separated slugs. Disabled sections are skipped. Custom pages can be included by slug.</p>
-            <div class="mt-5 pt-5 border-t border-slate-100 dark:border-slate-800">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold uppercase tracking-wide">Pages</h3>
-              </div>
-              <div id="pageSettingsList" class="space-y-3 mb-4"></div>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <input id="newPageTitle" type="text" placeholder="New page title" class="field">
-                <input id="newPageSlug" type="text" placeholder="slug (optional)" class="field">
-                <button type="button" onclick="createCustomPage()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Add page</button>
-              </div>
-            </div>
-          </div>
-          <div class="p-5">
-            <label class="block text-sm font-medium mb-1.5">Public URL</label>
-            <input id="settingPublicUrl" type="url" placeholder="https://yoursite.com" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-          </div>
-          <div class="p-5">
-            <label class="block text-sm font-medium mb-1.5">Public Site Style</label>
-            <select id="settingSiteTheme" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-              <option value="default">Clean modern — legacy light style</option>
-              <option value="github-pages-dossier">Technical dossier — attached resume layout</option>
-            </select>
-            <p class="text-xs text-slate-500 mt-2">Choose a built-in style for the public site. Custom CSS remains available and is applied separately.</p>
-          </div>
-          <div class="p-5 flex justify-end">
-            <button onclick="saveSettings()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Save Settings</button>
-          </div>
+          <button onclick="saveSettings()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Save Settings</button>
         </div>
 
-        <!-- CV Data Import -->
-        <div class="mt-8 mb-6">
-          <h2 class="text-lg font-semibold">CV Data</h2>
-          <p class="text-sm text-slate-500 mt-0.5">Import CV data directly into the live database. To import without affecting your live CV, use the Profiles section instead.</p>
-        </div>
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
-          <div class="p-5">
-            <label class="block text-sm font-medium mb-1">Import from JSON</label>
-            <p class="text-xs text-slate-500 mb-3">The .json file is read into memory — it is <strong>not</strong> stored on the server. The data it contains (profile, experience, education, skills, certifications, projects) is written directly into the database, replacing existing entries.</p>
-            <input type="file" id="cvJsonFileInput" accept=".json,application/json" class="hidden" onchange="importCVFromJSON(this)">
-            <button onclick="document.getElementById('cvJsonFileInput').click()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-              Upload JSON File
-            </button>
-          </div>
-          <div class="p-5">
-            <label class="block text-sm font-medium mb-1">Import from LinkedIn</label>
-            <p class="text-xs text-slate-500 mb-3">Go to <strong>LinkedIn → Settings &amp; Privacy → Data Privacy → Get a copy of your data</strong>, request your data export, then upload the downloaded <code class="bg-slate-100 dark:bg-slate-800 px-1 rounded">.zip</code> file here. Imports profile, experience, education, skills, certifications and projects.</p>
-            <input type="file" id="cvLinkedInFileInput" accept=".zip,application/zip,application/x-zip-compressed" class="hidden" onchange="importCVFromLinkedIn(this)">
-            <button onclick="document.getElementById('cvLinkedInFileInput').click()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11v5M8 8v.01M12 16v-5M16 16v-3a2 2 0 00-4 0"/></svg>
-              Upload LinkedIn ZIP
-            </button>
+        <div class="settings-layout grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-5 items-start">
+          <aside class="settings-jump-nav bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-4 lg:sticky lg:top-24">
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-500 mb-3">Jump to</p>
+            <nav class="grid gap-1 text-sm">
+              <a href="#settings-branding" class="px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Branding</a>
+              <a href="#settings-hero-media" class="px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Hero media</a>
+              <a href="#settings-theme" class="px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Theme</a>
+              <a href="#settings-structure" class="px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Pages &amp; structure</a>
+              <a href="#settings-publication" class="px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Publication</a>
+              <a href="#settings-cv-import" class="px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">CV data import</a>
+            </nav>
+          </aside>
+
+          <div class="space-y-5">
+            <section id="settings-branding" class="settings-panel settings-panel-branding bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5">
+              <div class="mb-4">
+                <h2 class="text-sm font-semibold uppercase tracking-wide">Branding</h2>
+                <p class="text-xs text-slate-500 mt-1">Controls public header text and optional header action buttons.</p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">Site title</label>
+                  <input id="settingSiteTitle" type="text" placeholder="SITE" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">Site tagline</label>
+                  <input id="settingSiteTagline" type="text" placeholder="self hosted portfolio manager" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+                </div>
+              </div>
+              <div class="mt-5 pt-5 border-t border-slate-100 dark:border-slate-800">
+                <div class="flex items-center justify-between mb-2">
+                  <div>
+                    <label class="block text-sm font-medium">Header buttons</label>
+                    <p class="text-xs text-slate-500 mt-1">Optional buttons shown in the public header beside Export PDF.</p>
+                  </div>
+                  <button type="button" onclick="addHeaderButton()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Add button</button>
+                </div>
+                <div id="settingHeaderButtonsList" class="space-y-2"></div>
+              </div>
+              <input id="settingSiteName" type="hidden">
+              <textarea id="settingSiteDesc" class="hidden"></textarea>
+            </section>
+
+            <section id="settings-hero-media" class="settings-panel settings-panel-hero-media bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5">
+              <div class="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <h2 class="text-sm font-semibold uppercase tracking-wide">Hero media</h2>
+                  <p class="text-xs text-slate-500 mt-1">Optional logo/project graphic displayed in the public hero panel.</p>
+                </div>
+                <label class="flex items-center gap-2 text-sm font-medium"><input id="settingHeroMediaEnabled" type="checkbox" class="rounded border-slate-300"> Show hero media</label>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">Image URL</label>
+                  <input id="settingHeroMediaImageUrl" type="url" placeholder="/uploads/logo.png or https://…" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">Alt text</label>
+                  <input id="settingHeroMediaAltText" type="text" placeholder="Project graphic" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium mb-1.5">Placeholder text</label>
+                  <input id="settingHeroMediaPlaceholderText" type="text" placeholder="OPTIONAL LOGO OR PROJECT GRAPHIC" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+                </div>
+              </div>
+            </section>
+
+            <section id="settings-theme" class="settings-panel settings-panel-theme bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5">
+              <div class="mb-4">
+                <h2 class="text-sm font-semibold uppercase tracking-wide">Theme</h2>
+                <p class="text-xs text-slate-500 mt-1">Tune the dossier visual system without replacing it.</p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowGrid" type="checkbox" class="rounded border-slate-300"> Show grid background</label>
+                <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowHeroMediaPattern" type="checkbox" class="rounded border-slate-300"> Show hero media striped pattern</label>
+                <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowMetadataPanel" type="checkbox" class="rounded border-slate-300"> Show metadata side panel</label>
+                <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowSystemStatus" type="checkbox" class="rounded border-slate-300"> Show system status footer</label>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">Density</label>
+                  <select id="settingThemeDensity" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+                    <option value="compact">Compact</option>
+                    <option value="normal">Normal</option>
+                    <option value="spacious">Spacious</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">Public Site Style</label>
+                  <select id="settingSiteTheme" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+                    <option value="default">Clean modern — legacy light style</option>
+                    <option value="github-pages-dossier">Technical dossier — attached resume layout</option>
+                  </select>
+                  <p class="text-xs text-slate-500 mt-2">Custom CSS remains available separately and is applied last.</p>
+                </div>
+              </div>
+            </section>
+
+            <section id="settings-structure" class="settings-panel settings-panel-structure bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5">
+              <div class="mb-4">
+                <h2 class="text-sm font-semibold uppercase tracking-wide">Pages &amp; structure</h2>
+                <p class="text-xs text-slate-500 mt-1">Choose multi-page/single-page behaviour and manage custom page titles.</p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-5 mb-5">
+                <div>
+                  <label class="block text-sm font-medium mb-1.5">Site mode</label>
+                  <select id="settingSiteStructureMode" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+                    <option value="multi-page">Multi-page</option>
+                    <option value="single-page">Single-page</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium mb-2">Built-in sections</label>
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <label class="flex items-center gap-2 text-sm"><input id="settingEnabledHome" type="checkbox" class="rounded border-slate-300"> Home</label>
+                    <label class="flex items-center gap-2 text-sm"><input id="settingEnabledProjects" type="checkbox" class="rounded border-slate-300"> Projects</label>
+                    <label class="flex items-center gap-2 text-sm"><input id="settingEnabledCv" type="checkbox" class="rounded border-slate-300"> CV</label>
+                    <label class="flex items-center gap-2 text-sm"><input id="settingEnabledContact" type="checkbox" class="rounded border-slate-300"> Contact</label>
+                  </div>
+                </div>
+              </div>
+              <label class="block text-sm font-medium mb-1.5">Single-page ordering</label>
+              <input id="settingSinglePageOrder" type="text" placeholder="home, projects, cv, contact" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+              <p class="text-xs text-slate-500 mt-2 mb-5">Comma-separated slugs. Disabled sections are skipped. Custom pages can be included by slug.</p>
+              <div class="pt-5 border-t border-slate-100 dark:border-slate-800">
+                <div class="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 class="text-sm font-semibold uppercase tracking-wide">Pages</h3>
+                    <p class="text-xs text-slate-500 mt-1">Rename pages, hide them from navigation, or add template pages.</p>
+                  </div>
+                </div>
+                <div id="pageSettingsList" class="space-y-3 mb-4"></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <input id="newPageTitle" type="text" placeholder="New page title" class="field">
+                  <input id="newPageSlug" type="text" placeholder="slug (optional)" class="field">
+                  <button type="button" onclick="createCustomPage()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Add page</button>
+                </div>
+              </div>
+            </section>
+
+            <section id="settings-publication" class="settings-panel settings-panel-publication bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5">
+              <div class="mb-4">
+                <h2 class="text-sm font-semibold uppercase tracking-wide">Publication</h2>
+                <p class="text-xs text-slate-500 mt-1">Public URL and publish-facing metadata.</p>
+              </div>
+              <label class="block text-sm font-medium mb-1.5">Public URL</label>
+              <input id="settingPublicUrl" type="url" placeholder="https://yoursite.com" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+            </section>
+
+            <div class="settings-save-bar bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <p class="text-xs text-slate-500">Save applies branding, theme, page structure, and publication settings.</p>
+              <button onclick="saveSettings()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Save Settings</button>
+            </div>
+
+            <section id="settings-cv-import" class="settings-panel settings-panel-cv-import bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
+              <div class="p-5">
+                <h2 class="text-sm font-semibold uppercase tracking-wide">CV data import</h2>
+                <p class="text-xs text-slate-500 mt-1">Import CV data directly into the live database. To import without affecting your live CV, use the Profiles section instead.</p>
+              </div>
+              <div class="p-5">
+                <label class="block text-sm font-medium mb-1">Import from JSON</label>
+                <p class="text-xs text-slate-500 mb-3">The .json file is read into memory — it is <strong>not</strong> stored on the server. The data it contains (profile, experience, education, skills, certifications, projects) is written directly into the database, replacing existing entries.</p>
+                <input type="file" id="cvJsonFileInput" accept=".json,application/json" class="hidden" onchange="importCVFromJSON(this)">
+                <button onclick="document.getElementById('cvJsonFileInput').click()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                  Upload JSON File
+                </button>
+              </div>
+              <div class="p-5">
+                <label class="block text-sm font-medium mb-1">Import from LinkedIn</label>
+                <p class="text-xs text-slate-500 mb-3">Go to <strong>LinkedIn → Settings &amp; Privacy → Data Privacy → Get a copy of your data</strong>, request your data export, then upload the downloaded <code class="bg-slate-100 dark:bg-slate-800 px-1 rounded">.zip</code> file here. Imports profile, experience, education, skills, certifications and projects.</p>
+                <input type="file" id="cvLinkedInFileInput" accept=".zip,application/zip,application/x-zip-compressed" class="hidden" onchange="importCVFromLinkedIn(this)">
+                <button onclick="document.getElementById('cvLinkedInFileInput').click()" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11v5M8 8v.01M12 16v-5M16 16v-3a2 2 0 00-4 0"/></svg>
+                  Upload LinkedIn ZIP
+                </button>
+              </div>
+            </section>
           </div>
         </div>
       </div>

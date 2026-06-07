@@ -292,6 +292,19 @@ describe('Frontend files', () => {
             assert.ok(site.includes("slugToPath[p.slug] || ('/' + p.slug)"), 'public nav should link extra pages by slug');
         });
 
+        it('organizes the Settings tab into clear grouped panels without removing controls', () => {
+            const manager = fs.readFileSync(path.join(ROOT, 'public', 'manager', 'index.html'), 'utf8');
+            for (const token of [
+                'settings-layout', 'settings-jump-nav', 'settings-panel', 'settings-panel-branding',
+                'settings-panel-hero-media', 'settings-panel-theme', 'settings-panel-structure',
+                'settings-panel-publication', 'settings-panel-cv-import', 'settings-save-bar'
+            ]) {
+                assert.ok(manager.includes(token), `settings tab should include organized ${token}`);
+            }
+            assert.ok(manager.includes('href="#settings-branding"'), 'settings quick nav should jump to branding');
+            assert.ok(manager.includes('href="#settings-structure"'), 'settings quick nav should jump to structure/pages');
+        });
+
         it('supports admin-editable branding, theme controls, structure mode, and PDF export without changing dossier UI', () => {
             const manager = fs.readFileSync(path.join(ROOT, 'public', 'manager', 'index.html'), 'utf8');
             const site = fs.readFileSync(path.join(ROOT, 'public-readonly', 'site.html'), 'utf8');
