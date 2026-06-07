@@ -922,9 +922,7 @@
         <span>Website Builder</span>
       </a>
       <nav aria-label="admin navigation" id="adminNav">
-        <button class="nav-item" onclick="selectPage('home')" id="nav-home">Home</button>
-        <button class="nav-item" onclick="selectPage('projects')" id="nav-projects">Projects</button>
-        <button class="nav-item" onclick="selectPage('contacts')" id="nav-contacts">Contact</button>
+        <span id="adminPageNav" class="contents"></span>
         <button class="nav-item" onclick="selectSection('profiles')" id="nav-profiles">CV Profiles</button>
         <button class="nav-item" onclick="selectSection('customcss')" id="nav-customcss">Custom CSS</button>
         <button class="nav-item" onclick="selectSection('media')" id="nav-media">Media</button>
@@ -1188,6 +1186,14 @@
                 <input id="settingSiteTagline" type="text" placeholder="self hosted portfolio manager" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
               </div>
             </div>
+            <div class="mt-5">
+              <div class="flex items-center justify-between mb-2">
+                <label class="block text-sm font-medium">Header buttons</label>
+                <button type="button" onclick="addHeaderButton()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Add button</button>
+              </div>
+              <div id="settingHeaderButtonsList" class="space-y-2"></div>
+              <p class="text-xs text-slate-500 mt-2">Optional extra buttons shown in the public header beside Export PDF.</p>
+            </div>
             <input id="settingSiteName" type="hidden">
             <textarea id="settingSiteDesc" class="hidden"></textarea>
           </div>
@@ -1239,7 +1245,18 @@
             </div>
             <label class="block text-sm font-medium mb-1.5">Single-page ordering</label>
             <input id="settingSinglePageOrder" type="text" placeholder="home, projects, cv, contact" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
-            <p class="text-xs text-slate-500 mt-2">Comma-separated slugs. Disabled sections are skipped.</p>
+            <p class="text-xs text-slate-500 mt-2">Comma-separated slugs. Disabled sections are skipped. Custom pages can be included by slug.</p>
+            <div class="mt-5 pt-5 border-t border-slate-100 dark:border-slate-800">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-semibold uppercase tracking-wide">Pages</h3>
+              </div>
+              <div id="pageSettingsList" class="space-y-3 mb-4"></div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <input id="newPageTitle" type="text" placeholder="New page title" class="field">
+                <input id="newPageSlug" type="text" placeholder="slug (optional)" class="field">
+                <button type="button" onclick="createCustomPage()" class="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-lg text-sm font-semibold transition-colors">Add page</button>
+              </div>
+            </div>
           </div>
           <div class="p-5">
             <label class="block text-sm font-medium mb-1.5">Public URL</label>
@@ -1333,6 +1350,8 @@ const state = {
   pageBlocks: [],
   profiles: [],
   mediaFiles: [],
+  pages: [],
+  currentSettings: null,
   theme: localStorage.getItem('site-theme-mode') || localStorage.getItem('smTheme') || 'light',
 };
 
@@ -1390,10 +1409,11 @@ function showLogin() {
   document.getElementById('loginOverlay').classList.remove('hidden');
   document.getElementById('app').classList.add('hidden');
 }
-function showApp() {
+async function showApp() {
   document.getElementById('loginOverlay').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  selectPage('home');
+  await loadPages();
+  selectPage(state.pages.find(p => p.slug === 'home') ? 'home' : (state.pages[0]?.slug || 'home'));
 }
 
 document.getElementById('loginForm').addEventListener('submit', async e => {
@@ -1418,12 +1438,97 @@ async function logout() {
 // ═══════════════════════════════════════════════════════
 //  NAVIGATION
 // ═══════════════════════════════════════════════════════
+
+async function loadPages() {
+  try {
+    state.pages = await api('/api/pages');
+    renderAdminPageNav();
+    renderPageSettingsList();
+  } catch (err) { toast('Failed to load pages: ' + err.message, 'error'); }
+}
+
+function pageLabel(slug) {
+  return (state.pages.find(p => p.slug === slug)?.title) || ({ home: 'Home', projects: 'Projects', cv: 'CV', contacts: 'Contact', contact: 'Contact' }[slug]) || slug;
+}
+
+function renderAdminPageNav() {
+  const nav = document.getElementById('adminPageNav');
+  if (!nav) return;
+  nav.innerHTML = (state.pages || [])
+    .filter(p => p.visible !== false)
+    .map(p => `<button class="nav-item" onclick="selectPage('${escAttr(p.slug)}')" id="nav-${escAttr(p.slug)}">${escHtml(p.title || p.slug)}</button>`)
+    .join('');
+}
+
+function slugifyPageTitle(title) {
+  return String(title || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'page';
+}
+
+function renderPageSettingsList() {
+  const list = document.getElementById('pageSettingsList');
+  if (!list) return;
+  const protectedSlugs = ['home'];
+  list.innerHTML = (state.pages || []).map(p => `
+    <div class="page-settings-row border border-slate-200 dark:border-slate-700 rounded-lg p-3 space-y-2" data-page-slug="${escAttr(p.slug)}">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div><label class="block text-xs font-medium text-slate-500 mb-1">Slug</label><input class="field page-slug" value="${escAttr(p.slug)}" readonly></div>
+        <div><label class="block text-xs font-medium text-slate-500 mb-1">Custom title</label><input class="field page-title" value="${escAttr(p.title || '')}" placeholder="Page title"></div>
+        <div><label class="block text-xs font-medium text-slate-500 mb-1">Description</label><input class="field page-description" value="${escAttr(p.description || '')}" placeholder="Optional description"></div>
+      </div>
+      <div class="flex items-center justify-between gap-2">
+        <label class="flex items-center gap-2 text-xs"><input type="checkbox" class="page-visible" ${p.visible !== false ? 'checked' : ''}> Show in navigation</label>
+        <div class="flex gap-2">
+          <button type="button" onclick="savePageMeta('${escAttr(p.slug)}')" class="px-3 py-1.5 bg-brand hover:bg-brand-dark text-white rounded-lg text-xs font-semibold transition-colors">Save page</button>
+          ${protectedSlugs.includes(p.slug) ? '' : `<button type="button" onclick="deleteCustomPage('${escAttr(p.slug)}')" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Delete</button>`}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function createCustomPage() {
+  const titleEl = document.getElementById('newPageTitle');
+  const slugEl = document.getElementById('newPageSlug');
+  const title = titleEl.value.trim();
+  const slug = (slugEl.value.trim() || slugifyPageTitle(title)).toLowerCase();
+  if (!title || !slug) { toast('Page title and slug are required', 'error'); return; }
+  try {
+    await api('/api/pages', { method: 'POST', body: { slug, title } });
+    titleEl.value = ''; slugEl.value = '';
+    await loadPages();
+    toast('Page added');
+  } catch (err) { toast('Page failed: ' + err.message, 'error'); }
+}
+
+async function savePageMeta(slug) {
+  const row = document.querySelector(`[data-page-slug="${CSS.escape(slug)}"]`);
+  if (!row) return;
+  try {
+    await api(`/api/pages/${slug}`, { method: 'PUT', body: {
+      title: row.querySelector('.page-title')?.value.trim() || slug,
+      description: row.querySelector('.page-description')?.value.trim() || '',
+      visible: row.querySelector('.page-visible')?.checked !== false
+    }});
+    await loadPages();
+    toast('Page saved');
+  } catch (err) { toast('Save page failed: ' + err.message, 'error'); }
+}
+
+async function deleteCustomPage(slug) {
+  if (!confirm(`Delete page ${slug}? Its sections will also be removed.`)) return;
+  try {
+    await api(`/api/pages/${slug}`, { method: 'DELETE' });
+    await loadPages();
+    if (state.currentPage === slug) selectPage(state.pages[0]?.slug || 'home');
+    toast('Page deleted');
+  } catch (err) { toast('Delete page failed: ' + err.message, 'error'); }
+}
+
 function selectPage(slug) {
   state.currentPage = slug;
   state.currentSection = null;
   setActiveNav('nav-' + slug);
   showSection('sectionPage');
-  const label = { home: 'Home', projects: 'Projects', contacts: 'Contact' }[slug] || slug;
+  const label = pageLabel(slug);
   document.getElementById('pageEditorTitle').textContent = 'Editing: ' + label;
   const pageTitleEl = document.getElementById('mobilePageTitle');
   if (pageTitleEl) pageTitleEl.textContent = label;
@@ -1570,19 +1675,25 @@ function inlineSectionCard(b) {
 
 function buildInlineEditor(type, c, id) {
   const p = `s${id}_`;
-  if (type === 'hero') return `
+  if (type === 'hero') {
+    const buttons = normaliseEditableHeroButtons(c);
+    return `
     <div><label class="block text-xs font-medium text-slate-500 mb-1">Title</label>
     <input id="${p}title" type="text" value="${escAttr(c.title||'')}" placeholder="Welcome to my site" class="field"></div>
     <div><label class="block text-xs font-medium text-slate-500 mb-1">Subtitle</label>
     <textarea id="${p}subtitle" rows="2" class="field resize-none" placeholder="A short description">${escHtml(c.subtitle||'')}</textarea></div>
-    <div class="grid grid-cols-2 gap-3">
-      <div><label class="block text-xs font-medium text-slate-500 mb-1">Button Text</label>
-      <input id="${p}btn_text" type="text" value="${escAttr(c.primary_button_text||'')}" placeholder="Get Started" class="field"></div>
-      <div><label class="block text-xs font-medium text-slate-500 mb-1">Button Link</label>
-      <input id="${p}btn_link" type="text" value="${escAttr(c.primary_button_link||'')}" placeholder="https://…" class="field"></div>
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <label class="block text-xs font-medium text-slate-500">Hero/header buttons</label>
+        <button type="button" onclick="addHeroButton(${id})" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Add button</button>
+      </div>
+      <div id="${p}buttons" class="space-y-2">${buttons.map(heroButtonRow).join('')}</div>
     </div>
+    <input id="${p}btn_text" type="hidden" value="${escAttr(c.primary_button_text||'')}">
+    <input id="${p}btn_link" type="hidden" value="${escAttr(c.primary_button_link||'')}">
     <div><label class="block text-xs font-medium text-slate-500 mb-1">Background Image URL</label>
     <input id="${p}bg" type="text" value="${escAttr(c.background_image||'')}" placeholder="/uploads/image.jpg — copy a URL from Media" class="field"></div>`;
+  }
 
   if (type === 'contact') return `
     <div><label class="block text-xs font-medium text-slate-500 mb-1">Section Kicker</label>
@@ -1630,6 +1741,41 @@ function buildInlineEditor(type, c, id) {
     </div>`;
   }
   return '<p class="text-xs text-slate-400">Unknown section type.</p>';
+}
+
+
+function normaliseEditableHeroButtons(c = {}) {
+  if (Array.isArray(c.buttons) && c.buttons.length) return c.buttons;
+  const out = [];
+  if (c.primary_button_text || c.primary_button_link) out.push({ text: c.primary_button_text || '', url: c.primary_button_link || '', primary: true });
+  if (!out.length) out.push({ text: 'Projects', url: '/projects', primary: true });
+  return out;
+}
+
+function heroButtonRow(button = {
+  const heroButtonRowClassToken = 'class="hero-button-row"';}) {
+  return `<div class="hero-button-row grid grid-cols-[1fr_1fr_auto_auto] gap-2 items-center">
+    <input class="field hero-button-text" type="text" value="${escAttr(button.text || '')}" placeholder="Button text">
+    <input class="field hero-button-url" type="text" value="${escAttr(button.url || '')}" placeholder="/projects or https://…">
+    <label class="flex items-center gap-1 text-xs text-slate-500"><input type="checkbox" class="hero-button-primary" ${button.primary ? 'checked' : ''}> Primary</label>
+    <button type="button" onclick="this.closest('.hero-button-row').remove()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Remove</button>
+  </div>`;
+}
+
+function addHeroButton(blockId, button = {}) {
+  const list = document.getElementById(`s${blockId}_buttons`);
+  if (!list) return;
+  const div = document.createElement('div');
+  div.innerHTML = heroButtonRow(button);
+  list.appendChild(div.firstElementChild);
+}
+
+function collectHeroButtons(blockId) {
+  return Array.from(document.querySelectorAll(`#s${blockId}_buttons .hero-button-row`)).map(row => ({
+    text: row.querySelector('.hero-button-text')?.value.trim() || '',
+    url: row.querySelector('.hero-button-url')?.value.trim() || '',
+    primary: row.querySelector('.hero-button-primary')?.checked || false
+  })).filter(b => b.text && b.url);
 }
 
 function inlineProjectRow(proj, i) {
@@ -1688,11 +1834,15 @@ function addInlineTimelineItem(listId) {
 function collectPageSectionContent(blockId, type) {
   const p = `s${blockId}_`;
   const g = id => { const el = document.getElementById(id); return el ? el.value : ''; };
-  if (type === 'hero') return {
-    title: g(`${p}title`), subtitle: g(`${p}subtitle`),
-    primary_button_text: g(`${p}btn_text`), primary_button_link: g(`${p}btn_link`),
-    background_image: g(`${p}bg`),
-  };
+  if (type === 'hero') {
+    const buttons = collectHeroButtons(blockId);
+    return {
+      title: g(`${p}title`), subtitle: g(`${p}subtitle`),
+      primary_button_text: buttons[0]?.text || g(`${p}btn_text`), primary_button_link: buttons[0]?.url || g(`${p}btn_link`),
+      buttons,
+      background_image: g(`${p}bg`),
+    };
+  }
   if (type === 'contact') return {
     kicker: g(`${p}kicker`),
     title: g(`${p}title`),
@@ -1766,7 +1916,7 @@ function toggleAddSectionPicker() {
 
 async function addPageSection(type) {
   const defaults = {
-    hero: { title: '', subtitle: '', primary_button_text: '', primary_button_link: '', background_image: '' },
+    hero: { title: '', subtitle: '', primary_button_text: '', primary_button_link: '', buttons: [{ text: 'Projects', url: '/projects', primary: true }], background_image: '' },
     projects_grid: { title: 'Projects', projects: [] },
     timeline: {
       kicker: '01 / real work',
@@ -2102,6 +2252,7 @@ async function deleteMonitor(id) {
 const defaultSiteSettings = {
   siteTitle: 'SITE',
   siteTagline: 'self hosted portfolio manager',
+  headerButtons: [],
   heroMedia: {
     enabled: true,
     imageUrl: '',
@@ -2149,17 +2300,48 @@ function mergeSiteSettings(raw = {}) {
     ...raw,
     siteTitle: raw.siteTitle || raw.site_name || defaultSiteSettings.siteTitle,
     siteTagline: raw.siteTagline || raw.site_description || defaultSiteSettings.siteTagline,
+    headerButtons: Array.isArray(parseSettingObject(raw.headerButtons, [])) ? parseSettingObject(raw.headerButtons, []).filter(b => b && (b.text || b.url)) : [],
     heroMedia,
     theme,
     siteStructure
   };
 }
 
+
+function headerButtonRow(button = {}) {
+  return `<div class="header-button-row grid grid-cols-[1fr_1fr_auto] gap-2">
+    <input class="field header-button-text" type="text" value="${escAttr(button.text || '')}" placeholder="Button text">
+    <input class="field header-button-url" type="text" value="${escAttr(button.url || '')}" placeholder="/page or https://…">
+    <button type="button" onclick="this.closest('.header-button-row').remove()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Remove</button>
+  </div>`;
+}
+function renderHeaderButtonSettings(buttons = []) {
+  const list = document.getElementById('settingHeaderButtonsList');
+  if (!list) return;
+  list.innerHTML = (buttons || []).map(headerButtonRow).join('');
+}
+function addHeaderButton(button = {}) {
+  const list = document.getElementById('settingHeaderButtonsList');
+  if (!list) return;
+  const div = document.createElement('div');
+  div.innerHTML = headerButtonRow(button);
+  list.appendChild(div.firstElementChild);
+}
+function collectHeaderButtons() {
+  return Array.from(document.querySelectorAll('#settingHeaderButtonsList .header-button-row')).map(row => ({
+    text: row.querySelector('.header-button-text')?.value.trim() || '',
+    url: row.querySelector('.header-button-url')?.value.trim() || ''
+  })).filter(b => b.text && b.url);
+}
+
 async function loadSettings() {
   try {
     const settings = mergeSiteSettings(await api('/api/site'));
+    state.currentSettings = settings;
+    if (!state.pages.length) await loadPages();
     document.getElementById('settingSiteTitle').value = settings.siteTitle;
     document.getElementById('settingSiteTagline').value = settings.siteTagline;
+    renderHeaderButtonSettings(settings.headerButtons || []);
     document.getElementById('settingSiteName').value = settings.siteTitle;
     document.getElementById('settingSiteDesc').value = settings.siteTagline;
     document.getElementById('settingHeroMediaEnabled').checked = settings.heroMedia.enabled !== false;
@@ -2195,6 +2377,7 @@ async function saveSettings() {
         siteTagline,
         site_name: siteTitle,
         site_description: siteTagline,
+        headerButtons: collectHeaderButtons(),
         heroMedia: {
           enabled: document.getElementById('settingHeroMediaEnabled').checked,
           imageUrl: document.getElementById('settingHeroMediaImageUrl').value.trim(),

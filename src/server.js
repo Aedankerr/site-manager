@@ -117,6 +117,7 @@ const SECTION_DISPLAY_NAMES = {
 const defaultSiteSettings = {
     siteTitle: "SITE",
     siteTagline: "self hosted portfolio manager",
+    headerButtons: [],
     heroMedia: {
         enabled: true,
         imageUrl: "",
@@ -167,6 +168,7 @@ function mergeSiteSettings(raw = {}) {
         ...raw,
         siteTitle: raw.siteTitle || raw.site_name || defaultSiteSettings.siteTitle,
         siteTagline: raw.siteTagline || raw.site_description || defaultSiteSettings.siteTagline,
+        headerButtons: Array.isArray(parseJsonSetting(raw.headerButtons, [])) ? parseJsonSetting(raw.headerButtons, []).filter(b => b && (b.text || b.url)) : [],
         heroMedia,
         theme,
         siteStructure
@@ -174,7 +176,7 @@ function mergeSiteSettings(raw = {}) {
 }
 
 function stringifySiteSetting(key, value) {
-    if (['heroMedia', 'theme', 'siteStructure'].includes(key)) return JSON.stringify(value || defaultSiteSettings[key]);
+    if (['heroMedia', 'theme', 'siteStructure', 'headerButtons'].includes(key)) return JSON.stringify(value || defaultSiteSettings[key]);
     return value == null ? null : String(value);
 }
 

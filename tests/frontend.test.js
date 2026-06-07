@@ -257,6 +257,27 @@ describe('Frontend files', () => {
             }
         });
 
+        it('supports repeatable hero/header buttons and custom titled pages', () => {
+            const manager = fs.readFileSync(path.join(ROOT, 'public', 'manager', 'index.html'), 'utf8');
+            const site = fs.readFileSync(path.join(ROOT, 'public-readonly', 'site.html'), 'utf8');
+            const server = fs.readFileSync(path.join(ROOT, 'src', 'server.js'), 'utf8');
+
+            assert.ok(manager.includes('class="hero-button-row"'), 'admin hero editor should render repeatable hero button rows');
+            assert.ok(manager.includes('function addHeroButton'), 'admin should let users add more hero buttons');
+            assert.ok(manager.includes('function collectHeroButtons'), 'admin should save repeatable hero buttons into hero content');
+            assert.ok(site.includes('function renderHeroButtons'), 'public hero should render a configurable button array');
+            assert.ok(site.includes('headerButtons'), 'site settings should support extra header buttons');
+            assert.ok(server.includes('headerButtons'), 'server should persist extra header buttons');
+            assert.ok(manager.includes('settingHeaderButtonsList'), 'admin settings should expose repeatable header buttons');
+            assert.ok(manager.includes('function addHeaderButton'), 'admin should let users add header buttons');
+            assert.ok(manager.includes('pageSettingsList'), 'admin settings should list editable pages');
+            assert.ok(manager.includes('function createCustomPage'), 'admin should create extra pages');
+            assert.ok(manager.includes('function savePageMeta'), 'admin should save custom page titles');
+            assert.ok(manager.includes('function renderAdminPageNav'), 'admin navigation should be generated from pages, not hardcoded');
+            assert.ok(site.includes('function getSlugFromPath'), 'public router should support custom page slugs');
+            assert.ok(site.includes("slugToPath[p.slug] || ('/' + p.slug)"), 'public nav should link extra pages by slug');
+        });
+
         it('supports admin-editable branding, theme controls, structure mode, and PDF export without changing dossier UI', () => {
             const manager = fs.readFileSync(path.join(ROOT, 'public', 'manager', 'index.html'), 'utf8');
             const site = fs.readFileSync(path.join(ROOT, 'public-readonly', 'site.html'), 'utf8');

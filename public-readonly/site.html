@@ -442,6 +442,7 @@ const routes = {
 const defaultSiteSettings = {
   siteTitle: "SITE",
   siteTagline: "self hosted portfolio manager",
+  headerButtons: [],
   heroMedia: {
     enabled: true,
     imageUrl: "",
@@ -496,6 +497,7 @@ function mergeSiteSettings(raw = {}) {
     ...raw,
     siteTitle: raw.siteTitle || raw.site_name || defaultSiteSettings.siteTitle,
     siteTagline: raw.siteTagline || raw.site_description || defaultSiteSettings.siteTagline,
+    headerButtons: Array.isArray(parseSettingObject(raw.headerButtons, [])) ? parseSettingObject(raw.headerButtons, []).filter(b => b && (b.text || b.url)) : [],
     heroMedia,
     theme,
     siteStructure
@@ -507,10 +509,13 @@ function settingsSlug(slug) { return slug === 'contacts' ? 'contact' : slug; }
 
 
 // Figure out which slug to load from the URL path
-function getSlug() {
-  const path = window.location.pathname.replace(/\/$/, '') || '/';
-  return routes[path] || 'home';
+function getSlugFromPath(pathname = window.location.pathname) {
+  const path = pathname.replace(/\/$/, '') || '/';
+  if (routes[path]) return routes[path];
+  const slug = decodeURIComponent(path.replace(/^\//, '')).trim();
+  return slug || 'home';
 }
+function getSlug() { return getSlugFromPath(); }
 
 // ═══════════════════════════════════════════════════════
 //  INIT
@@ -532,6 +537,7 @@ async function init() {
   applyThemeSettings(siteSettings.theme);
 
   buildNav(pages);
+  renderHeaderButtons(siteSettings.headerButtons);
   await applyCustomCss();
 
   if (siteSettings.siteStructure.mode === 'single-page') await loadSinglePage(pages);
@@ -589,6 +595,16 @@ function buildNav(pages) {
     return `<a href="${href}" class="nav-link ${active}">${escHtml(p.title)}</a>`;
   }).join('');
   document.getElementById('navLinks').innerHTML = html;
+}
+
+function renderHeaderButtons(headerButtons = []) {
+  const actions = document.querySelector('.topbar-actions');
+  if (!actions) return;
+  const extra = (Array.isArray(headerButtons) ? headerButtons : [])
+    .filter(b => b && b.text && b.url)
+    .map(b => `<a class="stamp" href="${escAttr(b.url)}">${escHtml(b.text)}</a>`)
+    .join('');
+  actions.innerHTML = `${extra}<button class="stamp" type="button" onclick="window.print()">Export PDF</button>`;
 }
 
 async function loadPage(slug) {
@@ -666,8 +682,7 @@ function renderBlock(block, pageSlug = '') {
 function renderHero(c, sectionId = 'home') {
   const title = c.title || document.getElementById('siteName')?.textContent || 'Project Name';
   const subtitle = c.subtitle || 'Short project description or primary user value.';
-  const primaryText = c.primary_button_text || 'Primary action';
-  const primaryLink = c.primary_button_link || '#';
+  const buttons = normaliseHeroButtons(c);
   const facts = normaliseFacts(c.facts, title, subtitle);
   const showMetadata = siteSettings.theme.showMetadataPanel !== false;
   const showStatus = siteSettings.theme.showSystemStatus !== false;
@@ -680,11 +695,7 @@ function renderHero(c, sectionId = 'home') {
         <div class="file-label">${escHtml(c.file_label || 'Technical dossier')}</div>
         <h1>${escHtml(title)}</h1>
         <h2 class="sublead">${escHtml(subtitle)}</h2>
-        <div class="hero-actions no-print">
-          <a class="stamp primary" href="${escAttr(primaryLink)}">${escHtml(primaryText)}</a>
-          <a class="stamp" href="${siteSettings.siteStructure.mode === 'single-page' ? '#projects' : '/projects'}">Projects</a>
-          <a class="stamp" href="${siteSettings.siteStructure.mode === 'single-page' ? '#cv' : '/cv'}">Timeline</a>
-        </div>
+        ${renderHeroButtons(buttons)}
       </div>
       ${showSideSheet ? `<aside class="side-sheet" aria-label="project facts">
         ${heroMedia}
@@ -693,6 +704,22 @@ function renderHero(c, sectionId = 'home') {
       </aside>` : ''}
     </div>
   </section>`;
+}
+
+
+function normaliseHeroButtons(c = {}) {
+  if (Array.isArray(c.buttons) && c.buttons.length) return c.buttons.filter(b => b && (b.text || b.url));
+  const buttons = [];
+  if (c.primary_button_text || c.primary_button_link) buttons.push({ text: c.primary_button_text || 'Primary action', url: c.primary_button_link || '#', primary: true });
+  if (!buttons.length) buttons.push({ text: 'Projects', url: siteSettings.siteStructure.mode === 'single-page' ? '#projects' : '/projects', primary: true });
+  buttons.push({ text: 'Timeline', url: siteSettings.siteStructure.mode === 'single-page' ? '#cv' : '/cv' });
+  return buttons;
+}
+
+function renderHeroButtons(buttons = []) {
+  const visible = buttons.filter(b => b && b.text && b.url);
+  if (!visible.length) return '';
+  return `<div class="hero-actions no-print">${visible.map((b, i) => `<a class="stamp ${b.primary || i === 0 ? 'primary' : ''}" href="${escAttr(b.url)}">${escHtml(b.text)}</a>`).join('')}</div>`;
 }
 
 function renderHeroMedia(media = defaultSiteSettings.heroMedia, theme = defaultSiteSettings.theme) {
