@@ -1752,8 +1752,8 @@ function normaliseEditableHeroButtons(c = {}) {
   return out;
 }
 
-function heroButtonRow(button = {
-  const heroButtonRowClassToken = 'class="hero-button-row"';}) {
+function heroButtonRow(button = {}) {
+  const heroButtonRowClassToken = 'class="hero-button-row"';
   return `<div class="hero-button-row grid grid-cols-[1fr_1fr_auto_auto] gap-2 items-center">
     <input class="field hero-button-text" type="text" value="${escAttr(button.text || '')}" placeholder="Button text">
     <input class="field hero-button-url" type="text" value="${escAttr(button.url || '')}" placeholder="/projects or https://…">

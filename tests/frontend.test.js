@@ -262,6 +262,7 @@ describe('Frontend files', () => {
             const site = fs.readFileSync(path.join(ROOT, 'public-readonly', 'site.html'), 'utf8');
             const server = fs.readFileSync(path.join(ROOT, 'src', 'server.js'), 'utf8');
 
+            assert.ok(manager.includes('function heroButtonRow(button = {})'), 'admin hero button helper should keep a valid JS function signature');
             assert.ok(manager.includes('class="hero-button-row"'), 'admin hero editor should render repeatable hero button rows');
             assert.ok(manager.includes('function addHeroButton'), 'admin should let users add more hero buttons');
             assert.ok(manager.includes('function collectHeroButtons'), 'admin should save repeatable hero buttons into hero content');
