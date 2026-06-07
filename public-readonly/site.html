@@ -89,7 +89,7 @@ img { max-width: 100%; display: block; }
 
 .topbar-inner {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   align-items: center;
   min-height: 62px;
   gap: 20px;
@@ -204,8 +204,8 @@ h1 { margin: 0; max-width: 760px; font-size: var(--hero-size); line-height: .92;
 .availability span { display: inline-flex; align-items: center; gap: 8px; }
 
 .section { padding: 34px 0; }
-.section-title { display: grid; grid-template-columns: 180px 1fr; gap: 18px; align-items: end; border-bottom: 2px solid var(--ink); margin-bottom: 16px; padding-bottom: 10px; }
-.section-title code { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted); }
+.section-title, .section-heading { display: grid; grid-template-columns: 180px 1fr; gap: 18px; align-items: end; border-bottom: 2px solid var(--ink); margin-bottom: 16px; padding-bottom: 10px; }
+.section-title code, .section-heading code { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted); }
 h2 { margin: 0; font-size: var(--h2-size); line-height: .95; letter-spacing: -.045em; text-transform: uppercase; }
 .columns { display: grid; grid-template-columns: 180px 1fr; gap: 18px; }
 .rail { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted); text-transform: uppercase; line-height: 1.65; }
@@ -262,6 +262,139 @@ h2 { margin: 0; font-size: var(--h2-size); line-height: .95; letter-spacing: -.0
 footer { border-top: 2px solid var(--ink); padding: 24px 0; margin-top: 34px; font-family: "IBM Plex Mono", monospace; font-size: 11px; text-transform: uppercase; color: var(--muted); }
 .spinner { display: grid; place-items: center; padding: 80px 0; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; color: var(--muted); }
 
+
+
+body.theme-grid-off {
+  background: var(--paper);
+}
+body.theme-density-compact { --hero-size: clamp(30px, 4.2vw, 54px); --h2-size: clamp(23px, 2.4vw, 32px); --density-section: 22px; --density-hero: 16px; --density-panel: 18px; }
+body.theme-density-normal { --density-section: 34px; --density-hero: 24px; --density-panel: clamp(22px, 3vw, 34px); }
+body.theme-density-spacious { --hero-size: clamp(38px, 5.4vw, 72px); --h2-size: clamp(30px, 3.2vw, 44px); --density-section: 50px; --density-hero: 38px; --density-panel: clamp(30px, 4vw, 48px); }
+body.theme-density-compact .section { padding: var(--density-section) 0; }
+body.theme-density-normal .section { padding: var(--density-section) 0; }
+body.theme-density-spacious .section { padding: var(--density-section) 0; }
+body.theme-density-compact .hero,
+body.theme-density-normal .hero,
+body.theme-density-spacious .hero { padding-top: var(--density-hero); padding-bottom: calc(var(--density-hero) * .75); }
+body.theme-density-compact .hero-main,
+body.theme-density-normal .hero-main,
+body.theme-density-spacious .hero-main { padding: var(--density-panel); }
+
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.print-only { display: none !important; }
+.photo-box img { max-width: 100%; max-height: 100%; object-fit: contain; border: 1px solid var(--rule-strong); }
+.portrait-placeholder.no-pattern { background: transparent; }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .no-print,
+  nav,
+  button,
+  .admin-only,
+  .interactive-only,
+  .theme-switcher,
+  .topbar-actions,
+  footer {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  main,
+  section,
+  article,
+  .panel,
+  .card,
+  .dossier-card,
+  .project-card,
+  .cv-entry,
+  .case,
+  .role,
+  .company,
+  .form-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pdf-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  a {
+    color: #000 !important;
+    text-decoration: none;
+  }
+
+  .site-grid-background,
+  .background-grid,
+  .dot-grid {
+    background: none !important;
+  }
+
+  .public-page,
+  .page-shell,
+  .content-shell,
+  .wrap {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  .section-label,
+  .section-subtitle,
+  .heading-description,
+  .rail {
+    display: none !important;
+  }
+
+  .section-heading {
+    display: grid !important;
+    grid-template-columns: 120px 1fr;
+    align-items: end;
+    border-bottom: 2px solid #000;
+    padding-bottom: 8px;
+    margin-bottom: 18px;
+    break-after: avoid;
+  }
+
+  .section-number {
+    font-family: monospace;
+    font-size: 10pt;
+    font-weight: 400;
+  }
+
+  .section-title-text {
+    font-size: 24pt;
+    line-height: 1;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin: 0;
+  }
+}
+
 @media (max-width: 900px) {
   .topbar-inner, .dossier, .columns, .referee, .lab { grid-template-columns: 1fr; }
   .hero-main { border-right: 0; border-bottom: 2px solid var(--ink); }
@@ -279,6 +412,7 @@ footer { border-top: 2px solid var(--ink); padding: 24px 0; margin-top: 34px; fo
       <span id="siteDescriptor">self hosted portfolio manager</span>
     </a>
     <nav aria-label="site navigation" id="navLinks"></nav>
+    <div class="topbar-actions no-print"><button class="stamp" type="button" onclick="window.print()">Export PDF</button></div>
   </div>
 </header>
 
@@ -301,8 +435,76 @@ const routes = {
   '/':          'home',
   '/projects':  'projects',
   '/cv':        'cv',
+  '/contact':   'contacts',
   '/contacts':  'contacts',
 };
+
+const defaultSiteSettings = {
+  siteTitle: "SITE",
+  siteTagline: "self hosted portfolio manager",
+  heroMedia: {
+    enabled: true,
+    imageUrl: "",
+    altText: "Project graphic",
+    placeholderText: "OPTIONAL LOGO OR PROJECT GRAPHIC"
+  },
+  theme: {
+    showGrid: true,
+    showHeroMediaPattern: true,
+    showMetadataPanel: true,
+    showSystemStatus: true,
+    density: "normal"
+  },
+  siteStructure: {
+    mode: "multi-page",
+    singlePageOrder: ["home", "projects", "cv", "contact"],
+    enabledSections: {
+      home: true,
+      projects: true,
+      cv: true,
+      contact: true
+    }
+  }
+};
+
+let siteSettings = { ...defaultSiteSettings };
+
+function parseSettingObject(value, fallback) {
+  if (value && typeof value === 'object') return value;
+  if (typeof value === 'string' && value.trim()) {
+    try { return JSON.parse(value); } catch {}
+  }
+  return fallback;
+}
+
+function mergeSiteSettings(raw = {}) {
+  const heroMedia = { ...defaultSiteSettings.heroMedia, ...parseSettingObject(raw.heroMedia, {}) };
+  const theme = { ...defaultSiteSettings.theme, ...parseSettingObject(raw.theme, {}) };
+  if (!['compact', 'normal', 'spacious'].includes(theme.density)) theme.density = 'normal';
+  const rawStructure = parseSettingObject(raw.siteStructure, {});
+  const siteStructure = {
+    ...defaultSiteSettings.siteStructure,
+    ...rawStructure,
+    enabledSections: {
+      ...defaultSiteSettings.siteStructure.enabledSections,
+      ...(rawStructure.enabledSections || {})
+    }
+  };
+  if (!['multi-page', 'single-page'].includes(siteStructure.mode)) siteStructure.mode = 'multi-page';
+  if (!Array.isArray(siteStructure.singlePageOrder)) siteStructure.singlePageOrder = defaultSiteSettings.siteStructure.singlePageOrder;
+  return {
+    ...raw,
+    siteTitle: raw.siteTitle || raw.site_name || defaultSiteSettings.siteTitle,
+    siteTagline: raw.siteTagline || raw.site_description || defaultSiteSettings.siteTagline,
+    heroMedia,
+    theme,
+    siteStructure
+  };
+}
+
+function canonicalSlug(slug) { return slug === 'contact' ? 'contacts' : slug; }
+function settingsSlug(slug) { return slug === 'contacts' ? 'contact' : slug; }
+
 
 // Figure out which slug to load from the URL path
 function getSlug() {
@@ -314,34 +516,26 @@ function getSlug() {
 //  INIT
 // ═══════════════════════════════════════════════════════
 async function init() {
-  // Load pages for nav
   let pages = [];
   try { pages = await fetch('/api/pages').then(r => r.json()); } catch {}
 
-  // Set site name from settings
   try {
-    const settings = await fetch('/api/site').then(r => r.json());
-    if (settings.site_name) {
-      document.getElementById('siteName').textContent = settings.site_name;
-      document.title = settings.site_name;
-    }
-    if (settings.site_description) {
-      document.querySelector('meta[name="description"]').content = settings.site_description;
-      const descriptor = document.getElementById('siteDescriptor');
-      if (descriptor) descriptor.textContent = settings.site_description;
-    }
-    applySiteTheme(settings.site_theme || 'default');
-  } catch {}
+    siteSettings = mergeSiteSettings(await fetch('/api/site').then(r => r.json()));
+  } catch { siteSettings = mergeSiteSettings({}); }
 
-  // Build nav
+  document.getElementById('siteName').textContent = siteSettings.siteTitle;
+  document.title = siteSettings.siteTitle;
+  document.querySelector('meta[name="description"]').content = siteSettings.siteTagline;
+  const descriptor = document.getElementById('siteDescriptor');
+  if (descriptor) descriptor.textContent = siteSettings.siteTagline;
+  applySiteTheme(siteSettings.site_theme || 'default');
+  applyThemeSettings(siteSettings.theme);
+
   buildNav(pages);
-
-  // Apply user custom CSS after built-in theme CSS so it remains the final override layer.
   await applyCustomCss();
 
-  // Load page blocks
-  const slug = getSlug();
-  await loadPage(slug);
+  if (siteSettings.siteStructure.mode === 'single-page') await loadSinglePage(pages);
+  else await loadPage(getSlug());
 }
 
 function applySiteTheme(theme) {
@@ -350,6 +544,12 @@ function applySiteTheme(theme) {
   document.body.classList.remove(...allowed.map(t => `theme-${t}`));
   document.body.classList.add(`theme-${theme}`);
   setDesignTheme(localStorage.getItem('site-theme-mode') || 'light');
+}
+
+function applyThemeSettings(theme = defaultSiteSettings.theme) {
+  document.body.classList.toggle('theme-grid-off', theme.showGrid === false);
+  document.body.classList.remove('theme-density-compact', 'theme-density-normal', 'theme-density-spacious');
+  document.body.classList.add(`theme-density-${theme.density || 'normal'}`);
 }
 
 function setDesignTheme(mode) {
@@ -377,11 +577,15 @@ async function applyCustomCss() {
 }
 
 function buildNav(pages) {
-  const slugToPath = { home: '/', projects: '/projects', cv: '/cv', contacts: '/contacts' };
+  const slugToPath = { home: '/', projects: '/projects', cv: '/cv', contacts: '/contact', contact: '/contact' };
+  const singlePageAnchorExample = 'href="#projects"';
   const currentSlug = getSlug();
-  const html = pages.map(p => {
-    const href = slugToPath[p.slug] || ('/' + p.slug);
-    const active = p.slug === currentSlug ? 'active' : '';
+  const enabled = siteSettings.siteStructure.enabledSections || defaultSiteSettings.siteStructure.enabledSections;
+  const visiblePages = pages.filter(p => p.visible !== false && enabled[settingsSlug(p.slug)] !== false);
+  const html = visiblePages.map(p => {
+    const publicSlug = settingsSlug(p.slug);
+    const href = siteSettings.siteStructure.mode === 'single-page' ? `#${publicSlug}` : (slugToPath[p.slug] || ('/' + p.slug));
+    const active = siteSettings.siteStructure.mode === 'single-page' ? '' : (p.slug === currentSlug ? 'active' : '');
     return `<a href="${href}" class="nav-link ${active}">${escHtml(p.title)}</a>`;
   }).join('');
   document.getElementById('navLinks').innerHTML = html;
@@ -406,11 +610,34 @@ async function loadPage(slug) {
   }
 }
 
+
+async function loadSinglePage(pages) {
+  const content = document.getElementById('pageContent');
+  content.innerHTML = '<div class="spinner">Loading dossier…</div>';
+  const enabled = siteSettings.siteStructure.enabledSections || defaultSiteSettings.siteStructure.enabledSections;
+  const order = siteSettings.siteStructure.singlePageOrder || defaultSiteSettings.siteStructure.singlePageOrder;
+  const pageMap = new Map(pages.map(p => [settingsSlug(p.slug), p]));
+  const chunks = [];
+  for (const publicSlug of order) {
+    if (enabled[publicSlug] === false) continue;
+    const page = pageMap.get(publicSlug) || { slug: canonicalSlug(publicSlug), title: publicSlug };
+    const apiSlug = canonicalSlug(page.slug);
+    try {
+      const blocks = await fetch(`/api/pages/${apiSlug}/blocks`).then(r => r.json());
+      if (!blocks.length) chunks.push(renderEmptyPage(publicSlug));
+      else chunks.push(blocks.map(b => renderBlock(b, publicSlug)).join(''));
+    } catch {
+      chunks.push(renderEmptyPage(publicSlug));
+    }
+  }
+  content.innerHTML = chunks.join('');
+}
+
 function renderEmptyPage(slug) {
   const pageName = ({ home: 'Home', projects: 'Projects', cv: 'CV', contacts: 'Contact' }[slug]) || 'Page';
   return `
   <section class="section wrap empty-page-shell">
-    <div class="section-title"><code>${escHtml(pageName)}</code><h2>Start building this page</h2></div>
+    ${renderSectionHeading(pageName, "Start building this page")}
     <div class="columns">
       <aside class="rail">Fresh install. No demo content has been seeded.</aside>
       <div class="empty-page-card">
@@ -423,46 +650,60 @@ function renderEmptyPage(slug) {
 // ═══════════════════════════════════════════════════════
 //  BLOCK RENDERERS
 // ═══════════════════════════════════════════════════════
-function renderBlock(block) {
+function renderBlock(block, pageSlug = '') {
   const c = block.content || {};
+  const publicSlug = settingsSlug(pageSlug || block.page_slug || '');
   switch (block.type) {
-    case 'hero':         return renderHero(c);
-    case 'projects_grid': return renderProjectsGrid(c);
-    case 'timeline':     return renderTimeline(c);
-    case 'contact':      return renderContact(c);
+    case 'hero':         return renderHero(c, publicSlug || 'home');
+    case 'projects_grid': return renderProjectsGrid(c, publicSlug || 'projects');
+    case 'timeline':     return renderTimeline(c, publicSlug || 'cv');
+    case 'contact':      return renderContact(c, publicSlug || 'contact');
     default:             return '';
   }
 }
 
 // ── Hero
-function renderHero(c) {
+function renderHero(c, sectionId = 'home') {
   const title = c.title || document.getElementById('siteName')?.textContent || 'Project Name';
   const subtitle = c.subtitle || 'Short project description or primary user value.';
   const primaryText = c.primary_button_text || 'Primary action';
   const primaryLink = c.primary_button_link || '#';
   const facts = normaliseFacts(c.facts, title, subtitle);
+  const showMetadata = siteSettings.theme.showMetadataPanel !== false;
+  const showStatus = siteSettings.theme.showSystemStatus !== false;
+  const heroMedia = renderHeroMedia(siteSettings.heroMedia, siteSettings.theme);
+  const showSideSheet = heroMedia || showMetadata || showStatus;
   return `
-  <section class="hero wrap">
+  <section class="hero wrap" id="${escAttr(sectionId)}">
     <div class="dossier">
       <div class="hero-main">
         <div class="file-label">${escHtml(c.file_label || 'Technical dossier')}</div>
         <h1>${escHtml(title)}</h1>
         <h2 class="sublead">${escHtml(subtitle)}</h2>
-        <div class="hero-actions">
+        <div class="hero-actions no-print">
           <a class="stamp primary" href="${escAttr(primaryLink)}">${escHtml(primaryText)}</a>
-          <a class="stamp" href="/projects">Projects</a>
-          <a class="stamp" href="/cv">Timeline</a>
+          <a class="stamp" href="${siteSettings.siteStructure.mode === 'single-page' ? '#projects' : '/projects'}">Projects</a>
+          <a class="stamp" href="${siteSettings.siteStructure.mode === 'single-page' ? '#cv' : '/cv'}">Timeline</a>
         </div>
       </div>
-      <aside class="side-sheet" aria-label="project facts">
-        <div class="photo-box"><div class="portrait-placeholder">optional logo<br>or project graphic</div></div>
-        <ul class="facts">${facts.map(f => `<li><b>${escHtml(f.label)}</b><span>${escHtml(f.value)}</span></li>`).join('')}</ul>
-        <div class="availability"><span><i class="led"></i> system active</span><span>self hosted</span></div>
-      </aside>
+      ${showSideSheet ? `<aside class="side-sheet" aria-label="project facts">
+        ${heroMedia}
+        ${showMetadata ? `<ul class="facts">${facts.map(f => `<li><b>${escHtml(f.label)}</b><span>${escHtml(f.value)}</span></li>`).join('')}</ul>` : ''}
+        ${showStatus ? `<div class="availability"><span><i class="led"></i> system active</span><span>self hosted</span></div>` : ''}
+      </aside>` : ''}
     </div>
   </section>`;
 }
 
+function renderHeroMedia(media = defaultSiteSettings.heroMedia, theme = defaultSiteSettings.theme) {
+  if (media.enabled === false) return '';
+  if (media.imageUrl) {
+    return `<div class="photo-box"><img src="${escAttr(media.imageUrl)}" alt="${escAttr(media.altText || 'Project graphic')}"></div>`;
+  }
+  const patternClass = theme.showHeroMediaPattern === false ? ' no-pattern' : '';
+  const text = media.placeholderText || defaultSiteSettings.heroMedia.placeholderText;
+  return `<div class="photo-box"><div class="portrait-placeholder${patternClass}">${escHtml(text)}</div></div>`;
+}
 function normaliseFacts(facts, title, subtitle) {
   if (Array.isArray(facts) && facts.length) return facts.map(f => ({ label: f.label || f.key || 'Fact', value: f.value || '' }));
   return [
@@ -473,15 +714,24 @@ function normaliseFacts(facts, title, subtitle) {
   ];
 }
 
+
+function renderSectionHeading(kicker, title) {
+  const raw = String(kicker || '').trim();
+  const match = raw.match(/^([^/]+\/)(?:\s*(.*))?$/);
+  const number = match ? match[1].trim() : raw;
+  const label = match ? (match[2] || '') : '';
+  return `<div class="section-heading"><code><span class="section-number">${escHtml(number)}</span> <span class="section-label">${escHtml(label)}</span></code><h2 class="section-title-text">${escHtml(title)}</h2></div>`;
+}
+
 // ── Projects Grid
-function renderProjectsGrid(c) {
+function renderProjectsGrid(c, sectionId = 'projects') {
   const projects = c.projects || [];
   const title = c.title || 'Projects';
   const kicker = c.kicker || '02 / projects';
   const rail = c.rail || 'Selected items rendered as heavy bordered dossier cards.';
   return `
-  <section class="section wrap" id="projects">
-    <div class="section-title"><code>${escHtml(kicker)}</code><h2>${escHtml(title)}</h2></div>
+  <section class="section wrap" id="${escAttr(sectionId)}">
+    ${renderSectionHeading(kicker, title)}
     <div class="columns">
       <aside class="rail">${escHtml(rail)}</aside>
       <div class="cards">${projects.map(p => projectCard(p)).join('')}</div>
@@ -505,15 +755,15 @@ function projectCard(p) {
 }
 
 // ── Timeline
-function renderTimeline(c) {
+function renderTimeline(c, sectionId = 'cv') {
   const items = c.items || [];
   const title = c.title || 'Timeline';
   const kicker = c.kicker || '01 / timeline';
   const sidebar = c.sidebar || 'Group related items so progression reads as a connected sequence.';
   const groups = groupTimelineByEmployer(items);
   return `
-  <section class="section wrap" id="timeline">
-    <div class="section-title"><code>${escHtml(kicker)}</code><h2>${escHtml(title)}</h2></div>
+  <section class="section wrap" id="${escAttr(sectionId)}">
+    ${renderSectionHeading(kicker, title)}
     <div class="columns">
       <aside class="rail">${escHtml(sidebar)}</aside>
       <div class="work-list">${groups.map(group => employerCard(group)).join('')}</div>
@@ -579,7 +829,7 @@ function formatTimelineDescription(description) {
 }
 
 // ── Contact
-function renderContact(c) {
+function renderContact(c, sectionId = 'contact') {
   const title = c.title || 'Referee enquiry.';
   const kicker = c.kicker || '04 / contact';
   const refereeTitle = c.referee_title || 'Referees available on request.';
@@ -591,8 +841,8 @@ function renderContact(c) {
   const action = mailTarget ? `mailto:${mailTarget}` : 'mailto:';
 
   return `
-  <section class="section wrap" id="referees">
-    <div class="section-title"><code>${escHtml(kicker)}</code><h2>${escHtml(title)}</h2></div>
+  <section class="section wrap" id="${escAttr(sectionId)}">
+    ${renderSectionHeading(kicker, title)}
     <div class="referee">
       <div class="form-card">
         <h3>${escHtml(refereeTitle)}</h3>

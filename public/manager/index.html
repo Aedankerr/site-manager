@@ -1177,12 +1177,69 @@
         </div>
         <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
           <div class="p-5">
-            <label class="block text-sm font-medium mb-1.5">Site Name</label>
-            <input id="settingSiteName" type="text" placeholder="My Website" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+            <h2 class="text-sm font-semibold uppercase tracking-wide mb-3">Branding</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1.5">Site title</label>
+                <input id="settingSiteTitle" type="text" placeholder="SITE" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1.5">Site tagline</label>
+                <input id="settingSiteTagline" type="text" placeholder="self hosted portfolio manager" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+              </div>
+            </div>
+            <input id="settingSiteName" type="hidden">
+            <textarea id="settingSiteDesc" class="hidden"></textarea>
           </div>
           <div class="p-5">
-            <label class="block text-sm font-medium mb-1.5">Site Description</label>
-            <textarea id="settingSiteDesc" rows="2" placeholder="A short description of your site" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand resize-none"></textarea>
+            <h2 class="text-sm font-semibold uppercase tracking-wide mb-3">Hero media</h2>
+            <label class="flex items-center gap-2 text-sm font-medium mb-4"><input id="settingHeroMediaEnabled" type="checkbox" class="rounded border-slate-300"> Show hero media</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1.5">Hero media image URL</label>
+                <input id="settingHeroMediaImageUrl" type="url" placeholder="/uploads/logo.png or https://…" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1.5">Hero media alt text</label>
+                <input id="settingHeroMediaAltText" type="text" placeholder="Project graphic" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1.5">Placeholder text</label>
+                <input id="settingHeroMediaPlaceholderText" type="text" placeholder="OPTIONAL LOGO OR PROJECT GRAPHIC" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+              </div>
+            </div>
+          </div>
+          <div class="p-5">
+            <h2 class="text-sm font-semibold uppercase tracking-wide mb-3">Theme Settings</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+              <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowGrid" type="checkbox" class="rounded border-slate-300"> Show grid background</label>
+              <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowHeroMediaPattern" type="checkbox" class="rounded border-slate-300"> Show hero media striped pattern</label>
+              <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowMetadataPanel" type="checkbox" class="rounded border-slate-300"> Show metadata side panel</label>
+              <label class="flex items-center gap-2 text-sm"><input id="settingThemeShowSystemStatus" type="checkbox" class="rounded border-slate-300"> Show system status footer</label>
+            </div>
+            <label class="block text-sm font-medium mb-1.5">Density</label>
+            <select id="settingThemeDensity" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+              <option value="compact">Compact</option>
+              <option value="normal">Normal</option>
+              <option value="spacious">Spacious</option>
+            </select>
+          </div>
+          <div class="p-5">
+            <h2 class="text-sm font-semibold uppercase tracking-wide mb-3">Site structure</h2>
+            <label class="block text-sm font-medium mb-1.5">Site mode</label>
+            <select id="settingSiteStructureMode" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand mb-4">
+              <option value="multi-page">Multi-page</option>
+              <option value="single-page">Single-page</option>
+            </select>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <label class="flex items-center gap-2 text-sm"><input id="settingEnabledHome" type="checkbox" class="rounded border-slate-300"> Home</label>
+              <label class="flex items-center gap-2 text-sm"><input id="settingEnabledProjects" type="checkbox" class="rounded border-slate-300"> Projects</label>
+              <label class="flex items-center gap-2 text-sm"><input id="settingEnabledCv" type="checkbox" class="rounded border-slate-300"> CV</label>
+              <label class="flex items-center gap-2 text-sm"><input id="settingEnabledContact" type="checkbox" class="rounded border-slate-300"> Contact</label>
+            </div>
+            <label class="block text-sm font-medium mb-1.5">Single-page ordering</label>
+            <input id="settingSinglePageOrder" type="text" placeholder="home, projects, cv, contact" class="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+            <p class="text-xs text-slate-500 mt-2">Comma-separated slugs. Disabled sections are skipped.</p>
           </div>
           <div class="p-5">
             <label class="block text-sm font-medium mb-1.5">Public URL</label>
@@ -2042,23 +2099,125 @@ async function deleteMonitor(id) {
 // ═══════════════════════════════════════════════════════
 //  SETTINGS
 // ═══════════════════════════════════════════════════════
+const defaultSiteSettings = {
+  siteTitle: 'SITE',
+  siteTagline: 'self hosted portfolio manager',
+  heroMedia: {
+    enabled: true,
+    imageUrl: '',
+    altText: 'Project graphic',
+    placeholderText: 'OPTIONAL LOGO OR PROJECT GRAPHIC'
+  },
+  theme: {
+    showGrid: true,
+    showHeroMediaPattern: true,
+    showMetadataPanel: true,
+    showSystemStatus: true,
+    density: 'normal'
+  },
+  siteStructure: {
+    mode: 'multi-page',
+    singlePageOrder: ['home', 'projects', 'cv', 'contact'],
+    enabledSections: { home: true, projects: true, cv: true, contact: true }
+  }
+};
+
+function parseSettingObject(value, fallback) {
+  if (value && typeof value === 'object') return value;
+  if (typeof value === 'string' && value.trim()) {
+    try { return JSON.parse(value); } catch {}
+  }
+  return fallback;
+}
+
+function mergeSiteSettings(raw = {}) {
+  const heroMedia = { ...defaultSiteSettings.heroMedia, ...parseSettingObject(raw.heroMedia, {}) };
+  const theme = { ...defaultSiteSettings.theme, ...parseSettingObject(raw.theme, {}) };
+  if (!['compact', 'normal', 'spacious'].includes(theme.density)) theme.density = 'normal';
+  const rawStructure = parseSettingObject(raw.siteStructure, {});
+  const siteStructure = {
+    ...defaultSiteSettings.siteStructure,
+    ...rawStructure,
+    enabledSections: {
+      ...defaultSiteSettings.siteStructure.enabledSections,
+      ...(rawStructure.enabledSections || {})
+    }
+  };
+  if (!['multi-page', 'single-page'].includes(siteStructure.mode)) siteStructure.mode = 'multi-page';
+  if (!Array.isArray(siteStructure.singlePageOrder)) siteStructure.singlePageOrder = defaultSiteSettings.siteStructure.singlePageOrder;
+  return {
+    ...raw,
+    siteTitle: raw.siteTitle || raw.site_name || defaultSiteSettings.siteTitle,
+    siteTagline: raw.siteTagline || raw.site_description || defaultSiteSettings.siteTagline,
+    heroMedia,
+    theme,
+    siteStructure
+  };
+}
+
 async function loadSettings() {
   try {
-    const settings = await api('/api/site');
-    document.getElementById('settingSiteName').value = settings.site_name || '';
-    document.getElementById('settingSiteDesc').value = settings.site_description || '';
+    const settings = mergeSiteSettings(await api('/api/site'));
+    document.getElementById('settingSiteTitle').value = settings.siteTitle;
+    document.getElementById('settingSiteTagline').value = settings.siteTagline;
+    document.getElementById('settingSiteName').value = settings.siteTitle;
+    document.getElementById('settingSiteDesc').value = settings.siteTagline;
+    document.getElementById('settingHeroMediaEnabled').checked = settings.heroMedia.enabled !== false;
+    document.getElementById('settingHeroMediaImageUrl').value = settings.heroMedia.imageUrl || '';
+    document.getElementById('settingHeroMediaAltText').value = settings.heroMedia.altText || '';
+    document.getElementById('settingHeroMediaPlaceholderText').value = settings.heroMedia.placeholderText || '';
+    document.getElementById('settingThemeShowGrid').checked = settings.theme.showGrid !== false;
+    document.getElementById('settingThemeShowHeroMediaPattern').checked = settings.theme.showHeroMediaPattern !== false;
+    document.getElementById('settingThemeShowMetadataPanel').checked = settings.theme.showMetadataPanel !== false;
+    document.getElementById('settingThemeShowSystemStatus').checked = settings.theme.showSystemStatus !== false;
+    document.getElementById('settingThemeDensity').value = settings.theme.density || 'normal';
+    document.getElementById('settingSiteStructureMode').value = settings.siteStructure.mode || 'multi-page';
+    document.getElementById('settingEnabledHome').checked = settings.siteStructure.enabledSections.home !== false;
+    document.getElementById('settingEnabledProjects').checked = settings.siteStructure.enabledSections.projects !== false;
+    document.getElementById('settingEnabledCv').checked = settings.siteStructure.enabledSections.cv !== false;
+    document.getElementById('settingEnabledContact').checked = settings.siteStructure.enabledSections.contact !== false;
+    document.getElementById('settingSinglePageOrder').value = (settings.siteStructure.singlePageOrder || defaultSiteSettings.siteStructure.singlePageOrder).join(', ');
     document.getElementById('settingPublicUrl').value = settings.public_url || '';
     document.getElementById('settingSiteTheme').value = settings.site_theme || 'default';
   } catch (err) { toast('Failed to load settings', 'error'); }
 }
 
 async function saveSettings() {
+  const siteTitle = document.getElementById('settingSiteTitle').value.trim() || defaultSiteSettings.siteTitle;
+  const siteTagline = document.getElementById('settingSiteTagline').value.trim() || defaultSiteSettings.siteTagline;
+  const singlePageOrder = document.getElementById('settingSinglePageOrder').value
+    .split(',').map(s => s.trim()).filter(Boolean);
   try {
     await api('/api/site', {
       method: 'PUT',
       body: {
-        site_name: document.getElementById('settingSiteName').value,
-        site_description: document.getElementById('settingSiteDesc').value,
+        siteTitle,
+        siteTagline,
+        site_name: siteTitle,
+        site_description: siteTagline,
+        heroMedia: {
+          enabled: document.getElementById('settingHeroMediaEnabled').checked,
+          imageUrl: document.getElementById('settingHeroMediaImageUrl').value.trim(),
+          altText: document.getElementById('settingHeroMediaAltText').value.trim() || defaultSiteSettings.heroMedia.altText,
+          placeholderText: document.getElementById('settingHeroMediaPlaceholderText').value.trim() || defaultSiteSettings.heroMedia.placeholderText
+        },
+        theme: {
+          showGrid: document.getElementById('settingThemeShowGrid').checked,
+          showHeroMediaPattern: document.getElementById('settingThemeShowHeroMediaPattern').checked,
+          showMetadataPanel: document.getElementById('settingThemeShowMetadataPanel').checked,
+          showSystemStatus: document.getElementById('settingThemeShowSystemStatus').checked,
+          density: document.getElementById('settingThemeDensity').value || 'normal'
+        },
+        siteStructure: {
+          mode: document.getElementById('settingSiteStructureMode').value || 'multi-page',
+          singlePageOrder: singlePageOrder.length ? singlePageOrder : defaultSiteSettings.siteStructure.singlePageOrder,
+          enabledSections: {
+            home: document.getElementById('settingEnabledHome').checked,
+            projects: document.getElementById('settingEnabledProjects').checked,
+            cv: document.getElementById('settingEnabledCv').checked,
+            contact: document.getElementById('settingEnabledContact').checked
+          }
+        },
         public_url: document.getElementById('settingPublicUrl').value,
         site_theme: document.getElementById('settingSiteTheme').value || 'default'
       }

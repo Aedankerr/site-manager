@@ -232,7 +232,7 @@ describe('Frontend files', () => {
             assert.ok(manager.includes('itl-tags'), 'admin timeline editor should expose role tags for timeline pills');
             assert.ok(manager.includes('id="${p}sidebar"'), 'admin timeline editor should expose the employment sidebar note');
             assert.ok(!site.includes('Epworth' + ' Healthcare'), 'timeline layout must not copy personal employer content from the screenshot');
-            assert.ok(site.includes('class="section wrap" id="referees"'), 'public contact section should use the attached referee enquiry layout');
+            assert.ok(site.includes('function renderContact(c, sectionId = \'contact\')'), 'public contact section should support the single-page #contact anchor');
             assert.ok(site.includes('class="referee"'), 'public contact section should include the two-column referee container');
             assert.ok(site.includes('class="form-card"'), 'public contact section should use form-card panels');
             assert.ok(site.includes('Prepare email'), 'public contact form should prepare a mailto enquiry email');
@@ -255,6 +255,48 @@ describe('Frontend files', () => {
                 assert.ok(!site.includes(snippet), `public template should not copy personal attached-resume content: ${snippet}`);
                 assert.ok(!manager.includes(snippet), `admin template should not copy personal attached-resume content: ${snippet}`);
             }
+        });
+
+        it('supports admin-editable branding, theme controls, structure mode, and PDF export without changing dossier UI', () => {
+            const manager = fs.readFileSync(path.join(ROOT, 'public', 'manager', 'index.html'), 'utf8');
+            const site = fs.readFileSync(path.join(ROOT, 'public-readonly', 'site.html'), 'utf8');
+            const server = fs.readFileSync(path.join(ROOT, 'src', 'server.js'), 'utf8');
+
+            for (const id of [
+                'settingSiteTitle', 'settingSiteTagline', 'settingHeroMediaEnabled', 'settingHeroMediaImageUrl',
+                'settingHeroMediaAltText', 'settingHeroMediaPlaceholderText', 'settingThemeShowGrid',
+                'settingThemeShowHeroMediaPattern', 'settingThemeShowMetadataPanel', 'settingThemeShowSystemStatus',
+                'settingThemeDensity', 'settingSiteStructureMode', 'settingEnabledHome', 'settingEnabledProjects',
+                'settingEnabledCv', 'settingEnabledContact', 'settingSinglePageOrder'
+            ]) {
+                assert.ok(manager.includes(`id="${id}"`), `admin settings should expose ${id}`);
+            }
+
+            assert.ok(server.includes('const defaultSiteSettings = {'), 'server should define safe default site settings');
+            assert.ok(server.includes('function mergeSiteSettings'), 'server should merge missing nested defaults for old configs');
+            assert.ok(server.includes('heroMedia: {'), 'defaults should include hero media');
+            assert.ok(server.includes('siteStructure: {'), 'defaults should include site structure');
+
+            assert.ok(site.includes('const defaultSiteSettings = {'), 'public renderer should define client-side defaults');
+            assert.ok(site.includes('function mergeSiteSettings'), 'public renderer should merge missing settings safely');
+            assert.ok(site.includes('siteTitle'), 'public renderer should use editable siteTitle');
+            assert.ok(site.includes('siteTagline'), 'public renderer should use editable siteTagline');
+            assert.ok(site.includes('renderHeroMedia'), 'public renderer should render editable hero media');
+            assert.ok(site.includes('theme-grid-off'), 'public renderer should support disabling grid background');
+            assert.ok(site.includes('theme-density-compact'), 'public renderer should support compact density');
+            assert.ok(site.includes('theme-density-spacious'), 'public renderer should support spacious density');
+            assert.ok(site.includes('showMetadataPanel'), 'public renderer should support hiding metadata panel');
+            assert.ok(site.includes('showSystemStatus'), 'public renderer should support hiding system status');
+            assert.ok(site.includes('showHeroMediaPattern'), 'public renderer should support disabling hero media pattern');
+            assert.ok(site.includes('function loadSinglePage'), 'public renderer should support single-page mode');
+            assert.ok(site.includes('href="#projects"'), 'single-page nav should generate anchor links');
+            assert.ok(site.includes('window.print()'), 'public site should include print/PDF export action');
+            assert.ok(site.includes('@media print'), 'public site should include print CSS');
+            assert.ok(site.includes('@page'), 'print CSS should set A4 page size');
+            assert.ok(site.includes('.no-print'), 'print CSS should hide no-print UI');
+            assert.ok(site.includes('.section-label'), 'section headings should split/hide descriptive labels in print');
+            assert.ok(site.includes('class="section-heading"'), 'sections should use printable split heading structure');
+            assert.ok(!site.includes('optional logo<br>or project graphic'), 'hero placeholder should not be hardcoded');
         });
     });
 

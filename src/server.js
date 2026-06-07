@@ -113,6 +113,71 @@ const SECTION_DISPLAY_NAMES = {
     'projects': 'Featured Projects'
 };
 
+
+const defaultSiteSettings = {
+    siteTitle: "SITE",
+    siteTagline: "self hosted portfolio manager",
+    heroMedia: {
+        enabled: true,
+        imageUrl: "",
+        altText: "Project graphic",
+        placeholderText: "OPTIONAL LOGO OR PROJECT GRAPHIC"
+    },
+    theme: {
+        showGrid: true,
+        showHeroMediaPattern: true,
+        showMetadataPanel: true,
+        showSystemStatus: true,
+        density: "normal"
+    },
+    siteStructure: {
+        mode: "multi-page",
+        singlePageOrder: ["home", "projects", "cv", "contact"],
+        enabledSections: {
+            home: true,
+            projects: true,
+            cv: true,
+            contact: true
+        }
+    }
+};
+
+function parseJsonSetting(value, fallback) {
+    if (value == null || value === '') return fallback;
+    if (typeof value === 'object') return value;
+    try { return JSON.parse(value); } catch { return fallback; }
+}
+
+function mergeSiteSettings(raw = {}) {
+    const heroMedia = { ...defaultSiteSettings.heroMedia, ...parseJsonSetting(raw.heroMedia, {}) };
+    const theme = { ...defaultSiteSettings.theme, ...parseJsonSetting(raw.theme, {}) };
+    if (!['compact', 'normal', 'spacious'].includes(theme.density)) theme.density = 'normal';
+    const rawStructure = parseJsonSetting(raw.siteStructure, {});
+    const siteStructure = {
+        ...defaultSiteSettings.siteStructure,
+        ...rawStructure,
+        enabledSections: {
+            ...defaultSiteSettings.siteStructure.enabledSections,
+            ...(rawStructure.enabledSections || {})
+        }
+    };
+    if (!['multi-page', 'single-page'].includes(siteStructure.mode)) siteStructure.mode = 'multi-page';
+    if (!Array.isArray(siteStructure.singlePageOrder)) siteStructure.singlePageOrder = defaultSiteSettings.siteStructure.singlePageOrder;
+    return {
+        ...raw,
+        siteTitle: raw.siteTitle || raw.site_name || defaultSiteSettings.siteTitle,
+        siteTagline: raw.siteTagline || raw.site_description || defaultSiteSettings.siteTagline,
+        heroMedia,
+        theme,
+        siteStructure
+    };
+}
+
+function stringifySiteSetting(key, value) {
+    if (['heroMedia', 'theme', 'siteStructure'].includes(key)) return JSON.stringify(value || defaultSiteSettings[key]);
+    return value == null ? null : String(value);
+}
+
 const DEFAULT_SECTION_ORDER = ['about', 'timeline', 'experience', 'certifications', 'education', 'skills', 'projects'];
 
 function checkFilesystemAccess(dir) {
@@ -2539,20 +2604,25 @@ if (PUBLIC_ONLY) {
             const rows = db.prepare('SELECT key, value FROM site_settings').all();
             const result = {};
             rows.forEach(r => { result[r.key] = r.value; });
-            res.json(result);
+            res.json(mergeSiteSettings(result));
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
     app.put('/api/site', managerApiRateLimiter, requireAuth, (req, res) => {
         try {
+            const merged = mergeSiteSettings(req.body || {});
             const stmt = db.prepare('INSERT OR REPLACE INTO site_settings (key, value) VALUES (?, ?)');
             const update = db.transaction(() => {
-                for (const [key, value] of Object.entries(req.body)) {
-                    stmt.run(key, value == null ? null : String(value));
+                for (const key of Object.keys(merged)) {
+                    if (key === 'site_name' || key === 'site_description') continue;
+                    stmt.run(key, stringifySiteSetting(key, merged[key]));
                 }
+                // Backward-compatible aliases for older public/admin code and meta descriptions.
+                stmt.run('site_name', merged.siteTitle);
+                stmt.run('site_description', merged.siteTagline);
             });
             update();
-            res.json({ success: true });
+            res.json({ success: true, settings: merged });
         } catch (err) { res.status(500).json({ error: err.message }); }
     });
 
