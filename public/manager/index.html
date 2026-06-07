@@ -136,6 +136,13 @@
     box-shadow:4px 4px 0 var(--admin-ink);
     cursor:pointer;
   }
+
+  button.stamp {
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 0;
+    line-height: inherit;
+  }
   .stamp.primary { background:var(--admin-ink); color:var(--admin-paper); }
   .stamp:hover { transform:translate(1px, 1px); box-shadow:3px 3px 0 var(--admin-ink); }
   .hero-actions { display:flex; flex-wrap:wrap; gap:8px; margin:18px auto 0; }
@@ -977,7 +984,7 @@ button:focus:not(.primary),
 
   <div class="wrap hero-actions" aria-label="admin actions">
     <a class="stamp primary" href="/" target="_blank" rel="noopener">View public site</a>
-    <button class="stamp" type="button" onclick="selectSection('settings')">Site settings</button>
+    <a class="stamp" href="#" role="button" onclick="selectSection('settings'); return false;">Site settings</a>
   </div>
 
   <div class="theme-switcher" aria-label="theme switcher">
@@ -1005,8 +1012,8 @@ button:focus:not(.primary),
 
           <div class="builder-actions">
             <a class="stamp" href="/" target="_blank" rel="noopener">View public site</a>
-            <button class="stamp" type="button" onclick="toggleAddSectionPicker()">Add section</button>
-            <button class="stamp primary" type="button" onclick="savePageSections && savePageSections()">Save page</button>
+            <a class="stamp" href="#" role="button" onclick="toggleAddSectionPicker(); return false;">Add section</a>
+            <a class="stamp primary" href="#" role="button" onclick="savePageSections && savePageSections(); return false;">Save page</a>
           </div>
         </section>
 
@@ -1031,7 +1038,7 @@ button:focus:not(.primary),
                   <h2>Add section</h2>
                   <p>Insert a new section into the current page.</p>
                 </div>
-                <button class="stamp" type="button" onclick="toggleAddSectionPicker()">×</button>
+                <a class="stamp" href="#" role="button" onclick="toggleAddSectionPicker(); return false;">×</a>
               </div>
 
               <div class="builder-add-grid">
@@ -1070,9 +1077,9 @@ button:focus:not(.primary),
                     </div>
                   </div>
 
-                  <button class="stamp primary" type="button" onclick="addSelectedSection ? addSelectedSection() : addPageSection('hero')">
+                  <a class="stamp primary" href="#" role="button" onclick="addSelectedSection ? addSelectedSection() : addPageSection('hero'); return false;">
                     Add selected section
-                  </button>
+                  </a>
                 </section>
               </div>
             </div>

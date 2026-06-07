@@ -257,6 +257,17 @@ describe('Frontend files', () => {
             }
         });
 
+        it('keeps stamp actions visually consistent by avoiding native button chrome', () => {
+            const manager = fs.readFileSync(path.join(ROOT, 'public', 'manager', 'index.html'), 'utf8');
+            const site = fs.readFileSync(path.join(ROOT, 'public-readonly', 'site.html'), 'utf8');
+            assert.ok(manager.includes('button.stamp'), 'admin CSS should explicitly reset button.stamp native chrome for form/compat buttons');
+            assert.ok(site.includes('button.stamp'), 'public CSS should explicitly reset button.stamp native chrome for form/compat buttons');
+            assert.ok(!manager.includes('class="stamp" type="button"'), 'admin non-submit stamp actions should use anchor stamps, not button stamps');
+            assert.ok(!manager.includes('class="stamp primary" type="button"'), 'admin primary non-submit stamp actions should use anchor stamps, not button stamps');
+            assert.ok(!site.includes('class="stamp" type="button"'), 'public non-submit stamp actions should use anchor stamps, not button stamps');
+            assert.ok(manager.includes('class="stamp" href="#" role="button" onclick="toggleAddSectionPicker(); return false;"'), 'Add section should use the same anchor stamp pattern as View public site');
+        });
+
         it('keeps form fields readable on focus without black-filled backgrounds', () => {
             const manager = fs.readFileSync(path.join(ROOT, 'public', 'manager', 'index.html'), 'utf8');
             const site = fs.readFileSync(path.join(ROOT, 'public-readonly', 'site.html'), 'utf8');

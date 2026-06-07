@@ -191,6 +191,12 @@ h1 { margin: 0; max-width: 760px; font-size: var(--hero-size); line-height: .92;
   cursor: pointer;
 }
 .stamp.primary { background: var(--ink); color: var(--paper); box-shadow: 4px 4px 0 var(--green); }
+button.stamp {
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+  line-height: inherit;
+}
 .stamp:hover { transform: translate(1px, 1px); box-shadow: 3px 3px 0 var(--ink); }
 
 .side-sheet { display: grid; grid-template-rows: 112px 1fr auto; background: var(--paper); }
@@ -454,7 +460,7 @@ button:focus:not(.primary),
       <span id="siteDescriptor">self hosted portfolio manager</span>
     </a>
     <nav aria-label="site navigation" id="navLinks"></nav>
-    <div class="topbar-actions no-print"><button class="stamp" type="button" onclick="window.print()">Export PDF</button></div>
+    <div class="topbar-actions no-print"><a class="stamp" href="#" role="button" onclick="window.print(); return false;">Export PDF</a></div>
   </div>
 </header>
 
@@ -646,7 +652,7 @@ function renderHeaderButtons(headerButtons = []) {
     .filter(b => b && b.text && b.url)
     .map(b => `<a class="stamp" href="${escAttr(b.url)}">${escHtml(b.text)}</a>`)
     .join('');
-  actions.innerHTML = `${extra}<button class="stamp" type="button" onclick="window.print()">Export PDF</button>`;
+  actions.innerHTML = `${extra}<a class="stamp" href="#" role="button" onclick="window.print(); return false;">Export PDF</a>`;
 }
 
 async function loadPage(slug) {
